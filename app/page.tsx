@@ -771,8 +771,9 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                                       <span className="font-mono text-signal">{person.fit_score}/100</span>
                                     </div>
                                     <p className="text-ink-muted text-[11px] leading-relaxed italic">
-                                      "{person.fit_score_reasoning || 'Deterministic applicant rubric evaluated.'}"
+                                      &ldquo;{person.fit_score_reasoning || 'Deterministic applicant rubric evaluated.'}&rdquo;
                                     </p>
+
                                   </div>
                                 )}
                               </div>
@@ -917,7 +918,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                           <span className="text-ink-faint">Email:</span> <span className="font-mono text-ink-muted text-[11px]">{canonical?.email_normalized || canonical?.email || 'None'}</span>
                         </div>
                         <div className="pt-1 text-[11px] text-ink-muted italic">
-                          "{canonical?.bio_notes || 'No bio notes'}"
+                          &ldquo;{canonical?.bio_notes || 'No bio notes'}&rdquo;
                         </div>
                       </div>
                     </div>
@@ -942,11 +943,12 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                           <span className="text-ink-faint">Email:</span> <span className="font-mono text-ink-muted text-[11px]">{duplicate.email_normalized || duplicate.email || 'None'}</span>
                         </div>
                         <div className="pt-1 text-[11px] text-ink-muted italic">
-                          "{duplicate.bio_notes || 'No bio notes'}"
+                          &ldquo;{duplicate.bio_notes || 'No bio notes'}&rdquo;
                         </div>
                       </div>
                     </div>
                   </div>
+
 
                   {/* AI Reasoning Strip */}
                   <div className="p-2.5 bg-surface-muted rounded text-xs text-ink-muted flex items-start gap-2 font-mono text-[11px]">
@@ -1090,7 +1092,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                         </button>
                       </div>
                       <p className="text-xs text-ink italic font-serif leading-relaxed">
-                        "{intro.suggested_intro}"
+                        &ldquo;{intro.suggested_intro}&rdquo;
                       </p>
                     </div>
 
@@ -1140,10 +1142,11 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   <span className="text-base font-mono font-bold text-signal">{selectedPerson.fit_score}/100</span>
                 </div>
                 <p className="text-ink text-[11px] leading-relaxed italic">
-                  "{selectedPerson.fit_score_reasoning}"
+                  &ldquo;{selectedPerson.fit_score_reasoning}&rdquo;
                 </p>
               </div>
             )}
+
 
             {/* Bio Notes */}
             <div className="space-y-1">

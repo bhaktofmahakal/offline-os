@@ -263,9 +263,10 @@ export default function ApplyPage() {
 
               {result.fit_score_reasoning && (
                 <div className="p-3 bg-[#FFFDF9] border border-[#E0DCD1] rounded text-[11px] text-[#1E201E] italic leading-relaxed">
-                  "{result.fit_score_reasoning}"
+                  &ldquo;{result.fit_score_reasoning}&rdquo;
                 </div>
               )}
+
 
               {result.top_introductions && result.top_introductions.length > 0 && (
                 <div className="space-y-2 pt-2">
