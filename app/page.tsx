@@ -34,7 +34,11 @@ import {
   X,
   Play,
   CheckCircle,
-  Menu
+  Menu,
+  Edit2,
+  Trash2,
+  Save,
+  UserPlus
 } from 'lucide-react';
 
 interface Person {
@@ -97,6 +101,28 @@ export default function OfflineCRM() {
   // Mobile drawer & responsive states
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  // CRUD: Edit Member in Drawer state
+  const [isEditingMember, setIsEditingMember] = useState(false);
+  const [editFormData, setEditFormData] = useState<Partial<Person>>({});
+  const [sectorTagsInput, setSectorTagsInput] = useState('');
+  const [savingMember, setSavingMember] = useState(false);
+  const [deletingMember, setDeletingMember] = useState(false);
+
+  // CRUD: Add New Member Modal State
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [creatingMember, setCreatingMember] = useState(false);
+  const [newMemberForm, setNewMemberForm] = useState({
+    name: '',
+    email: '',
+    company: '',
+    role_title: '',
+    bio_notes: '',
+    role_type: 'founder',
+    seniority: 'executive',
+    sector_tags: 'ai, infra',
+    fit_score: '85',
+  });
 
   // Airtable Batch Import Modal State
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -319,6 +345,150 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       });
     } catch (err) {
       console.error('Error dismissing duplicate flag:', err);
+    }
+  };
+
+  // CRUD: Open Edit Mode in Drawer
+  const handleStartEditMember = () => {
+    if (!selectedPerson) return;
+    setEditFormData({ ...selectedPerson });
+    setSectorTagsInput((selectedPerson.sector_tags || []).join(', '));
+    setIsEditingMember(true);
+  };
+
+  // CRUD: Save Edited Member to Supabase
+  const handleSaveEditedMember = async () => {
+    if (!selectedPerson || !editFormData.name?.trim()) {
+      alert('Member name is required.');
+      return;
+    }
+
+    setSavingMember(true);
+    try {
+      const parsedSectors = sectorTagsInput
+        .split(',')
+        .map(s => s.trim().toLowerCase())
+        .filter(s => s.length > 0);
+
+      const payload = {
+        id: selectedPerson.id,
+        name: editFormData.name.trim(),
+        email: editFormData.email?.trim() || null,
+        company: editFormData.company?.trim() || null,
+        role_title: editFormData.role_title?.trim() || null,
+        bio_notes: editFormData.bio_notes?.trim() || null,
+        role_type: editFormData.role_type || 'founder',
+        seniority: editFormData.seniority || 'senior',
+        sector_tags: parsedSectors,
+        fit_score: editFormData.fit_score !== undefined ? Number(editFormData.fit_score) : null,
+      };
+
+      const res = await fetch('/api/people', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error('Failed to update record in database');
+
+      const data = await res.json();
+      const updatedRecord = data.updated?.[0] || { ...selectedPerson, ...payload };
+
+      // Update local state instantly
+      setSelectedPerson(updatedRecord);
+      setPeople(prev => prev.map(p => (p.id === selectedPerson.id ? updatedRecord : p)));
+      setIsEditingMember(false);
+    } catch (err: any) {
+      console.error('Error saving member changes:', err);
+      alert('Error updating record: ' + err.message);
+    } finally {
+      setSavingMember(false);
+    }
+  };
+
+  // CRUD: Delete Member from Supabase
+  const handleDeleteMember = async (id: number) => {
+    if (!confirm('Are you sure you want to permanently delete this member record from Supabase?')) {
+      return;
+    }
+
+    setDeletingMember(true);
+    try {
+      const res = await fetch(`/api/people?id=${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) throw new Error('Failed to delete member');
+
+      setPeople(prev => prev.filter(p => p.id !== id));
+      setSelectedPerson(null);
+      setIsEditingMember(false);
+    } catch (err: any) {
+      console.error('Error deleting member:', err);
+      alert('Error deleting member: ' + err.message);
+    } finally {
+      setDeletingMember(false);
+    }
+  };
+
+  // CRUD: Create New Member directly in Supabase
+  const handleCreateNewMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMemberForm.name.trim()) {
+      alert('Member name is required.');
+      return;
+    }
+
+    setCreatingMember(true);
+    try {
+      const parsedSectors = newMemberForm.sector_tags
+        .split(',')
+        .map(s => s.trim().toLowerCase())
+        .filter(s => s.length > 0);
+
+      const payload = {
+        name: newMemberForm.name.trim(),
+        email: newMemberForm.email.trim() || null,
+        company: newMemberForm.company.trim() || null,
+        role_title: newMemberForm.role_title.trim() || null,
+        bio_notes: newMemberForm.bio_notes.trim() || null,
+        role_type: newMemberForm.role_type,
+        seniority: newMemberForm.seniority,
+        sector_tags: parsedSectors,
+        fit_score: newMemberForm.fit_score ? Number(newMemberForm.fit_score) : 80,
+      };
+
+      const res = await fetch('/api/people', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error('Failed to create member in database');
+
+      const data = await res.json();
+      if (data.member) {
+        setPeople(prev => [data.member, ...prev]);
+        setSelectedPerson(data.member);
+      }
+
+      setIsAddModalOpen(false);
+      setNewMemberForm({
+        name: '',
+        email: '',
+        company: '',
+        role_title: '',
+        bio_notes: '',
+        role_type: 'founder',
+        seniority: 'executive',
+        sector_tags: 'ai, infra',
+        fit_score: '85',
+      });
+    } catch (err: any) {
+      console.error('Error creating member:', err);
+      alert('Error creating member: ' + err.message);
+    } finally {
+      setCreatingMember(false);
     }
   };
 
@@ -602,6 +772,18 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            {/* CRUD: Add Member Button */}
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="min-h-[40px] px-3 text-xs bg-signal text-surface font-medium hover:bg-signal/90 rounded flex items-center gap-1.5 transition-colors shadow-sm"
+              title="Manually create a new member record in CRM"
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Add Member</span>
+              <span className="sm:hidden">Add</span>
+            </button>
+
+            {/* Ingest Airtable / CSV */}
             <button
               onClick={() => setIsImportModalOpen(true)}
               className="min-h-[40px] px-3 text-xs bg-surface-raised border border-line hover:border-signal/50 text-ink font-medium rounded flex items-center gap-1.5 transition-colors shadow-sm"
@@ -611,15 +793,17 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
               <span className="hidden sm:inline">Import Airtable / CSV</span>
               <span className="sm:hidden">Import CSV</span>
             </button>
+
             <Link
               href="/apply"
               target="_blank"
-              className="min-h-[40px] px-3 text-xs bg-signal text-surface font-medium hover:bg-signal/90 rounded flex items-center gap-1.5 transition-colors shadow-sm"
+              className="min-h-[40px] px-3 text-xs bg-surface-raised border border-line text-ink hover:bg-surface-muted font-medium rounded flex items-center gap-1.5 transition-colors"
             >
-              <span className="hidden sm:inline">Public Apply Form</span>
+              <span className="hidden sm:inline">Public Apply</span>
               <span className="sm:hidden">Apply</span>
-              <ExternalLink className="w-3 h-3" />
+              <ExternalLink className="w-3 h-3 text-ink-muted" />
             </Link>
+
             <button
               onClick={fetchData}
               disabled={refreshing}
@@ -835,7 +1019,10 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                       return (
                         <tr
                           key={person.id}
-                          onClick={() => setSelectedPerson(person)}
+                          onClick={() => {
+                            setSelectedPerson(person);
+                            setIsEditingMember(false);
+                          }}
                           className="hover:bg-surface-raised transition-colors cursor-pointer group"
                         >
                           <td className="py-3 px-4 font-mono text-ink-muted text-[11px]">#{person.id}</td>
@@ -939,6 +1126,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedPerson(person);
+                                setIsEditingMember(false);
                               }}
                               className="text-xs text-ink-muted hover:text-ink font-medium inline-flex items-center gap-1 px-2 py-1 rounded hover:bg-surface-raised border border-transparent hover:border-line"
                             >
@@ -969,7 +1157,10 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   return (
                     <div
                       key={person.id}
-                      onClick={() => setSelectedPerson(person)}
+                      onClick={() => {
+                        setSelectedPerson(person);
+                        setIsEditingMember(false);
+                      }}
                       className="bg-surface border border-line rounded-lg p-4 shadow-sm space-y-3 active:scale-[0.99] transition-transform"
                     >
                       <div className="flex items-start justify-between gap-2">
@@ -1042,6 +1233,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedPerson(person);
+                            setIsEditingMember(false);
                           }}
                           className="min-h-[44px] px-3 text-xs text-signal font-medium inline-flex items-center gap-1 hover:underline"
                         >
@@ -1356,133 +1548,456 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
         )}
       </main>
 
-      {/* 3. DETAIL DRAWER (Responsive: Fullscreen on mobile, 96 width on desktop) */}
+      {/* 3. DETAIL DRAWER (With Real-Time CRUD: Edit & Delete Member) */}
       {selectedPerson && (
         <div className="fixed inset-0 z-40 flex justify-end">
           <div
             className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
-            onClick={() => setSelectedPerson(null)}
+            onClick={() => {
+              setSelectedPerson(null);
+              setIsEditingMember(false);
+            }}
           />
           <aside className="relative w-full sm:w-96 border-l border-line bg-surface flex flex-col justify-between h-full shadow-2xl z-10 animate-in slide-in-from-right duration-200">
-            <div className="p-4 sm:p-5 border-b border-line flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-ink">Member Details</h3>
-              <button
-                onClick={() => setSelectedPerson(null)}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded hover:bg-surface-muted text-ink-muted hover:text-ink"
-                aria-label="Close details drawer"
-              >
-                <XCircle className="w-5 h-5" />
-              </button>
+            {/* Drawer Top Header */}
+            <div className="p-4 sm:p-5 border-b border-line flex items-center justify-between bg-surface-raised">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-ink">
+                  {isEditingMember ? 'Edit Member Record' : 'Member Details'}
+                </h3>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface border border-line text-ink-muted">
+                  #{selectedPerson.id}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                {!isEditingMember && (
+                  <button
+                    onClick={handleStartEditMember}
+                    className="h-8 px-2.5 text-xs bg-surface border border-line hover:border-signal/50 text-ink font-medium rounded flex items-center gap-1 transition-colors"
+                    title="Edit member details, role, tags, fit score"
+                  >
+                    <Edit2 className="w-3.5 h-3.5 text-signal" />
+                    <span>Edit</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    setSelectedPerson(null);
+                    setIsEditingMember(false);
+                  }}
+                  className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded hover:bg-surface-muted text-ink-muted hover:text-ink"
+                  aria-label="Close details drawer"
+                >
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
+            {/* Drawer Content */}
             <div className="flex-1 overflow-auto p-4 sm:p-5 space-y-5 text-xs">
-              {/* Header Identity */}
-              <div>
-                <h2 className="text-base font-bold text-ink">{selectedPerson.name}</h2>
-                <div className="text-ink-muted mt-0.5">
-                  {selectedPerson.role_title} at <strong className="text-ink">{selectedPerson.company || 'Independent'}</strong>
-                </div>
-                <div className="font-mono text-[11px] text-ink-faint mt-1 break-all">
-                  {selectedPerson.email_normalized || selectedPerson.email || 'No email provided'}
-                </div>
-              </div>
-
-              {/* Fit Score & Reasoning */}
-              {selectedPerson.fit_score !== null && (
-                <div className="p-3.5 bg-signal-soft/30 border border-signal/30 rounded space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono font-semibold text-signal uppercase text-[11px]">Applicant Fit Score</span>
-                    <span className="text-base font-mono font-bold text-signal">{selectedPerson.fit_score}/100</span>
+              {isEditingMember ? (
+                /* EDIT FORM IN DRAWER */
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[11px] font-mono text-ink-muted block mb-1">Full Name *</label>
+                    <input
+                      type="text"
+                      value={editFormData.name || ''}
+                      onChange={e => setEditFormData({ ...editFormData, name: e.target.value })}
+                      className="w-full h-8 px-2.5 text-xs bg-surface-raised border border-line rounded text-ink focus:outline-none focus:ring-1 focus:ring-signal"
+                    />
                   </div>
-                  <p className="text-ink text-[11px] leading-relaxed italic">
-                    &ldquo;{selectedPerson.fit_score_reasoning}&rdquo;
-                  </p>
+
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="text-[11px] font-mono text-ink-muted block mb-1">Company</label>
+                      <input
+                        type="text"
+                        value={editFormData.company || ''}
+                        onChange={e => setEditFormData({ ...editFormData, company: e.target.value })}
+                        className="w-full h-8 px-2.5 text-xs bg-surface-raised border border-line rounded text-ink focus:outline-none focus:ring-1 focus:ring-signal"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-mono text-ink-muted block mb-1">Role Title</label>
+                      <input
+                        type="text"
+                        value={editFormData.role_title || ''}
+                        onChange={e => setEditFormData({ ...editFormData, role_title: e.target.value })}
+                        className="w-full h-8 px-2.5 text-xs bg-surface-raised border border-line rounded text-ink focus:outline-none focus:ring-1 focus:ring-signal"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-mono text-ink-muted block mb-1">Email Address</label>
+                    <input
+                      type="email"
+                      value={editFormData.email || ''}
+                      onChange={e => setEditFormData({ ...editFormData, email: e.target.value })}
+                      className="w-full h-8 px-2.5 text-xs bg-surface-raised border border-line rounded text-ink focus:outline-none focus:ring-1 focus:ring-signal font-mono text-[11px]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="text-[11px] font-mono text-ink-muted block mb-1">Role Type</label>
+                      <select
+                        value={editFormData.role_type || 'founder'}
+                        onChange={e => setEditFormData({ ...editFormData, role_type: e.target.value })}
+                        className="w-full h-8 px-2 text-xs bg-surface-raised border border-line rounded text-ink"
+                      >
+                        <option value="founder">Founder</option>
+                        <option value="operator">Operator</option>
+                        <option value="investor">Investor</option>
+                        <option value="researcher">Researcher</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-mono text-ink-muted block mb-1">Seniority</label>
+                      <select
+                        value={editFormData.seniority || 'senior'}
+                        onChange={e => setEditFormData({ ...editFormData, seniority: e.target.value })}
+                        className="w-full h-8 px-2 text-xs bg-surface-raised border border-line rounded text-ink"
+                      >
+                        <option value="executive">Executive</option>
+                        <option value="senior">Senior</option>
+                        <option value="mid">Mid-level</option>
+                        <option value="junior">Junior</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-mono text-ink-muted block mb-1">Fit Score (0 - 100)</label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={editFormData.fit_score !== undefined && editFormData.fit_score !== null ? editFormData.fit_score : ''}
+                      onChange={e => setEditFormData({ ...editFormData, fit_score: Number(e.target.value) })}
+                      className="w-full h-8 px-2.5 text-xs bg-surface-raised border border-line rounded text-ink font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-mono text-ink-muted block mb-1">Sector Tags (comma separated)</label>
+                    <input
+                      type="text"
+                      value={sectorTagsInput}
+                      onChange={e => setSectorTagsInput(e.target.value)}
+                      placeholder="e.g. ai, genomics, climate"
+                      className="w-full h-8 px-2.5 text-xs bg-surface-raised border border-line rounded text-ink"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-mono text-ink-muted block mb-1">Bio & Operator Notes</label>
+                    <textarea
+                      rows={4}
+                      value={editFormData.bio_notes || ''}
+                      onChange={e => setEditFormData({ ...editFormData, bio_notes: e.target.value })}
+                      className="w-full p-2.5 text-xs bg-surface-raised border border-line rounded text-ink leading-relaxed"
+                    />
+                  </div>
                 </div>
+              ) : (
+                /* READ-ONLY VIEW IN DRAWER */
+                <>
+                  {/* Header Identity */}
+                  <div>
+                    <h2 className="text-base font-bold text-ink">{selectedPerson.name}</h2>
+                    <div className="text-ink-muted mt-0.5">
+                      {selectedPerson.role_title} at <strong className="text-ink">{selectedPerson.company || 'Independent'}</strong>
+                    </div>
+                    <div className="font-mono text-[11px] text-ink-faint mt-1 break-all">
+                      {selectedPerson.email_normalized || selectedPerson.email || 'No email provided'}
+                    </div>
+                  </div>
+
+                  {/* Fit Score & Reasoning */}
+                  {selectedPerson.fit_score !== null && (
+                    <div className="p-3.5 bg-signal-soft/30 border border-signal/30 rounded space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono font-semibold text-signal uppercase text-[11px]">Applicant Fit Score</span>
+                        <span className="text-base font-mono font-bold text-signal">{selectedPerson.fit_score}/100</span>
+                      </div>
+                      <p className="text-ink text-[11px] leading-relaxed italic">
+                        &ldquo;{selectedPerson.fit_score_reasoning}&rdquo;
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Bio Notes */}
+                  <div className="space-y-1">
+                    <span className="font-mono text-[11px] uppercase text-ink-muted">Bio & Operator Notes</span>
+                    <p className="p-3 bg-surface-muted/60 border border-line rounded text-ink leading-relaxed">
+                      {selectedPerson.bio_notes || <span className="italic text-ink-faint">No bio notes supplied.</span>}
+                    </p>
+                  </div>
+
+                  {/* Classification Taxonomy */}
+                  <div className="space-y-2">
+                    <span className="font-mono text-[11px] uppercase text-ink-muted">Taxonomy & Classification</span>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="p-2.5 bg-surface-muted/40 border border-line rounded">
+                        <div className="text-ink-faint text-[10px] font-mono uppercase">Role Type</div>
+                        <div className="font-semibold text-ink capitalize">{selectedPerson.role_type || 'Unclassified'}</div>
+                      </div>
+                      <div className="p-2.5 bg-surface-muted/40 border border-line rounded">
+                        <div className="text-ink-faint text-[10px] font-mono uppercase">Seniority</div>
+                        <div className="font-semibold text-ink capitalize">{selectedPerson.seniority || 'Unclassified'}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sector Tags */}
+                  <div className="space-y-1.5">
+                    <span className="font-mono text-[11px] uppercase text-ink-muted">Sector Tags</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedPerson.sector_tags && selectedPerson.sector_tags.length > 0 ? (
+                        selectedPerson.sector_tags.map((tag, tIdx) => (
+                          <span
+                            key={tIdx}
+                            className="px-2 py-0.5 rounded text-xs font-mono bg-surface-muted text-ink border border-line"
+                          >
+                            #{tag}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-ink-faint italic">No sectors assigned.</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Community Fit Tags */}
+                  <div className="space-y-1.5">
+                    <span className="font-mono text-[11px] uppercase text-ink-muted">Community Fit Tags</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedPerson.community_fit_tags && selectedPerson.community_fit_tags.length > 0 ? (
+                        selectedPerson.community_fit_tags.map((tag, tIdx) => (
+                          <span
+                            key={tIdx}
+                            className="px-2 py-0.5 rounded text-xs font-mono bg-signal-soft text-signal border border-signal/30"
+                          >
+                            {tag}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-ink-faint italic">No fit tags.</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* System Metadata */}
+                  <div className="pt-3 border-t border-line space-y-1 text-[11px] font-mono text-ink-muted">
+                    <div>Source: {selectedPerson.source}</div>
+                    <div>Record ID: {selectedPerson.source_record_id || `rec_${selectedPerson.id}`}</div>
+                    <div>Enrichment: {selectedPerson.ai_enrichment_status}</div>
+                  </div>
+                </>
               )}
-
-              {/* Bio Notes */}
-              <div className="space-y-1">
-                <span className="font-mono text-[11px] uppercase text-ink-muted">Bio & Operator Notes</span>
-                <p className="p-3 bg-surface-muted/60 border border-line rounded text-ink leading-relaxed">
-                  {selectedPerson.bio_notes || <span className="italic text-ink-faint">No bio notes supplied.</span>}
-                </p>
-              </div>
-
-              {/* Classification Taxonomy */}
-              <div className="space-y-2">
-                <span className="font-mono text-[11px] uppercase text-ink-muted">Taxonomy & Classification</span>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="p-2.5 bg-surface-muted/40 border border-line rounded">
-                    <div className="text-ink-faint text-[10px] font-mono uppercase">Role Type</div>
-                    <div className="font-semibold text-ink capitalize">{selectedPerson.role_type || 'Unclassified'}</div>
-                  </div>
-                  <div className="p-2.5 bg-surface-muted/40 border border-line rounded">
-                    <div className="text-ink-faint text-[10px] font-mono uppercase">Seniority</div>
-                    <div className="font-semibold text-ink capitalize">{selectedPerson.seniority || 'Unclassified'}</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Sector Tags */}
-              <div className="space-y-1.5">
-                <span className="font-mono text-[11px] uppercase text-ink-muted">Sector Tags</span>
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedPerson.sector_tags && selectedPerson.sector_tags.length > 0 ? (
-                    selectedPerson.sector_tags.map((tag, tIdx) => (
-                      <span
-                        key={tIdx}
-                        className="px-2 py-0.5 rounded text-xs font-mono bg-surface-muted text-ink border border-line"
-                      >
-                        #{tag}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-ink-faint italic">No sectors assigned.</span>
-                  )}
-                </div>
-              </div>
-
-              {/* Community Fit Tags */}
-              <div className="space-y-1.5">
-                <span className="font-mono text-[11px] uppercase text-ink-muted">Community Fit Tags</span>
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedPerson.community_fit_tags && selectedPerson.community_fit_tags.length > 0 ? (
-                    selectedPerson.community_fit_tags.map((tag, tIdx) => (
-                      <span
-                        key={tIdx}
-                        className="px-2 py-0.5 rounded text-xs font-mono bg-signal-soft text-signal border border-signal/30"
-                      >
-                        {tag}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-ink-faint italic">No fit tags.</span>
-                  )}
-                </div>
-              </div>
-
-              {/* System Metadata */}
-              <div className="pt-3 border-t border-line space-y-1 text-[11px] font-mono text-ink-muted">
-                <div>Source: {selectedPerson.source}</div>
-                <div>Record ID: {selectedPerson.source_record_id || `rec_${selectedPerson.id}`}</div>
-                <div>Enrichment: {selectedPerson.ai_enrichment_status}</div>
-              </div>
             </div>
 
-            <div className="p-4 border-t border-line bg-surface-raised flex items-center justify-between">
-              <span className="text-[11px] font-mono text-ink-muted">Person ID: #{selectedPerson.id}</span>
-              <button
-                onClick={() => setSelectedPerson(null)}
-                className="min-h-[44px] px-4 py-1.5 text-xs rounded bg-surface border border-line text-ink hover:bg-surface-muted"
-              >
-                Close Drawer
-              </button>
+            {/* Drawer Footer Actions */}
+            <div className="p-4 border-t border-line bg-surface-raised flex items-center justify-between gap-2">
+              {isEditingMember ? (
+                <>
+                  <button
+                    onClick={() => setIsEditingMember(false)}
+                    disabled={savingMember}
+                    className="min-h-[44px] px-3 text-xs rounded bg-surface border border-line text-ink hover:bg-surface-muted transition-colors disabled:opacity-40"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveEditedMember}
+                    disabled={savingMember}
+                    className="min-h-[44px] px-4 text-xs rounded bg-signal text-surface font-semibold hover:bg-signal/90 flex items-center gap-1.5 shadow-sm disabled:opacity-40"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    <span>{savingMember ? 'Saving...' : 'Save Changes'}</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => handleDeleteMember(selectedPerson.id)}
+                    disabled={deletingMember}
+                    className="min-h-[44px] px-3 text-xs rounded text-danger hover:bg-danger-soft/40 border border-danger/30 flex items-center gap-1 transition-colors"
+                    title="Delete member record from database"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Delete</span>
+                  </button>
+                  <button
+                    onClick={() => setSelectedPerson(null)}
+                    className="min-h-[44px] px-4 py-1.5 text-xs rounded bg-surface border border-line text-ink hover:bg-surface-muted"
+                  >
+                    Close Drawer
+                  </button>
+                </>
+              )}
             </div>
           </aside>
         </div>
       )}
 
-      {/* 4. BATCH AIRTABLE / CSV IMPORT MODAL */}
+      {/* 4. CRUD: ADD NEW MEMBER MODAL */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-surface border border-line rounded-xl w-full max-w-lg max-h-[92vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-150">
+            <div className="p-4 sm:p-5 border-b border-line flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-signal-soft flex items-center justify-center text-signal">
+                  <UserPlus className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-semibold text-ink">Add New Community Member</h3>
+                  <p className="text-xs text-ink-muted">Create a verified member record directly in Supabase CRM</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsAddModalOpen(false)}
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded hover:bg-surface-muted text-ink-muted hover:text-ink"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateNewMember} className="p-4 sm:p-6 overflow-y-auto space-y-3.5 text-xs">
+              <div>
+                <label className="text-[11px] font-mono text-ink-muted block mb-1">Full Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Dr. Alistair Vance"
+                  value={newMemberForm.name}
+                  onChange={e => setNewMemberForm({ ...newMemberForm, name: e.target.value })}
+                  className="w-full h-8 px-2.5 text-xs bg-surface-raised border border-line rounded text-ink focus:outline-none focus:ring-1 focus:ring-signal"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label className="text-[11px] font-mono text-ink-muted block mb-1">Company</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Helix AI Labs"
+                    value={newMemberForm.company}
+                    onChange={e => setNewMemberForm({ ...newMemberForm, company: e.target.value })}
+                    className="w-full h-8 px-2.5 text-xs bg-surface-raised border border-line rounded text-ink focus:outline-none focus:ring-1 focus:ring-signal"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-mono text-ink-muted block mb-1">Role Title</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Co-Founder & CTO"
+                    value={newMemberForm.role_title}
+                    onChange={e => setNewMemberForm({ ...newMemberForm, role_title: e.target.value })}
+                    className="w-full h-8 px-2.5 text-xs bg-surface-raised border border-line rounded text-ink focus:outline-none focus:ring-1 focus:ring-signal"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-mono text-ink-muted block mb-1">Email Address</label>
+                <input
+                  type="email"
+                  placeholder="e.g. alistair@helixai.tech"
+                  value={newMemberForm.email}
+                  onChange={e => setNewMemberForm({ ...newMemberForm, email: e.target.value })}
+                  className="w-full h-8 px-2.5 text-xs bg-surface-raised border border-line rounded text-ink font-mono text-[11px]"
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-2.5">
+                <div>
+                  <label className="text-[11px] font-mono text-ink-muted block mb-1">Role Type</label>
+                  <select
+                    value={newMemberForm.role_type}
+                    onChange={e => setNewMemberForm({ ...newMemberForm, role_type: e.target.value })}
+                    className="w-full h-8 px-2 text-xs bg-surface-raised border border-line rounded text-ink"
+                  >
+                    <option value="founder">Founder</option>
+                    <option value="operator">Operator</option>
+                    <option value="investor">Investor</option>
+                    <option value="researcher">Researcher</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[11px] font-mono text-ink-muted block mb-1">Seniority</label>
+                  <select
+                    value={newMemberForm.seniority}
+                    onChange={e => setNewMemberForm({ ...newMemberForm, seniority: e.target.value })}
+                    className="w-full h-8 px-2 text-xs bg-surface-raised border border-line rounded text-ink"
+                  >
+                    <option value="executive">Executive</option>
+                    <option value="senior">Senior</option>
+                    <option value="mid">Mid-level</option>
+                    <option value="junior">Junior</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[11px] font-mono text-ink-muted block mb-1">Fit Score</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={newMemberForm.fit_score}
+                    onChange={e => setNewMemberForm({ ...newMemberForm, fit_score: e.target.value })}
+                    className="w-full h-8 px-2 text-xs bg-surface-raised border border-line rounded text-ink font-mono"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-mono text-ink-muted block mb-1">Sector Tags (comma separated)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. ai, synthetic biology, infra"
+                  value={newMemberForm.sector_tags}
+                  onChange={e => setNewMemberForm({ ...newMemberForm, sector_tags: e.target.value })}
+                  className="w-full h-8 px-2.5 text-xs bg-surface-raised border border-line rounded text-ink"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-mono text-ink-muted block mb-1">Bio & Operator Notes</label>
+                <textarea
+                  rows={3}
+                  placeholder="Summary of experience, technical background, what they are building..."
+                  value={newMemberForm.bio_notes}
+                  onChange={e => setNewMemberForm({ ...newMemberForm, bio_notes: e.target.value })}
+                  className="w-full p-2.5 text-xs bg-surface-raised border border-line rounded text-ink leading-relaxed"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-line">
+                <button
+                  type="button"
+                  onClick={() => setIsAddModalOpen(false)}
+                  disabled={creatingMember}
+                  className="min-h-[44px] px-4 text-xs rounded border border-line text-ink hover:bg-surface-muted"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={creatingMember}
+                  className="min-h-[44px] px-5 text-xs rounded bg-signal text-surface font-semibold hover:bg-signal/90 flex items-center gap-1.5 shadow-sm disabled:opacity-40"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>{creatingMember ? 'Saving...' : 'Add Member'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 5. BATCH AIRTABLE / CSV IMPORT MODAL */}
       {isImportModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
           <div className="bg-surface border border-line rounded-xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-150">
