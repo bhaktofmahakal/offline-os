@@ -71,8 +71,11 @@ export default function OfflineCRM() {
   const [people, setPeople] = useState<Person[]>([]);
   const [introductions, setIntroductions] = useState<Introduction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'people' | 'duplicates' | 'intros' | 'automation'>('people');
+  const [activeTab, setActiveTab] = useState<'people' | 'duplicates' | 'intros'>('people');
   const [searchQuery, setSearchQuery] = useState('');
+
+
+
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [sectorFilter, setSectorFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -280,28 +283,11 @@ export default function OfflineCRM() {
                 {introductions.length}
               </span>
             </button>
-
-            <div className="pt-4 px-3 py-1.5 text-[11px] font-mono uppercase tracking-wider text-ink-muted">
-              System
-            </div>
-            <button
-              onClick={() => setActiveTab('automation')}
-              className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded transition-colors ${
-                activeTab === 'automation'
-                  ? 'bg-signal-soft text-ink font-semibold border-l-2 border-signal'
-                  : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <Activity className="w-4 h-4 text-info" />
-                <span>Webhooks & Ingest</span>
-              </div>
-              <span className="w-2 h-2 rounded-full bg-signal"></span>
-            </button>
           </div>
         </div>
 
         {/* Footer Meta & Theme Switcher */}
+
         <div className="p-3 border-t border-line space-y-2">
           <div className="flex items-center justify-between px-3 py-1.5 text-xs text-ink-muted font-mono">
             <span className="flex items-center gap-1.5">
@@ -886,62 +872,8 @@ export default function OfflineCRM() {
             </div>
           </div>
         )}
-
-        {/* TAB 4: AUTOMATION & PIPELINE STATUS */}
-        {activeTab === 'automation' && (
-          <div className="flex-1 overflow-auto p-6 bg-canvas space-y-6">
-            <div>
-              <h2 className="text-lg font-semibold text-ink">Automation & Ingest Pipeline</h2>
-              <p className="text-xs text-ink-muted mt-0.5">
-                Overview of the multi-stage ingestion pipeline, n8n webhook triggers, and disk caching stats.
-              </p>
-            </div>
-
-            {/* Architecture Pipeline Map */}
-            <div className="bg-surface border border-line rounded-lg p-5 space-y-4">
-              <h3 className="text-xs font-mono font-semibold uppercase text-ink-muted">5-Stage Execution Sequence</h3>
-              <div className="grid grid-cols-5 gap-3 text-xs">
-                <div className="p-3 bg-surface-raised border border-line rounded space-y-1">
-                  <div className="font-mono text-[10px] text-signal font-bold">STAGE 1</div>
-                  <div className="font-semibold text-ink">clean.py</div>
-                  <p className="text-[11px] text-ink-muted">Deterministic casing, email standardization, missing fields audit.</p>
-                </div>
-                <div className="p-3 bg-surface-raised border border-line rounded space-y-1">
-                  <div className="font-mono text-[10px] text-signal font-bold">STAGE 2</div>
-                  <div className="font-semibold text-ink">dedupe.py</div>
-                  <p className="text-[11px] text-ink-muted">RapidFuzz composite scoring + Gemini for ambiguous pairs.</p>
-                </div>
-                <div className="p-3 bg-surface-raised border border-line rounded space-y-1">
-                  <div className="font-mono text-[10px] text-signal font-bold">STAGE 3</div>
-                  <div className="font-semibold text-ink">enrich_classify.py</div>
-                  <p className="text-[11px] text-ink-muted">Structured Pydantic JSON classification (role, seniority, tags).</p>
-                </div>
-                <div className="p-3 bg-surface-raised border border-line rounded space-y-1">
-                  <div className="font-mono text-[10px] text-signal font-bold">STAGE 4</div>
-                  <div className="font-semibold text-ink">fit_score.py</div>
-                  <p className="text-[11px] text-ink-muted">Deterministic 100-pt rubric + Gemini explainability reasoning.</p>
-                </div>
-                <div className="p-3 bg-surface-raised border border-line rounded space-y-1">
-                  <div className="font-mono text-[10px] text-signal font-bold">STAGE 5</div>
-                  <div className="font-semibold text-ink">intro_match.py</div>
-                  <p className="text-[11px] text-ink-muted">768-dim embeddings + cosine similarity + AI synergy rationales.</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Webhook Endpoint & n8n Guide */}
-            <div className="bg-surface border border-line rounded-lg p-5 space-y-4">
-              <h3 className="text-xs font-mono font-semibold uppercase text-ink-muted">Live Webhook Endpoint</h3>
-              <div className="p-3 bg-canvas border border-line rounded font-mono text-xs text-ink space-y-2">
-                <div className="text-signal font-bold">POST http://localhost:8000/process-new-record</div>
-                <div className="text-ink-muted text-[11px]">
-                  Configured in <code className="text-ink">n8n/offline-crm-pipeline.json</code> for instant applicant ingestion, dedupe flagging, and Slack notifications.
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </main>
+
 
       {/* 3. DETAIL DRAWER (When a Person is Selected) */}
       {selectedPerson && (
