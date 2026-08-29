@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET() {
   try {
@@ -9,7 +10,8 @@ export async function GET() {
     const { data: intros, error: introErr } = await supabase
       .from('introductions')
       .select('*')
-      .order('match_score', { ascending: false });
+      .order('id', { ascending: false })
+      .range(0, 999);
 
     if (introErr) {
       return NextResponse.json({ error: introErr.message }, { status: 500 });
@@ -18,7 +20,8 @@ export async function GET() {
     // Fetch people to map person_a_id and person_b_id
     const { data: people } = await supabase
       .from('people')
-      .select('id, source_record_id, name, company, role_title, role_type, seniority, sector_tags, community_fit_tags');
+      .select('id, source_record_id, name, company, role_title, role_type, seniority, sector_tags, community_fit_tags')
+      .range(0, 999);
 
     const peopleById = new Map((people || []).map((p) => [p.id, p]));
 
@@ -32,11 +35,19 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ introductions: enrichedIntros });
+    return NextResponse.json(
+      { introductions: enrichedIntros },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
+        },
+      }
+    );
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+
 
 export async function PATCH(request: Request) {
   try {
