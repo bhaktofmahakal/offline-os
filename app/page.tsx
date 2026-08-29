@@ -263,6 +263,48 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
     }
   };
 
+  // Live Merge duplicate in Supabase
+  const handleMergeDuplicate = async (dupId: number, canonicalId: number) => {
+    try {
+      setPeople(prev =>
+        prev.map(p => (p.id === dupId ? { ...p, is_duplicate_of: canonicalId, duplicate_confidence: 1.0 } : p))
+      );
+      await fetch('/api/people', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: dupId, is_duplicate_of: canonicalId, duplicate_confidence: 1.0 })
+      });
+    } catch (err) {
+      console.error('Error merging duplicate record:', err);
+    }
+  };
+
+  // Live Dismiss duplicate flag in Supabase (promotes to Canonical)
+  const handleDismissDuplicate = async (dupId: number) => {
+    try {
+      setPeople(prev =>
+        prev.map(p => (p.id === dupId ? { ...p, is_duplicate_of: null, duplicate_confidence: null } : p))
+      );
+      await fetch('/api/people', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: dupId, is_duplicate_of: null, duplicate_confidence: null })
+      });
+    } catch (err) {
+      console.error('Error dismissing duplicate flag:', err);
+    }
+  };
+
+  // Check active filters and clear
+  const hasActiveFilters = searchQuery !== '' || roleFilter !== 'ALL' || sectorFilter !== 'ALL' || statusFilter !== 'ALL';
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setRoleFilter('ALL');
+    setSectorFilter('ALL');
+    setStatusFilter('ALL');
+  };
+
+
   // Metrics Summary
   const metrics = useMemo(() => {
     const total = people.length;
@@ -564,7 +606,20 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   <option value="INCOMPLETE">Incomplete Profiles</option>
                   <option value="HIGH_FIT">High Fit (80+)</option>
                 </select>
+
+                {/* Clear Filters Reset Button */}
+                {hasActiveFilters && (
+                  <button
+                    onClick={handleClearFilters}
+                    className="h-7 px-2.5 bg-danger-soft text-danger border border-danger/30 hover:bg-danger/20 rounded text-xs font-medium flex items-center gap-1 transition-colors"
+                    title="Reset all search and dropdown filters"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    <span>Clear Filters</span>
+                  </button>
+                )}
               </div>
+
 
               <div className="text-xs font-mono text-ink-muted tabular-nums">
                 Showing {filteredPeople.length} of {people.length} members
@@ -798,18 +853,23 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                     </div>
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => alert(`Stub Action: Merge ${duplicate.name} (#${duplicate.id}) into canonical #${canonical?.id}. Note: Preserving source provenance in prototype.`)}
-                        className="px-3 py-1 text-xs rounded bg-signal text-surface font-medium hover:bg-signal/90 transition-colors"
+                        onClick={() => handleMergeDuplicate(duplicate.id, canonical?.id || duplicate.is_duplicate_of || duplicate.id)}
+                        className="px-3 py-1 text-xs rounded bg-signal text-surface font-medium hover:bg-signal/90 transition-colors shadow-sm flex items-center gap-1"
+                        title="Confirm merge and lock duplicate linking in database"
                       >
-                        Merge into Canonical
+                        <Check className="w-3 h-3" />
+                        <span>Merge into Canonical</span>
                       </button>
                       <button
-                        onClick={() => alert(`Stub Action: Dismiss duplicate flag for #${duplicate.id}.`)}
-                        className="px-3 py-1 text-xs rounded bg-surface border border-line text-ink hover:bg-surface-muted transition-colors"
+                        onClick={() => handleDismissDuplicate(duplicate.id)}
+                        className="px-3 py-1 text-xs rounded bg-surface border border-line text-ink hover:bg-surface-muted transition-colors flex items-center gap-1"
+                        title="Unlink duplicate and promote to Canonical record in database"
                       >
-                        Dismiss Flag
+                        <X className="w-3 h-3" />
+                        <span>Dismiss Flag</span>
                       </button>
                     </div>
+
                   </div>
 
                   {/* Side-by-side Diff */}

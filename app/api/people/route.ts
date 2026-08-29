@@ -29,3 +29,40 @@ export async function GET() {
   }
 }
 
+export async function PATCH(request: Request) {
+
+  try {
+    const body = await request.json();
+    const { id, is_duplicate_of, duplicate_confidence } = body;
+
+    if (id === undefined) {
+      return NextResponse.json({ error: 'Missing required field id' }, { status: 400 });
+    }
+
+    const { data, error } = await supabase
+      .from('people')
+      .update({
+        is_duplicate_of: is_duplicate_of !== undefined ? is_duplicate_of : null,
+        duplicate_confidence: duplicate_confidence !== undefined ? duplicate_confidence : null,
+      })
+      .eq('id', id)
+      .select();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json(
+      { success: true, updated: data },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
+        },
+      }
+    );
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+
