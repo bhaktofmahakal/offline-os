@@ -4,7 +4,21 @@ A production-grade, automated CRM intelligence engine and operator console built
 
 ---
 
+## 🌐 Live Production Deployments
+
+| Component | Platform | Live URL |
+| :--- | :--- | :--- |
+| **Operator Console (Dashboard)** | **Vercel** | **[https://offline-os-gray.vercel.app](https://offline-os-gray.vercel.app)** |
+| **Public Apply Portal** | **Vercel** | **[https://offline-os-gray.vercel.app/apply](https://offline-os-gray.vercel.app/apply)** |
+| **Python Pipeline API** | **Render** | **[https://offline-os.onrender.com](https://offline-os.onrender.com)** |
+| **n8n Automation Engine** | **Render** | **[https://n8n-render-utsav.onrender.com](https://n8n-render-utsav.onrender.com)** |
+| **Live Database (pgvector)** | **Supabase** | `https://fiyrygxnqexjyvimdjps.supabase.co` |
+| **GitHub Repository** | **GitHub** | **[https://github.com/bhaktofmahakal/offline-os](https://github.com/bhaktofmahakal/offline-os)** |
+
+---
+
 ## ⚡ Quickstart (0 to 1 Setup)
+
 
 ### 1. Prerequisites
 * **Node.js** v18+ and **npm** v9+
