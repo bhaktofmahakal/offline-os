@@ -93,6 +93,8 @@ export default function OfflineCRM() {
   const [copiedIntroId, setCopiedIntroId] = useState<number | null>(null);
   const [darkMode, setDarkMode] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [mergedIds, setMergedIds] = useState<Set<number>>(new Set());
+
 
   // Airtable Batch Import Modal State
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -266,6 +268,11 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
   // Live Merge duplicate in Supabase
   const handleMergeDuplicate = async (dupId: number, canonicalId: number) => {
     try {
+      setMergedIds(prev => {
+        const next = new Set(prev);
+        next.add(dupId);
+        return next;
+      });
       setPeople(prev =>
         prev.map(p => (p.id === dupId ? { ...p, is_duplicate_of: canonicalId, duplicate_confidence: 1.0 } : p))
       );
@@ -278,6 +285,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       console.error('Error merging duplicate record:', err);
     }
   };
+
 
   // Live Dismiss duplicate flag in Supabase (promotes to Canonical)
   const handleDismissDuplicate = async (dupId: number) => {
@@ -838,40 +846,54 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
             {/* Duplicate Pair Cards */}
             <div className="space-y-4">
-              {duplicatePairs.map(({ duplicate, canonical }, idx) => (
-                <div
-                  key={idx}
-                  className="bg-surface border border-line rounded-lg p-5 shadow-sm space-y-4"
-                >
-                  <div className="flex items-center justify-between border-b border-line pb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-warning-soft text-warning border border-warning/30">
-                        Pair #{idx + 1}
-                      </span>
-                      <span className="text-xs font-mono text-ink-muted">
-                        Confidence: <strong className="text-ink">{Math.round((duplicate.duplicate_confidence || 0.95) * 100)}%</strong>
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleMergeDuplicate(duplicate.id, canonical?.id || duplicate.is_duplicate_of || duplicate.id)}
-                        className="px-3 py-1 text-xs rounded bg-signal text-surface font-medium hover:bg-signal/90 transition-colors shadow-sm flex items-center gap-1"
-                        title="Confirm merge and lock duplicate linking in database"
-                      >
-                        <Check className="w-3 h-3" />
-                        <span>Merge into Canonical</span>
-                      </button>
-                      <button
-                        onClick={() => handleDismissDuplicate(duplicate.id)}
-                        className="px-3 py-1 text-xs rounded bg-surface border border-line text-ink hover:bg-surface-muted transition-colors flex items-center gap-1"
-                        title="Unlink duplicate and promote to Canonical record in database"
-                      >
-                        <X className="w-3 h-3" />
-                        <span>Dismiss Flag</span>
-                      </button>
+              {duplicatePairs.map(({ duplicate, canonical }, idx) => {
+                const isMerged = mergedIds.has(duplicate.id);
+
+                return (
+                  <div
+                    key={idx}
+                    className={`bg-surface border rounded-lg p-5 shadow-sm space-y-4 transition-all ${
+                      isMerged ? 'border-signal/60 bg-signal-soft/10' : 'border-line'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between border-b border-line pb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-warning-soft text-warning border border-warning/30">
+                          Pair #{idx + 1}
+                        </span>
+                        <span className="text-xs font-mono text-ink-muted">
+                          Confidence: <strong className="text-ink">{Math.round((duplicate.duplicate_confidence || 0.95) * 100)}%</strong>
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {isMerged ? (
+                          <span className="px-3 py-1 text-xs rounded bg-signal text-surface font-semibold flex items-center gap-1.5 shadow-sm animate-in zoom-in-95">
+                            <Check className="w-3.5 h-3.5" />
+                            <span>Merged into #{canonical?.id || duplicate.is_duplicate_of}</span>
+                          </span>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => handleMergeDuplicate(duplicate.id, canonical?.id || duplicate.is_duplicate_of || duplicate.id)}
+                              className="px-3 py-1 text-xs rounded bg-signal text-surface font-medium hover:bg-signal/90 transition-colors shadow-sm flex items-center gap-1"
+                              title="Confirm merge and lock duplicate linking in database"
+                            >
+                              <Check className="w-3 h-3" />
+                              <span>Merge into Canonical</span>
+                            </button>
+                            <button
+                              onClick={() => handleDismissDuplicate(duplicate.id)}
+                              className="px-3 py-1 text-xs rounded bg-surface border border-line text-ink hover:bg-surface-muted transition-colors flex items-center gap-1"
+                              title="Unlink duplicate and promote to Canonical record in database"
+                            >
+                              <X className="w-3 h-3" />
+                              <span>Dismiss Flag</span>
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
 
-                  </div>
 
                   {/* Side-by-side Diff */}
                   <div className="grid grid-cols-2 gap-4">
