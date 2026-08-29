@@ -37,8 +37,7 @@ import {
   Menu,
   Edit2,
   Trash2,
-  Save,
-  UserPlus
+  Save
 } from 'lucide-react';
 
 interface Person {
@@ -90,13 +89,17 @@ export default function OfflineCRM() {
   const [sectorFilter, setSectorFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [introStatusFilter, setIntroStatusFilter] = useState('ALL');
-  const [duplicateFilter, setDuplicateFilter] = useState('ALL');
+  const [duplicateFilter, setDuplicateFilter] = useState<'PENDING' | 'MERGED' | 'ALL'>('PENDING');
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [activeTooltipId, setActiveTooltipId] = useState<number | null>(null);
   const [copiedIntroId, setCopiedIntroId] = useState<number | null>(null);
   const [darkMode, setDarkMode] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [mergedIds, setMergedIds] = useState<Set<number>>(new Set());
+
+  // Merge Confirmation Modal State
+  const [candidateToMerge, setCandidateToMerge] = useState<{ duplicate: Person; canonical: Person } | null>(null);
+  const [mergingInProgress, setMergingInProgress] = useState(false);
 
   // Mobile drawer & responsive states
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -108,21 +111,6 @@ export default function OfflineCRM() {
   const [sectorTagsInput, setSectorTagsInput] = useState('');
   const [savingMember, setSavingMember] = useState(false);
   const [deletingMember, setDeletingMember] = useState(false);
-
-  // CRUD: Add New Member Modal State
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [creatingMember, setCreatingMember] = useState(false);
-  const [newMemberForm, setNewMemberForm] = useState({
-    name: '',
-    email: '',
-    company: '',
-    role_title: '',
-    bio_notes: '',
-    role_type: 'founder',
-    seniority: 'executive',
-    sector_tags: 'ai, infra',
-    fit_score: '85',
-  });
 
   // Airtable Batch Import Modal State
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -311,24 +299,31 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
     }
   };
 
-  // Live Merge duplicate in Supabase
-  const handleMergeDuplicate = async (dupId: number, canonicalId: number) => {
+  // Live Merge duplicate in Supabase (with confirmation modal flow)
+  const handleConfirmMergeExecution = async () => {
+    if (!candidateToMerge) return;
+    const { duplicate, canonical } = candidateToMerge;
+
+    setMergingInProgress(true);
     try {
       setMergedIds(prev => {
         const next = new Set(prev);
-        next.add(dupId);
+        next.add(duplicate.id);
         return next;
       });
       setPeople(prev =>
-        prev.map(p => (p.id === dupId ? { ...p, is_duplicate_of: canonicalId, duplicate_confidence: 1.0, review_status: 'merged' } : p))
+        prev.map(p => (p.id === duplicate.id ? { ...p, is_duplicate_of: canonical.id, duplicate_confidence: 1.0, review_status: 'merged' } : p))
       );
       await fetch('/api/people', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: dupId, is_duplicate_of: canonicalId, duplicate_confidence: 1.0, review_status: 'merged' })
+        body: JSON.stringify({ id: duplicate.id, is_duplicate_of: canonical.id, duplicate_confidence: 1.0, review_status: 'merged' })
       });
+      setCandidateToMerge(null);
     } catch (err) {
       console.error('Error merging duplicate record:', err);
+    } finally {
+      setMergingInProgress(false);
     }
   };
 
@@ -380,7 +375,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
         role_type: editFormData.role_type || 'founder',
         seniority: editFormData.seniority || 'senior',
         sector_tags: parsedSectors,
-        fit_score: editFormData.fit_score !== undefined ? Number(editFormData.fit_score) : null,
+        fit_score: editFormData.fit_score !== undefined && editFormData.fit_score !== null ? Number(editFormData.fit_score) : null,
       };
 
       const res = await fetch('/api/people', {
@@ -431,67 +426,6 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
     }
   };
 
-  // CRUD: Create New Member directly in Supabase
-  const handleCreateNewMember = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMemberForm.name.trim()) {
-      alert('Member name is required.');
-      return;
-    }
-
-    setCreatingMember(true);
-    try {
-      const parsedSectors = newMemberForm.sector_tags
-        .split(',')
-        .map(s => s.trim().toLowerCase())
-        .filter(s => s.length > 0);
-
-      const payload = {
-        name: newMemberForm.name.trim(),
-        email: newMemberForm.email.trim() || null,
-        company: newMemberForm.company.trim() || null,
-        role_title: newMemberForm.role_title.trim() || null,
-        bio_notes: newMemberForm.bio_notes.trim() || null,
-        role_type: newMemberForm.role_type,
-        seniority: newMemberForm.seniority,
-        sector_tags: parsedSectors,
-        fit_score: newMemberForm.fit_score ? Number(newMemberForm.fit_score) : 80,
-      };
-
-      const res = await fetch('/api/people', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) throw new Error('Failed to create member in database');
-
-      const data = await res.json();
-      if (data.member) {
-        setPeople(prev => [data.member, ...prev]);
-        setSelectedPerson(data.member);
-      }
-
-      setIsAddModalOpen(false);
-      setNewMemberForm({
-        name: '',
-        email: '',
-        company: '',
-        role_title: '',
-        bio_notes: '',
-        role_type: 'founder',
-        seniority: 'executive',
-        sector_tags: 'ai, infra',
-        fit_score: '85',
-      });
-    } catch (err: any) {
-      console.error('Error creating member:', err);
-      alert('Error creating member: ' + err.message);
-    } finally {
-      setCreatingMember(false);
-    }
-  };
-
   // Check active filters and clear
   const hasActiveFilters = searchQuery !== '' || roleFilter !== 'ALL' || sectorFilter !== 'ALL' || statusFilter !== 'ALL';
   const handleClearFilters = () => {
@@ -504,7 +438,8 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
   // Metrics Summary
   const metrics = useMemo(() => {
     const total = people.length;
-    const duplicates = people.filter(p => p.is_duplicate_of !== null && p.review_status !== 'merged').length;
+    const duplicates = people.filter(p => p.is_duplicate_of !== null && p.review_status !== 'merged' && !mergedIds.has(p.id)).length;
+    const resolvedDuplicates = people.filter(p => p.is_duplicate_of !== null && (p.review_status === 'merged' || mergedIds.has(p.id))).length;
     const canonical = total - people.filter(p => p.is_duplicate_of !== null).length;
     const incomplete = people.filter(p => p.is_incomplete).length;
     const scores = people.map(p => p.fit_score).filter((s): s is number => s !== null);
@@ -512,8 +447,8 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
     const pendingIntros = introductions.filter(i => i.status === 'pending').length;
     const approvedIntros = introductions.filter(i => i.status === 'approved').length;
 
-    return { total, duplicates, canonical, incomplete, avgScore, pendingIntros, approvedIntros };
-  }, [people, introductions]);
+    return { total, duplicates, resolvedDuplicates, canonical, incomplete, avgScore, pendingIntros, approvedIntros };
+  }, [people, introductions, mergedIds]);
 
   // Filtered People
   const filteredPeople = useMemo(() => {
@@ -561,7 +496,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       })
       .map(dup => {
         const canonical = peopleMap.get(dup.is_duplicate_of!);
-        return { duplicate: dup, canonical };
+        return { duplicate: dup, canonical: canonical || null };
       });
   }, [people, mergedIds, duplicateFilter]);
 
@@ -772,17 +707,6 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-            {/* CRUD: Add Member Button */}
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              className="min-h-[40px] px-3 text-xs bg-signal text-surface font-medium hover:bg-signal/90 rounded flex items-center gap-1.5 transition-colors shadow-sm"
-              title="Manually create a new member record in CRM"
-            >
-              <UserPlus className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Add Member</span>
-              <span className="sm:hidden">Add</span>
-            </button>
-
             {/* Ingest Airtable / CSV */}
             <button
               onClick={() => setIsImportModalOpen(true)}
@@ -826,7 +750,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
             <div className="text-base sm:text-lg font-semibold tabular-nums text-signal">{metrics.canonical}</div>
           </div>
           <div className="border-r-0 sm:border-r border-line pr-2 sm:pr-3">
-            <div className="text-[10px] sm:text-[11px] font-mono text-ink-muted uppercase">Duplicates</div>
+            <div className="text-[10px] sm:text-[11px] font-mono text-ink-muted uppercase">Pending Dups</div>
             <div className="text-base sm:text-lg font-semibold tabular-nums text-warning">{metrics.duplicates}</div>
           </div>
           <div className="border-r border-line pr-2 sm:pr-3">
@@ -1258,19 +1182,39 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   Side-by-side comparison of candidate duplicate pairs detected by the AI Deduplication Engine.
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <select
-                  value={duplicateFilter}
-                  onChange={e => setDuplicateFilter(e.target.value)}
-                  className="h-8 px-2 bg-surface border border-line rounded text-xs text-ink focus:outline-none focus:ring-1 focus:ring-signal"
+
+              {/* View Toggle Tabs */}
+              <div className="flex items-center bg-surface border border-line rounded-lg p-1 text-xs gap-1">
+                <button
+                  onClick={() => setDuplicateFilter('PENDING')}
+                  className={`px-3 py-1 rounded font-medium transition-colors ${
+                    duplicateFilter === 'PENDING'
+                      ? 'bg-signal text-surface font-semibold shadow-xs'
+                      : 'text-ink-muted hover:text-ink'
+                  }`}
                 >
-                  <option value="ALL">All Pairs ({duplicatePairs.length})</option>
-                  <option value="PENDING">Pending Review</option>
-                  <option value="MERGED">Resolved Merged</option>
-                </select>
-                <div className="text-xs font-mono px-2.5 py-1 rounded bg-warning-soft text-warning border border-warning/30 font-semibold">
-                  {duplicatePairs.length} Pairs
-                </div>
+                  Pending Review ({metrics.duplicates})
+                </button>
+                <button
+                  onClick={() => setDuplicateFilter('MERGED')}
+                  className={`px-3 py-1 rounded font-medium transition-colors ${
+                    duplicateFilter === 'MERGED'
+                      ? 'bg-signal text-surface font-semibold shadow-xs'
+                      : 'text-ink-muted hover:text-ink'
+                  }`}
+                >
+                  Resolved Merged ({metrics.resolvedDuplicates})
+                </button>
+                <button
+                  onClick={() => setDuplicateFilter('ALL')}
+                  className={`px-3 py-1 rounded font-medium transition-colors ${
+                    duplicateFilter === 'ALL'
+                      ? 'bg-signal text-surface font-semibold shadow-xs'
+                      : 'text-ink-muted hover:text-ink'
+                  }`}
+                >
+                  All History ({duplicatePairs.length})
+                </button>
               </div>
             </div>
 
@@ -1285,8 +1229,18 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
             {/* Duplicate Pair Cards */}
             <div className="space-y-4">
               {duplicatePairs.length === 0 ? (
-                <div className="p-8 text-center bg-surface border border-line rounded-lg text-ink-muted text-xs">
-                  No duplicate pairs currently match your view filter.
+                <div className="p-12 text-center bg-surface border border-line rounded-lg space-y-2">
+                  <CheckCircle2 className="w-8 h-8 text-signal mx-auto" />
+                  <div className="text-sm font-semibold text-ink">
+                    {duplicateFilter === 'PENDING'
+                      ? 'All Duplicate Pairs Resolved!'
+                      : 'No duplicates in this view.'}
+                  </div>
+                  <p className="text-xs text-ink-muted max-w-sm mx-auto">
+                    {duplicateFilter === 'PENDING'
+                      ? 'There are no pending duplicate records requiring review. All candidate profiles are verified canonical.'
+                      : 'Switch tabs above to view pending or resolved pairs.'}
+                  </p>
                 </div>
               ) : (
                 duplicatePairs.map(({ duplicate, canonical }, idx) => {
@@ -1317,9 +1271,15 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                           ) : (
                             <>
                               <button
-                                onClick={() => handleMergeDuplicate(duplicate.id, canonical?.id || duplicate.is_duplicate_of || duplicate.id)}
+                                onClick={() => {
+                                  if (canonical) {
+                                    setCandidateToMerge({ duplicate, canonical });
+                                  } else {
+                                    alert('Canonical record details not loaded.');
+                                  }
+                                }}
                                 className="min-h-[44px] px-4 py-1.5 text-xs rounded bg-signal text-surface font-medium hover:bg-signal/90 transition-colors shadow-sm flex items-center gap-1.5"
-                                title="Confirm merge and lock duplicate linking in database"
+                                title="Open verification dialog to review profiles before merging"
                               >
                                 <Check className="w-3.5 h-3.5" />
                                 <span>Merge into Canonical</span>
@@ -1843,156 +1803,86 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
         </div>
       )}
 
-      {/* 4. CRUD: ADD NEW MEMBER MODAL */}
-      {isAddModalOpen && (
+      {/* 4. MERGE CONFIRMATION VERIFICATION MODAL */}
+      {candidateToMerge && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-surface border border-line rounded-xl w-full max-w-lg max-h-[92vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-150">
-            <div className="p-4 sm:p-5 border-b border-line flex items-center justify-between">
+          <div className="bg-surface border border-line rounded-xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="p-4 sm:p-5 border-b border-line flex items-center justify-between bg-surface-raised">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-signal-soft flex items-center justify-center text-signal">
-                  <UserPlus className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-lg bg-warning-soft flex items-center justify-center text-warning">
+                  <AlertTriangle className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm sm:text-base font-semibold text-ink">Add New Community Member</h3>
-                  <p className="text-xs text-ink-muted">Create a verified member record directly in Supabase CRM</p>
+                  <h3 className="text-sm sm:text-base font-semibold text-ink">Confirm Record Merge</h3>
+                  <p className="text-xs text-ink-muted">Carefully verify both candidate records before consolidating</p>
                 </div>
               </div>
               <button
-                onClick={() => setIsAddModalOpen(false)}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded hover:bg-surface-muted text-ink-muted hover:text-ink"
+                onClick={() => setCandidateToMerge(null)}
+                disabled={mergingInProgress}
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded hover:bg-surface-muted text-ink-muted hover:text-ink disabled:opacity-40"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateNewMember} className="p-4 sm:p-6 overflow-y-auto space-y-3.5 text-xs">
-              <div>
-                <label className="text-[11px] font-mono text-ink-muted block mb-1">Full Name *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Dr. Alistair Vance"
-                  value={newMemberForm.name}
-                  onChange={e => setNewMemberForm({ ...newMemberForm, name: e.target.value })}
-                  className="w-full h-8 px-2.5 text-xs bg-surface-raised border border-line rounded text-ink focus:outline-none focus:ring-1 focus:ring-signal"
-                />
+            {/* Modal Body: Side-by-side verification */}
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs">
+              <div className="p-3 bg-surface-raised border border-line rounded text-ink leading-relaxed">
+                You are about to merge <strong>Duplicate #{candidateToMerge.duplicate.id}</strong> ({candidateToMerge.duplicate.name}) into <strong>Canonical Primary #{candidateToMerge.canonical.id}</strong> ({candidateToMerge.canonical.name}).
+                All relationship mappings and intros will consolidate to the Canonical profile.
               </div>
 
-              <div className="grid grid-cols-2 gap-2.5">
-                <div>
-                  <label className="text-[11px] font-mono text-ink-muted block mb-1">Company</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Helix AI Labs"
-                    value={newMemberForm.company}
-                    onChange={e => setNewMemberForm({ ...newMemberForm, company: e.target.value })}
-                    className="w-full h-8 px-2.5 text-xs bg-surface-raised border border-line rounded text-ink focus:outline-none focus:ring-1 focus:ring-signal"
-                  />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Canonical Preview */}
+                <div className="p-3.5 bg-signal-soft/20 border border-signal/30 rounded space-y-2">
+                  <div className="text-[11px] font-mono font-semibold text-signal uppercase flex items-center justify-between">
+                    <span>Canonical Primary (Preserved)</span>
+                    <span>#{candidateToMerge.canonical.id}</span>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-xs font-bold text-ink">{candidateToMerge.canonical.name}</div>
+                    <div className="text-xs text-ink-muted">{candidateToMerge.canonical.role_title} at {candidateToMerge.canonical.company || 'Independent'}</div>
+                    <div className="text-[11px] font-mono text-ink-muted break-all">{candidateToMerge.canonical.email || candidateToMerge.canonical.email_normalized || 'No email'}</div>
+                    <div className="text-[11px] text-ink italic pt-1">&ldquo;{candidateToMerge.canonical.bio_notes || 'No bio'}&rdquo;</div>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-[11px] font-mono text-ink-muted block mb-1">Role Title</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Co-Founder & CTO"
-                    value={newMemberForm.role_title}
-                    onChange={e => setNewMemberForm({ ...newMemberForm, role_title: e.target.value })}
-                    className="w-full h-8 px-2.5 text-xs bg-surface-raised border border-line rounded text-ink focus:outline-none focus:ring-1 focus:ring-signal"
-                  />
-                </div>
-              </div>
 
-              <div>
-                <label className="text-[11px] font-mono text-ink-muted block mb-1">Email Address</label>
-                <input
-                  type="email"
-                  placeholder="e.g. alistair@helixai.tech"
-                  value={newMemberForm.email}
-                  onChange={e => setNewMemberForm({ ...newMemberForm, email: e.target.value })}
-                  className="w-full h-8 px-2.5 text-xs bg-surface-raised border border-line rounded text-ink font-mono text-[11px]"
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-2.5">
-                <div>
-                  <label className="text-[11px] font-mono text-ink-muted block mb-1">Role Type</label>
-                  <select
-                    value={newMemberForm.role_type}
-                    onChange={e => setNewMemberForm({ ...newMemberForm, role_type: e.target.value })}
-                    className="w-full h-8 px-2 text-xs bg-surface-raised border border-line rounded text-ink"
-                  >
-                    <option value="founder">Founder</option>
-                    <option value="operator">Operator</option>
-                    <option value="investor">Investor</option>
-                    <option value="researcher">Researcher</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[11px] font-mono text-ink-muted block mb-1">Seniority</label>
-                  <select
-                    value={newMemberForm.seniority}
-                    onChange={e => setNewMemberForm({ ...newMemberForm, seniority: e.target.value })}
-                    className="w-full h-8 px-2 text-xs bg-surface-raised border border-line rounded text-ink"
-                  >
-                    <option value="executive">Executive</option>
-                    <option value="senior">Senior</option>
-                    <option value="mid">Mid-level</option>
-                    <option value="junior">Junior</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[11px] font-mono text-ink-muted block mb-1">Fit Score</label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={newMemberForm.fit_score}
-                    onChange={e => setNewMemberForm({ ...newMemberForm, fit_score: e.target.value })}
-                    className="w-full h-8 px-2 text-xs bg-surface-raised border border-line rounded text-ink font-mono"
-                  />
+                {/* Duplicate Preview */}
+                <div className="p-3.5 bg-warning-soft/20 border border-warning/30 rounded space-y-2">
+                  <div className="text-[11px] font-mono font-semibold text-warning uppercase flex items-center justify-between">
+                    <span>Duplicate Candidate (Merged)</span>
+                    <span>#{candidateToMerge.duplicate.id}</span>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-xs font-bold text-ink">{candidateToMerge.duplicate.name}</div>
+                    <div className="text-xs text-ink-muted">{candidateToMerge.duplicate.role_title} at {candidateToMerge.duplicate.company || 'Independent'}</div>
+                    <div className="text-[11px] font-mono text-ink-muted break-all">{candidateToMerge.duplicate.email || candidateToMerge.duplicate.email_normalized || 'No email'}</div>
+                    <div className="text-[11px] text-ink italic pt-1">&ldquo;{candidateToMerge.duplicate.bio_notes || 'No bio'}&rdquo;</div>
+                  </div>
                 </div>
               </div>
+            </div>
 
-              <div>
-                <label className="text-[11px] font-mono text-ink-muted block mb-1">Sector Tags (comma separated)</label>
-                <input
-                  type="text"
-                  placeholder="e.g. ai, synthetic biology, infra"
-                  value={newMemberForm.sector_tags}
-                  onChange={e => setNewMemberForm({ ...newMemberForm, sector_tags: e.target.value })}
-                  className="w-full h-8 px-2.5 text-xs bg-surface-raised border border-line rounded text-ink"
-                />
-              </div>
-
-              <div>
-                <label className="text-[11px] font-mono text-ink-muted block mb-1">Bio & Operator Notes</label>
-                <textarea
-                  rows={3}
-                  placeholder="Summary of experience, technical background, what they are building..."
-                  value={newMemberForm.bio_notes}
-                  onChange={e => setNewMemberForm({ ...newMemberForm, bio_notes: e.target.value })}
-                  className="w-full p-2.5 text-xs bg-surface-raised border border-line rounded text-ink leading-relaxed"
-                />
-              </div>
-
-              <div className="pt-2 flex items-center justify-end gap-2 border-t border-line">
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  disabled={creatingMember}
-                  className="min-h-[44px] px-4 text-xs rounded border border-line text-ink hover:bg-surface-muted"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={creatingMember}
-                  className="min-h-[44px] px-5 text-xs rounded bg-signal text-surface font-semibold hover:bg-signal/90 flex items-center gap-1.5 shadow-sm disabled:opacity-40"
-                >
-                  <UserPlus className="w-3.5 h-3.5" />
-                  <span>{creatingMember ? 'Saving...' : 'Add Member'}</span>
-                </button>
-              </div>
-            </form>
+            {/* Modal Footer */}
+            <div className="p-4 sm:p-5 border-t border-line bg-surface-raised flex items-center justify-end gap-2.5">
+              <button
+                onClick={() => setCandidateToMerge(null)}
+                disabled={mergingInProgress}
+                className="min-h-[44px] px-4 text-xs rounded border border-line text-ink hover:bg-surface-muted disabled:opacity-40"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmMergeExecution}
+                disabled={mergingInProgress}
+                className="min-h-[44px] px-5 text-xs rounded bg-signal text-surface font-semibold hover:bg-signal/90 flex items-center gap-1.5 shadow-sm disabled:opacity-40"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>{mergingInProgress ? 'Merging in Supabase...' : 'Confirm & Merge Records'}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
