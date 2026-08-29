@@ -1,0 +1,62 @@
+[
+  {
+    "duplicate": "airtable-002",
+    "canonical": "airtable-001",
+    "duplicate_name": "Rahul Mehta",
+    "canonical_name": "Rahul Mehta",
+    "similarity": 100.0,
+    "confidence": 1.0,
+    "decision_source": "rapidfuzz",
+    "reasoning": "RapidFuzz composite score 100.0; token_sort=100.0, partial=100.0."
+  },
+  {
+    "duplicate": "airtable-013",
+    "canonical": "airtable-012",
+    "duplicate_name": "Nikhil Sood",
+    "canonical_name": "Nikhil Sood",
+    "similarity": 100.0,
+    "confidence": 1.0,
+    "decision_source": "rapidfuzz",
+    "reasoning": "RapidFuzz composite score 100.0; token_sort=98.9, partial=97.8."
+  },
+  {
+    "duplicate": "airtable-003",
+    "canonical": "airtable-001",
+    "duplicate_name": "Rahul Mehta",
+    "canonical_name": "Rahul Mehta",
+    "similarity": 94.07,
+    "confidence": 0.9407,
+    "decision_source": "rapidfuzz",
+    "reasoning": "RapidFuzz composite score 94.07; token_sort=95.2, partial=92.2."
+  },
+  {
+    "duplicate": "airtable-019",
+    "canonical": "airtable-018",
+    "duplicate_name": "Leah Stein",
+    "canonical_name": "Leah Stein",
+    "similarity": 92.64,
+    "confidence": 0.9264,
+    "decision_source": "rapidfuzz",
+    "reasoning": "RapidFuzz composite score 92.64; token_sort=94.0, partial=90.4."
+  },
+  {
+    "duplicate": "airtable-047",
+    "canonical": "airtable-046",
+    "duplicate_name": "Harini Krishnan",
+    "canonical_name": "Harini Krishnan",
+    "similarity": 91.82,
+    "confidence": 0.98,
+    "decision_source": "gemini",
+    "reasoning": "Both records share the exact same name (Harini Krishnan), highly similar company names (Zenqueue vs Zen Queue), matching email domains (zenqueue.io), and identical bio notes regarding healthcare call center automation founding."
+  },
+  {
+    "duplicate": "airtable-034",
+    "canonical": "airtable-033",
+    "duplicate_name": "Neha Verma",
+    "canonical_name": "Neha Verma",
+    "similarity": 83.68,
+    "confidence": 0.98,
+    "decision_source": "gemini",
+    "reasoning": "Both records share the exact name Neha Verma, very similar company names (Tracecarbon vs Trace Carbon), overlapping emails using the same domain, and related executive roles at the same startup."
+  }
+]

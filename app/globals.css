@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Light Theme from DESIGN.md */
+  --color-canvas: #F5F3EE;
+  --color-surface: #FFFDF9;
+  --color-surface-raised: #FFFFFF;
+  --color-surface-muted: #ECEBE5;
+  --color-ink: #151714;
+  --color-ink-muted: #626A63;
+  --color-ink-faint: #8A918A;
+  --color-line: #D8D9D2;
+  --color-line-strong: #B9BDB5;
+  --color-signal: #557A5D;
+  --color-signal-soft: #DCE8D9;
+  --color-copper: #A76245;
+  --color-copper-soft: #F1DED4;
+  --color-info: #537A91;
+  --color-info-soft: #DCE8EE;
+  --color-warning: #9A7428;
+  --color-warning-soft: #F1E7C7;
+  --color-danger: #A54F49;
+  --color-danger-soft: #F2D9D6;
+
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+.dark {
+  /* Dark Theme from DESIGN.md */
+  --color-canvas: #0F1210;
+  --color-surface: #151916;
+  --color-surface-raised: #1D231F;
+  --color-surface-muted: #202721;
+  --color-ink: #F1F0EA;
+  --color-ink-muted: #A2AAA2;
+  --color-ink-faint: #737C74;
+  --color-line: #2B342D;
+  --color-line-strong: #405044;
+  --color-signal: #A7C7A0;
+  --color-signal-soft: #26392B;
+  --color-copper: #D09270;
+  --color-copper-soft: #3A2923;
+  --color-info: #8AAFC1;
+  --color-info-soft: #25343B;
+  --color-warning: #D7B65B;
+  --color-warning-soft: #3A321E;
+  --color-danger: #D47B72;
+  --color-danger-soft: #3B2524;
+}
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  -webkit-font-smoothing: antialiased;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom scrollbar matching operator console aesthetic */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-canvas);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-line-strong);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-muted);
+}

@@ -1,0 +1,1402 @@
+[
+  {
+    "person_a_source_id": "airtable-033",
+    "person_b_source_id": "airtable-041",
+    "person_a_name": "Neha Verma",
+    "person_b_name": "Chen Wei",
+    "person_a_company": "Tracecarbon",
+    "person_b_company": "Climatetrace SG",
+    "match_score": 0.8029,
+    "match_band": "strong",
+    "shared_context": "Climate tech founders sharing enterprise synergies",
+    "suggested_intro": "Chen, I'd love to connect you with Neha, who is building climate data infrastructure for exporters and expanding her network in this space.",
+    "reasoning": "Both founders operate in the climate tech ecosystem and can benefit from exchanging insights on enterprise carbon software, market expansion, and B2B sales strategies.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Neha Verma",
+        "role": "Co-Founder",
+        "company": "Tracecarbon",
+        "sectors": [
+          "climate",
+          "infra",
+          "compliance"
+        ],
+        "fit_tags": [
+          "manufacturing founder",
+          "climate data founder"
+        ]
+      },
+      "person_b": {
+        "name": "Chen Wei",
+        "role": "Founder",
+        "company": "Climatetrace SG",
+        "sectors": [
+          "climate"
+        ],
+        "fit_tags": [
+          "enterprise carbon software",
+          "b2b sales to large corporates",
+          "india network seeker"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-007",
+    "person_b_source_id": "airtable-049",
+    "person_a_name": "Priya Nair",
+    "person_b_name": "Srishti Jain",
+    "person_a_company": "Careloop Health",
+    "person_b_company": "Carepath",
+    "match_score": 0.797,
+    "match_band": "strong",
+    "shared_context": "Employer and family healthcare navigation",
+    "suggested_intro": "Priya, meet Srishti; you are both scaling innovative care navigation models in India and share a deep passion for improving patient access and operational experience.",
+    "reasoning": "Priya builds employer care navigation while Srishti focuses on chronic care navigation for families in India. Both operate in the healthcare domain and can exchange valuable insights on patient experience and operational scaling.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Priya Nair",
+        "role": "Product Lead",
+        "company": "Careloop Health",
+        "sectors": [
+          "health"
+        ],
+        "fit_tags": [
+          "product lead",
+          "employer care navigation",
+          "bengaluru tech"
+        ]
+      },
+      "person_b": {
+        "name": "Srishti Jain",
+        "role": "Founder",
+        "company": "Carepath",
+        "sectors": [
+          "health",
+          "ops"
+        ],
+        "fit_tags": [
+          "founder",
+          "healthcare",
+          "operations",
+          "payer partnerships"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-001",
+    "person_b_source_id": "airtable-020",
+    "person_a_name": "Rahul Mehta",
+    "person_b_name": "Rohan Das",
+    "person_a_company": "Nexora Pay",
+    "person_b_company": "Paylok",
+    "match_score": 0.779,
+    "match_band": "good",
+    "shared_context": "Fintech partnerships and payments infrastructure",
+    "suggested_intro": "Rahul, I'd love to introduce you to Rohan, who brings deep expertise in scaling bank integrations and fintech partnerships at Paylok.",
+    "reasoning": "Rahul's background in building payments infrastructure and managing partnerships at Nexora Pay closely aligns with Rohan's operational focus on scaling bank integrations and marketplace deals, creating a strong foundation for sharing insights on fintech growth.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Rahul Mehta",
+        "role": "Co-Founder & COO",
+        "company": "Nexora Pay",
+        "sectors": [
+          "fintech",
+          "ops"
+        ],
+        "fit_tags": [
+          "co-founder",
+          "coo",
+          "payments infra",
+          "partnerships"
+        ]
+      },
+      "person_b": {
+        "name": "Rohan Das",
+        "role": "Head Of Partnerships",
+        "company": "Paylok",
+        "sectors": [
+          "fintech"
+        ],
+        "fit_tags": [
+          "scaled bank integrations",
+          "lender marketplace deals",
+          "partnerships operator"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-016",
+    "person_b_source_id": "airtable-036",
+    "person_a_name": "Meera Subramanian",
+    "person_b_name": "Pooja Reddy",
+    "person_a_company": "Tandem Bio",
+    "person_b_company": "Matrahq",
+    "match_score": 0.7716,
+    "match_band": "good",
+    "shared_context": "Chief of Staff operations and hiring",
+    "suggested_intro": "Pooja, meet Meera, who also tackles scaling challenges as a Chief of Staff in the SaaS ecosystem.",
+    "reasoning": "Both are Chief of Staff executives navigating rapid growth, hiring processes, and operational execution in SaaS, making this a great peer exchange for scaling best practices.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Meera Subramanian",
+        "role": "Chief Of Staff",
+        "company": "Tandem Bio",
+        "sectors": [
+          "health",
+          "saas"
+        ],
+        "fit_tags": [
+          "chief of staff",
+          "board prep",
+          "fundraising",
+          "hiring",
+          "chennai saas"
+        ]
+      },
+      "person_b": {
+        "name": "Pooja Reddy",
+        "role": "Chief Of Staff",
+        "company": "Matrahq",
+        "sectors": [
+          "saas",
+          "ops"
+        ],
+        "fit_tags": [
+          "chief of staff",
+          "founder office",
+          "hiring process",
+          "business reviews"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-006",
+    "person_b_source_id": "airtable-050",
+    "person_a_name": "Luca Bianchi",
+    "person_b_name": "Tomas Novak",
+    "person_a_company": "Stackharbor",
+    "person_b_company": "Signalplane",
+    "match_score": 0.7708,
+    "match_band": "good",
+    "shared_context": "Developer tools and infrastructure founders",
+    "suggested_intro": "Tomas, I'd love to introduce you to Luca, a fellow dev tools founder building in infrastructure observability who shares your deep focus on engineering productivity.",
+    "reasoning": "Both are founders in the developer tools and operations space addressing technical buyers. Tomas is specifically looking to connect with infrastructure founders, creating a strong mutual synergy for sharing go-to-market strategies and buyer insights.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Luca Bianchi",
+        "role": "Founder",
+        "company": "Stackharbor",
+        "sectors": [
+          "dev tools",
+          "ops"
+        ],
+        "fit_tags": [
+          "infra observability founder",
+          "former eng lead"
+        ]
+      },
+      "person_b": {
+        "name": "Tomas Novak",
+        "role": "Founder",
+        "company": "Signalplane",
+        "sectors": [
+          "dev tools",
+          "infra",
+          "ops"
+        ],
+        "fit_tags": [
+          "founder",
+          "engineering productivity",
+          "developer workflow"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-006",
+    "person_b_source_id": "airtable-035",
+    "person_a_name": "Luca Bianchi",
+    "person_b_name": "Oliver Grant",
+    "person_a_company": "Stackharbor",
+    "person_b_company": null,
+    "match_score": 0.7696,
+    "match_band": "good",
+    "shared_context": "Infra observability and dev tools founders",
+    "suggested_intro": "Luca, I'd love to introduce you to Oliver Grant, another founder building in the observability and dev tools space who brings a great product-led perspective.",
+    "reasoning": "Both are founders tackling observability in dev tools, making this a high-value peer connection for discussing product strategy, infrastructure challenges, and avoiding overbuilding.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Luca Bianchi",
+        "role": "Founder",
+        "company": "Stackharbor",
+        "sectors": [
+          "dev tools",
+          "ops"
+        ],
+        "fit_tags": [
+          "infra observability founder",
+          "former eng lead"
+        ]
+      },
+      "person_b": {
+        "name": "Oliver Grant",
+        "role": "Founder",
+        "company": null,
+        "sectors": [
+          "dev tools",
+          "ops"
+        ],
+        "fit_tags": [
+          "product-led",
+          "infrastructure builder"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-011",
+    "person_b_source_id": "airtable-041",
+    "person_a_name": "Aarav Iyer",
+    "person_b_name": "Chen Wei",
+    "person_a_company": "Greenledger",
+    "person_b_company": "Climatetrace SG",
+    "match_score": 0.764,
+    "match_band": "good",
+    "shared_context": "Enterprise carbon accounting and procurement",
+    "suggested_intro": "Chen, I'd love to connect you with Aarav, a climate fintech founder who brings deep enterprise sales expertise and is navigating the corporate carbon space in India.",
+    "reasoning": "Aarav builds carbon accounting tools for MSMEs and seeks product cadence, while Chen focuses on enterprise carbon procurement and specifically wants an Indian founder network. They share strong domain synergy across enterprise climate tech and complementary regional goals.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Aarav Iyer",
+        "role": "Founder",
+        "company": "Greenledger",
+        "sectors": [
+          "fintech",
+          "climate"
+        ],
+        "fit_tags": [
+          "enterprise sales",
+          "consulting background"
+        ]
+      },
+      "person_b": {
+        "name": "Chen Wei",
+        "role": "Founder",
+        "company": "Climatetrace SG",
+        "sectors": [
+          "climate"
+        ],
+        "fit_tags": [
+          "enterprise carbon software",
+          "b2b sales to large corporates",
+          "india network seeker"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-035",
+    "person_b_source_id": "airtable-050",
+    "person_a_name": "Oliver Grant",
+    "person_b_name": "Tomas Novak",
+    "person_a_company": null,
+    "person_b_company": "Signalplane",
+    "match_score": 0.7555,
+    "match_band": "good",
+    "shared_context": "Developer tools and infrastructure scaling",
+    "suggested_intro": "Tomas, I'd love to introduce you to Oliver Grant, who is building developer tools for observability pipelines and shares your passion for product-led growth in infrastructure.",
+    "reasoning": "Both are founders in the developer tools and ops space dealing with technical buyers, allowing them to easily exchange insights on product-led growth and engineering productivity.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Oliver Grant",
+        "role": "Founder",
+        "company": null,
+        "sectors": [
+          "dev tools",
+          "ops"
+        ],
+        "fit_tags": [
+          "product-led",
+          "infrastructure builder"
+        ]
+      },
+      "person_b": {
+        "name": "Tomas Novak",
+        "role": "Founder",
+        "company": "Signalplane",
+        "sectors": [
+          "dev tools",
+          "infra",
+          "ops"
+        ],
+        "fit_tags": [
+          "founder",
+          "engineering productivity",
+          "developer workflow"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-006",
+    "person_b_source_id": "airtable-051",
+    "person_a_name": "Luca Bianchi",
+    "person_b_name": "Tomas Novak",
+    "person_a_company": "Stackharbor",
+    "person_b_company": "Signal Plane",
+    "match_score": 0.753,
+    "match_band": "good",
+    "shared_context": "Dev tools and observability founders",
+    "suggested_intro": "Tomas, I'd love to connect you with Luca, who is building infrastructure observability at Stackharbor and shares your background in dev workflow analytics.",
+    "reasoning": "Both founders operate in the dev tools and ops space, giving them strong domain alignment around scaling engineering infrastructure startups and navigating technical founder challenges.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Luca Bianchi",
+        "role": "Founder",
+        "company": "Stackharbor",
+        "sectors": [
+          "dev tools",
+          "ops"
+        ],
+        "fit_tags": [
+          "infra observability founder",
+          "former eng lead"
+        ]
+      },
+      "person_b": {
+        "name": "Tomas Novak",
+        "role": "Founder",
+        "company": "Signal Plane",
+        "sectors": [
+          "dev tools",
+          "ops"
+        ],
+        "fit_tags": [
+          "founder"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-036",
+    "person_b_source_id": "airtable-038",
+    "person_a_name": "Pooja Reddy",
+    "person_b_name": "Natasha Fernandes",
+    "person_a_company": "Matrahq",
+    "person_b_company": "Dockline",
+    "match_score": 0.7494,
+    "match_band": "good",
+    "shared_context": "B2B SaaS operations and scaling",
+    "suggested_intro": "Natasha, I'd love to introduce you to Pooja, who is doing incredible work driving operations and scaling processes out of the founder's office at Matrahq.",
+    "reasoning": "Both operate at the intersection of growth and internal infrastructure in B2B SaaS, giving them shared challenges around reporting, execution, and scaling.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Pooja Reddy",
+        "role": "Chief Of Staff",
+        "company": "Matrahq",
+        "sectors": [
+          "saas",
+          "ops"
+        ],
+        "fit_tags": [
+          "chief of staff",
+          "founder office",
+          "hiring process",
+          "business reviews"
+        ]
+      },
+      "person_b": {
+        "name": "Natasha Fernandes",
+        "role": "Revenue Ops",
+        "company": "Dockline",
+        "sectors": [
+          "ops",
+          "b2b saas"
+        ],
+        "fit_tags": [
+          "revops",
+          "b2b saas",
+          "lifecycle email",
+          "board reporting"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-011",
+    "person_b_source_id": "airtable-055",
+    "person_a_name": "Aarav Iyer",
+    "person_b_name": "Ben Robinson",
+    "person_a_company": "Greenledger",
+    "person_b_company": "Craftledger",
+    "match_score": 0.7479,
+    "match_band": "good",
+    "shared_context": "Fintech ledger founders sharing insights",
+    "suggested_intro": "Ben, I'd love to introduce you to Aarav, who is building Greenledger in the climate fintech space and brings a strong enterprise sales and consulting background.",
+    "reasoning": "Both founders are building ledger-based financial products in overlapping fintech domains and can exchange valuable lessons on product cadence, niche expansion, and go-to-market strategies.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Aarav Iyer",
+        "role": "Founder",
+        "company": "Greenledger",
+        "sectors": [
+          "fintech",
+          "climate"
+        ],
+        "fit_tags": [
+          "enterprise sales",
+          "consulting background"
+        ]
+      },
+      "person_b": {
+        "name": "Ben Robinson",
+        "role": "Founder",
+        "company": "Craftledger",
+        "sectors": [
+          "fintech",
+          "ops"
+        ],
+        "fit_tags": [
+          "founder",
+          "niche focus",
+          "finance expertise"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-011",
+    "person_b_source_id": "airtable-033",
+    "person_a_name": "Aarav Iyer",
+    "person_b_name": "Neha Verma",
+    "person_a_company": "Greenledger",
+    "person_b_company": "Tracecarbon",
+    "match_score": 0.7478,
+    "match_band": "good",
+    "shared_context": "B2B climate SaaS founders",
+    "suggested_intro": "Aarav, meet Neha; you both are building B2B climate solutions and could easily share valuable go-to-market insights.",
+    "reasoning": "Both founders operate in the climate tech space with overlapping enterprise and compliance dimensions, offering strong potential for peer support and strategic alignment.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Aarav Iyer",
+        "role": "Founder",
+        "company": "Greenledger",
+        "sectors": [
+          "fintech",
+          "climate"
+        ],
+        "fit_tags": [
+          "enterprise sales",
+          "consulting background"
+        ]
+      },
+      "person_b": {
+        "name": "Neha Verma",
+        "role": "Co-Founder",
+        "company": "Tracecarbon",
+        "sectors": [
+          "climate",
+          "infra",
+          "compliance"
+        ],
+        "fit_tags": [
+          "manufacturing founder",
+          "climate data founder"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-018",
+    "person_b_source_id": "airtable-033",
+    "person_a_name": "Leah Stein",
+    "person_b_name": "Neha Verma",
+    "person_a_company": "Terravault Energy",
+    "person_b_company": "Tracecarbon",
+    "match_score": 0.7474,
+    "match_band": "good",
+    "shared_context": "Climate tech infrastructure founders",
+    "suggested_intro": "Neha, I'd love to introduce you to Leah, a fellow climate tech founder building advanced analytics for energy and infrastructure.",
+    "reasoning": "Both are early-stage climate infrastructure founders navigating complex regulatory and data-heavy sectors, offering valuable peer insights despite different end-markets.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Leah Stein",
+        "role": "Founder",
+        "company": "Terravault Energy",
+        "sectors": [
+          "climate",
+          "infra",
+          "energy"
+        ],
+        "fit_tags": [
+          "grid storage analytics",
+          "renewable developers",
+          "climate founder",
+          "infra policy operator"
+        ]
+      },
+      "person_b": {
+        "name": "Neha Verma",
+        "role": "Co-Founder",
+        "company": "Tracecarbon",
+        "sectors": [
+          "climate",
+          "infra",
+          "compliance"
+        ],
+        "fit_tags": [
+          "manufacturing founder",
+          "climate data founder"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-036",
+    "person_b_source_id": "airtable-042",
+    "person_a_name": "Pooja Reddy",
+    "person_b_name": "Paula Ribeiro",
+    "person_a_company": "Matrahq",
+    "person_b_company": "Flowclinic",
+    "match_score": 0.7471,
+    "match_band": "good",
+    "shared_context": "Scaling marketplace and SaaS operations",
+    "suggested_intro": "Paula, I'd love to introduce you to Pooja, who is driving operations and founder office initiatives at Matrahq and would be a great peer to connect with on scaling processes.",
+    "reasoning": "Both are executive-level operators tackling high-growth scaling challenges, making them ideal peers for sharing insights on process design and organizational workflows.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Pooja Reddy",
+        "role": "Chief Of Staff",
+        "company": "Matrahq",
+        "sectors": [
+          "saas",
+          "ops"
+        ],
+        "fit_tags": [
+          "chief of staff",
+          "founder office",
+          "hiring process",
+          "business reviews"
+        ]
+      },
+      "person_b": {
+        "name": "Paula Ribeiro",
+        "role": "COO",
+        "company": "Flowclinic",
+        "sectors": [
+          "health",
+          "ops"
+        ],
+        "fit_tags": [
+          "coo",
+          "operations leader",
+          "clinics marketplace"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-007",
+    "person_b_source_id": "airtable-021",
+    "person_a_name": "Priya Nair",
+    "person_b_name": "Fatima Al-Hassan",
+    "person_a_company": "Careloop Health",
+    "person_b_company": "Nurawell",
+    "match_score": 0.7449,
+    "match_band": "good",
+    "shared_context": "Employer health and care navigation",
+    "suggested_intro": "Fatima, meet Priya, a product lead at Careloop Health in Bengaluru who is also deeply focused on employer care navigation and patient experience.",
+    "reasoning": "Both are building solutions for employer health markets and share a strong mutual interest in product leadership and healthcare operations.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Priya Nair",
+        "role": "Product Lead",
+        "company": "Careloop Health",
+        "sectors": [
+          "health"
+        ],
+        "fit_tags": [
+          "product lead",
+          "employer care navigation",
+          "bengaluru tech"
+        ]
+      },
+      "person_b": {
+        "name": "Fatima Al-Hassan",
+        "role": "Founder",
+        "company": "Nurawell",
+        "sectors": [
+          "health",
+          "ops"
+        ],
+        "fit_tags": [
+          "preventive health founder",
+          "gcc employer market",
+          "product leadership",
+          "clinical ops"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-007",
+    "person_b_source_id": "airtable-042",
+    "person_a_name": "Priya Nair",
+    "person_b_name": "Paula Ribeiro",
+    "person_a_company": "Careloop Health",
+    "person_b_company": "Flowclinic",
+    "match_score": 0.7423,
+    "match_band": "good",
+    "shared_context": "Healthcare marketplace and navigation operators",
+    "suggested_intro": "Priya, meet Paula, the COO of Flowclinic who shares your passion for improving patient experience and operational efficiency in healthcare.",
+    "reasoning": "Both are senior operators in the health sector tackling complex delivery models, making them ideal peers to exchange operational strategies and patient experience insights.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Priya Nair",
+        "role": "Product Lead",
+        "company": "Careloop Health",
+        "sectors": [
+          "health"
+        ],
+        "fit_tags": [
+          "product lead",
+          "employer care navigation",
+          "bengaluru tech"
+        ]
+      },
+      "person_b": {
+        "name": "Paula Ribeiro",
+        "role": "COO",
+        "company": "Flowclinic",
+        "sectors": [
+          "health",
+          "ops"
+        ],
+        "fit_tags": [
+          "coo",
+          "operations leader",
+          "clinics marketplace"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-014",
+    "person_b_source_id": "airtable-039",
+    "person_a_name": "Isha Malhotra",
+    "person_b_name": "Aditi Sharma",
+    "person_a_company": "Kindcart",
+    "person_b_company": "Rootskin",
+    "match_score": 0.7408,
+    "match_band": "good",
+    "shared_context": "D2C sustainable skincare brand scaling",
+    "suggested_intro": "Aditi, I'd love to introduce you to Isha, who brings deep D2C unicorn growth experience to her sustainable personal care brand and would be a great sounding board for your international expansion goals.",
+    "reasoning": "Both are founders in the premium consumer wellness and personal care space. Isha's strong operational and D2C growth background complements Aditi's focus on brand building and international expansion.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Isha Malhotra",
+        "role": "Founder",
+        "company": "Kindcart",
+        "sectors": [
+          "consumer",
+          "ops"
+        ],
+        "fit_tags": [
+          "d2c unicorn growth",
+          "sustainable personal care",
+          "brand builder"
+        ]
+      },
+      "person_b": {
+        "name": "Aditi Sharma",
+        "role": "Founder",
+        "company": "Rootskin",
+        "sectors": [
+          "consumer",
+          "health"
+        ],
+        "fit_tags": [
+          "ayurveda skincare brand founder",
+          "international expansion",
+          "distribution thesis"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-046",
+    "person_b_source_id": "airtable-049",
+    "person_a_name": "Harini Krishnan",
+    "person_b_name": "Srishti Jain",
+    "person_a_company": "Zenqueue",
+    "person_b_company": "Carepath",
+    "match_score": 0.736,
+    "match_band": "good",
+    "shared_context": "Healthcare operations and founder journeys",
+    "suggested_intro": "Srishti, meet Harini, who is building operational automation for healthcare contact centers and shares your deep background in health tech operations.",
+    "reasoning": "Both founders are navigating the complexities of the healthcare sector with a heavy focus on operations, allowing them to exchange valuable insights on scaling their respective platforms and optimizing efficiency.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Harini Krishnan",
+        "role": "Founder",
+        "company": "Zenqueue",
+        "sectors": [
+          "health",
+          "ops",
+          "ai"
+        ],
+        "fit_tags": [
+          "healthcare ops",
+          "call center automation",
+          "founder"
+        ]
+      },
+      "person_b": {
+        "name": "Srishti Jain",
+        "role": "Founder",
+        "company": "Carepath",
+        "sectors": [
+          "health",
+          "ops"
+        ],
+        "fit_tags": [
+          "founder",
+          "healthcare",
+          "operations",
+          "payer partnerships"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-035",
+    "person_b_source_id": "airtable-051",
+    "person_a_name": "Oliver Grant",
+    "person_b_name": "Tomas Novak",
+    "person_a_company": null,
+    "person_b_company": "Signal Plane",
+    "match_score": 0.736,
+    "match_band": "good",
+    "shared_context": "Dev tools and observability founders",
+    "suggested_intro": "Tomas, I'd love to connect you with Oliver, who is building dev tools for observability pipelines and shares your focus on product-led growth in infrastructure.",
+    "reasoning": "Both are technical founders operating in the dev tools and ops space, allowing them to share valuable insights on product-led growth and infrastructure scaling challenges.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Oliver Grant",
+        "role": "Founder",
+        "company": null,
+        "sectors": [
+          "dev tools",
+          "ops"
+        ],
+        "fit_tags": [
+          "product-led",
+          "infrastructure builder"
+        ]
+      },
+      "person_b": {
+        "name": "Tomas Novak",
+        "role": "Founder",
+        "company": "Signal Plane",
+        "sectors": [
+          "dev tools",
+          "ops"
+        ],
+        "fit_tags": [
+          "founder"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-001",
+    "person_b_source_id": "airtable-004",
+    "person_a_name": "Rahul Mehta",
+    "person_b_name": "Ananya Rao",
+    "person_a_company": "Nexora Pay",
+    "person_b_company": null,
+    "match_score": 0.7346,
+    "match_band": "good",
+    "shared_context": "Fintech operations and early-stage scaling",
+    "suggested_intro": "Ananya, meet Rahul, who brings fantastic payments infrastructure and operational insights from scaling Nexora Pay that will deeply resonate with your work in small business finance.",
+    "reasoning": "Rahul's deep experience in payments infrastructure at Nexora Pay directly complements Ananya's focus on small business finance tools. Both share a strong background in fintech operations and early-stage building, making this a mutually valuable peer exchange.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Rahul Mehta",
+        "role": "Co-Founder & COO",
+        "company": "Nexora Pay",
+        "sectors": [
+          "fintech",
+          "ops"
+        ],
+        "fit_tags": [
+          "co-founder",
+          "coo",
+          "payments infra",
+          "partnerships"
+        ]
+      },
+      "person_b": {
+        "name": "Ananya Rao",
+        "role": "Product & Ops",
+        "company": null,
+        "sectors": [
+          "fintech",
+          "ops"
+        ],
+        "fit_tags": [
+          "early stage founder",
+          "product and ops experience"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-004",
+    "person_b_source_id": "airtable-031",
+    "person_a_name": "Ananya Rao",
+    "person_b_name": "Sanjana Kapoor",
+    "person_a_company": null,
+    "person_b_company": "Mintmind AI",
+    "match_score": 0.7328,
+    "match_band": "good",
+    "shared_context": "Early-stage fintech and AI founders",
+    "suggested_intro": "Ananya, meet Sanjana, who is building an AI assistant for wealth advisors and navigating similar early-stage product challenges in the fintech space.",
+    "reasoning": "Both are operating in the fintech domain with a strong focus on early-stage product development, allowing them to trade valuable insights on building trust, compliance, and user adoption.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Ananya Rao",
+        "role": "Product & Ops",
+        "company": null,
+        "sectors": [
+          "fintech",
+          "ops"
+        ],
+        "fit_tags": [
+          "early stage founder",
+          "product and ops experience"
+        ]
+      },
+      "person_b": {
+        "name": "Sanjana Kapoor",
+        "role": "Founder",
+        "company": "Mintmind AI",
+        "sectors": [
+          "ai",
+          "fintech"
+        ],
+        "fit_tags": [
+          "founder",
+          "product"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-004",
+    "person_b_source_id": "airtable-054",
+    "person_a_name": "Ananya Rao",
+    "person_b_name": "Ritika Agarwal",
+    "person_a_company": null,
+    "person_b_company": null,
+    "match_score": 0.731,
+    "match_band": "good",
+    "shared_context": "early-stage operations and fintech",
+    "suggested_intro": "Ritika, I'd love to introduce you to Ananya, who is building financial tools for small businesses and shares your strong background in operations.",
+    "reasoning": "Both share a deep focus on operations at a mid-seniority level, providing a solid foundation for Ananya as an early-stage founder to exchange tactical insights with an experienced ops lead.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Ananya Rao",
+        "role": "Product & Ops",
+        "company": null,
+        "sectors": [
+          "fintech",
+          "ops"
+        ],
+        "fit_tags": [
+          "early stage founder",
+          "product and ops experience"
+        ]
+      },
+      "person_b": {
+        "name": "Ritika Agarwal",
+        "role": "Ops Lead",
+        "company": null,
+        "sectors": [
+          "ops"
+        ],
+        "fit_tags": [
+          "ops lead"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-032",
+    "person_b_source_id": "airtable-042",
+    "person_a_name": "Miguel Santos",
+    "person_b_name": "Paula Ribeiro",
+    "person_a_company": "Casa Health",
+    "person_b_company": "Flowclinic",
+    "match_score": 0.7286,
+    "match_band": "good",
+    "shared_context": "Healthcare operations and clinic scaling",
+    "suggested_intro": "Paula, I'd love to introduce you to Miguel, who brings fantastic hands-on experience scaling health operations and clinic partnerships in Brazil.",
+    "reasoning": "Both are senior operators in the health sector tackling clinic networks and marketplace logistics, making them ideal peers for exchanging playbooks on field operations and process design.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Miguel Santos",
+        "role": "Head Of Ops",
+        "company": "Casa Health",
+        "sectors": [
+          "health",
+          "ops"
+        ],
+        "fit_tags": [
+          "health ops leader",
+          "city launches",
+          "clinic partnerships",
+          "field teams"
+        ]
+      },
+      "person_b": {
+        "name": "Paula Ribeiro",
+        "role": "COO",
+        "company": "Flowclinic",
+        "sectors": [
+          "health",
+          "ops"
+        ],
+        "fit_tags": [
+          "coo",
+          "operations leader",
+          "clinics marketplace"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-014",
+    "person_b_source_id": "airtable-028",
+    "person_a_name": "Isha Malhotra",
+    "person_b_name": "Devansh Kulkarni",
+    "person_a_company": "Kindcart",
+    "person_b_company": "Shipmint",
+    "match_score": 0.7273,
+    "match_band": "good",
+    "shared_context": "D2C operations and consumer logistics",
+    "suggested_intro": "Isha, meet Devansh, who is building logistics automation for D2C brands and shares your background in scaling consumer businesses.",
+    "reasoning": "Isha's deep expertise in scaling D2C consumer brands aligns naturally with Devansh's logistics SaaS product, creating potential for valuable user feedback and mutual industry insights.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Isha Malhotra",
+        "role": "Founder",
+        "company": "Kindcart",
+        "sectors": [
+          "consumer",
+          "ops"
+        ],
+        "fit_tags": [
+          "d2c unicorn growth",
+          "sustainable personal care",
+          "brand builder"
+        ]
+      },
+      "person_b": {
+        "name": "Devansh Kulkarni",
+        "role": "Founder",
+        "company": "Shipmint",
+        "sectors": [
+          "ops",
+          "consumer"
+        ],
+        "fit_tags": [
+          "founder-market fit",
+          "ops automation",
+          "scrappy"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-012",
+    "person_b_source_id": "airtable-050",
+    "person_a_name": "Nikhil Sood",
+    "person_b_name": "Tomas Novak",
+    "person_a_company": "Flux Forge",
+    "person_b_company": "Signalplane",
+    "match_score": 0.7263,
+    "match_band": "good",
+    "shared_context": "Developer infrastructure and tooling synergy",
+    "suggested_intro": "Tomas, I'd love to introduce you to Nikhil, a technical founder building API tooling for AI agents who shares your deep focus on developer workflows.",
+    "reasoning": "Both founders operate in the dev tools ecosystem and can cross-pollinate insights on developer productivity, with Nikhil seeking design partners and Tomas focused on engineering workflows.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Nikhil Sood",
+        "role": "CTO",
+        "company": "Flux Forge",
+        "sectors": [
+          "dev tools",
+          "ai"
+        ],
+        "fit_tags": [
+          "technical founder",
+          "cto",
+          "dev infra builder"
+        ]
+      },
+      "person_b": {
+        "name": "Tomas Novak",
+        "role": "Founder",
+        "company": "Signalplane",
+        "sectors": [
+          "dev tools",
+          "infra",
+          "ops"
+        ],
+        "fit_tags": [
+          "founder",
+          "engineering productivity",
+          "developer workflow"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-017",
+    "person_b_source_id": "airtable-027",
+    "person_a_name": "Omar Farouk",
+    "person_b_name": "Sara Haddad",
+    "person_a_company": "Atlasops",
+    "person_b_company": "Earthmarket",
+    "match_score": 0.7251,
+    "match_band": "good",
+    "shared_context": "marketplace expansion and operational growth",
+    "suggested_intro": "Sara, meet Omar, an operator in residence at Atlasops who has deep expertise in marketplace expansion and setting up operating rhythms for early-stage teams.",
+    "reasoning": "Omar's background in marketplace expansion and operational setup directly aligns with Sara's current focus on growth and international expansion at Earthmarket, making him a valuable sounding board for scaling challenges.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Omar Farouk",
+        "role": "Operator In Residence",
+        "company": "Atlasops",
+        "sectors": [
+          "ops"
+        ],
+        "fit_tags": [
+          "marketplace expansion",
+          "finance",
+          "hiring",
+          "operating rhythm",
+          "seed teams"
+        ]
+      },
+      "person_b": {
+        "name": "Sara Haddad",
+        "role": "Growth Lead",
+        "company": "Earthmarket",
+        "sectors": [
+          "climate"
+        ],
+        "fit_tags": [
+          "growth lead",
+          "international expansion",
+          "marketplace"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-039",
+    "person_b_source_id": "airtable-049",
+    "person_a_name": "Aditi Sharma",
+    "person_b_name": "Srishti Jain",
+    "person_a_company": "Rootskin",
+    "person_b_company": "Carepath",
+    "match_score": 0.7244,
+    "match_band": "good",
+    "shared_context": "Health and wellness founders scaling",
+    "suggested_intro": "Aditi, meet Srishti, a fellow healthcare and consumer founder who would be a great sounding board for you as you navigate growth and expansion.",
+    "reasoning": "Both are early-stage founders in the health and wellness space in India navigating complex scaling challenges, making them great peers for exchanging operational and strategic insights.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Aditi Sharma",
+        "role": "Founder",
+        "company": "Rootskin",
+        "sectors": [
+          "consumer",
+          "health"
+        ],
+        "fit_tags": [
+          "ayurveda skincare brand founder",
+          "international expansion",
+          "distribution thesis"
+        ]
+      },
+      "person_b": {
+        "name": "Srishti Jain",
+        "role": "Founder",
+        "company": "Carepath",
+        "sectors": [
+          "health",
+          "ops"
+        ],
+        "fit_tags": [
+          "founder",
+          "healthcare",
+          "operations",
+          "payer partnerships"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-031",
+    "person_b_source_id": "airtable-052",
+    "person_a_name": "Sanjana Kapoor",
+    "person_b_name": "Alisha D'Mello",
+    "person_a_company": "Mintmind AI",
+    "person_b_company": "Weavemoney",
+    "match_score": 0.7241,
+    "match_band": "good",
+    "shared_context": "Fintech founders navigating product development",
+    "suggested_intro": "Alisha, meet Sanjana, a fellow fintech founder who brings great product expertise and would be a wonderful sounding board for your journey.",
+    "reasoning": "Both are early-stage fintech founders navigating complex industry dynamics, allowing Sanjana to share product insights while Alisha can offer valuable perspectives on mission-driven distribution.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Sanjana Kapoor",
+        "role": "Founder",
+        "company": "Mintmind AI",
+        "sectors": [
+          "ai",
+          "fintech"
+        ],
+        "fit_tags": [
+          "founder",
+          "product"
+        ]
+      },
+      "person_b": {
+        "name": "Alisha D'Mello",
+        "role": "Founder",
+        "company": "Weavemoney",
+        "sectors": [
+          "fintech"
+        ],
+        "fit_tags": [
+          "mission-driven",
+          "microbusiness",
+          "fintech",
+          "community-oriented"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-028",
+    "person_b_source_id": "airtable-046",
+    "person_a_name": "Devansh Kulkarni",
+    "person_b_name": "Harini Krishnan",
+    "person_a_company": "Shipmint",
+    "person_b_company": "Zenqueue",
+    "match_score": 0.7227,
+    "match_band": "good",
+    "shared_context": "B2B ops automation for niche markets",
+    "suggested_intro": "Devansh, meet Harini, a fellow founder scaling operations automation in a complex vertical.",
+    "reasoning": "Both founders are building workflow automation SaaS with strong domain expertise, allowing them to exchange tactics on scaling scrappy operations and achieving high founder-market fit.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Devansh Kulkarni",
+        "role": "Founder",
+        "company": "Shipmint",
+        "sectors": [
+          "ops",
+          "consumer"
+        ],
+        "fit_tags": [
+          "founder-market fit",
+          "ops automation",
+          "scrappy"
+        ]
+      },
+      "person_b": {
+        "name": "Harini Krishnan",
+        "role": "Founder",
+        "company": "Zenqueue",
+        "sectors": [
+          "health",
+          "ops",
+          "ai"
+        ],
+        "fit_tags": [
+          "healthcare ops",
+          "call center automation",
+          "founder"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  },
+  {
+    "person_a_source_id": "airtable-024",
+    "person_b_source_id": "airtable-031",
+    "person_a_name": "Vivek Menon",
+    "person_b_name": "Sanjana Kapoor",
+    "person_a_company": "Riverbase AI",
+    "person_b_company": "Mintmind AI",
+    "match_score": 0.7221,
+    "match_band": "good",
+    "shared_context": "Regulated AI startup founders",
+    "suggested_intro": "Vivek, I'd love to introduce you to Sanjana, who is also building an AI company in the regulated financial space and navigating similar trust challenges.",
+    "reasoning": "Both are technical founders tackling the complex go-to-market and compliance hurdles of deploying AI in heavily regulated sectors. Sanjana's focus on wealth advisory trust issues directly complements Vivek's work on AI data pipelines for regulated teams.",
+    "evidence_snapshot": {
+      "person_a": {
+        "name": "Vivek Menon",
+        "role": "Founder",
+        "company": "Riverbase AI",
+        "sectors": [
+          "ai"
+        ],
+        "fit_tags": [
+          "technical founder",
+          "startup creator"
+        ]
+      },
+      "person_b": {
+        "name": "Sanjana Kapoor",
+        "role": "Founder",
+        "company": "Mintmind AI",
+        "sectors": [
+          "ai",
+          "fintech"
+        ],
+        "fit_tags": [
+          "founder",
+          "product"
+        ]
+      }
+    },
+    "status": "pending",
+    "generated_by": "gemini-embedding+gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "generated_at": "2026-08-29T10:56:30.266146+00:00"
+  }
+]

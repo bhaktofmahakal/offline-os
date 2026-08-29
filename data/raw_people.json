@@ -1,0 +1,497 @@
+[
+  {
+    "source_record_id": "airtable-001",
+    "name": "Rahul Mehta",
+    "email": "Rahul.Mehta@NexoraPay.in",
+    "company": "Nexora Pay",
+    "role_title": "Co-Founder & COO",
+    "bio_notes": "Built payments infra for mid-market merchants. Previously product at a large bank; very hands on with ops + partnerships.",
+    "source": "referral"
+  },
+  {
+    "source_record_id": "airtable-002",
+    "name": " rahul mehta ",
+    "email": " rahul.mehta@nexorapay.in ",
+    "company": "nexora pay",
+    "role_title": "COO / cofounder",
+    "bio_notes": "Payments infra for merchants, ex-bank product. Excells at getting messy cross-functional projects over the line.",
+    "source": "event"
+  },
+  {
+    "source_record_id": "airtable-003",
+    "name": "Rahul  Mehta ",
+    "email": "rahul.mehta+old@nexorapay.in",
+    "company": "NexoraPay",
+    "role_title": "Founder - Ops",
+    "bio_notes": "Founder of NexoraPay. Looking for other operators who have scaled fintech teams. email may be old.",
+    "source": "applicant"
+  },
+  {
+    "source_record_id": "airtable-004",
+    "name": "Ananya Rao",
+    "email": "ananya.rao@gmail.com",
+    "company": "",
+    "role_title": "Product & Ops",
+    "bio_notes": "Building tools for small business finance. Strong user research and launch experience; keen to meet other early stage founders.",
+    "source": "applicant"
+  },
+  {
+    "source_record_id": "airtable-005",
+    "name": "Maya O'Connell",
+    "email": "maya@northstarclimate.com",
+    "company": "Northstar Climate",
+    "role_title": "VP Operations",
+    "bio_notes": "",
+    "source": "referral"
+  },
+  {
+    "source_record_id": "airtable-006",
+    "name": "Luca Bianchi",
+    "email": "luca@stackharbor.dev",
+    "company": "StackHarbor",
+    "role_title": "Founder",
+    "bio_notes": "Dev tools founder working on infra observability. Previously eng lead; writes very clearly but profile notes are incomplete.",
+    "source": "event"
+  },
+  {
+    "source_record_id": "airtable-007",
+    "name": "priya nair ",
+    "email": "priya.nair@careloop.health",
+    "company": "CareLoop Health",
+    "role_title": "product lead",
+    "bio_notes": "Working on care navigation for employers in Bengaluru. Big on access + better patient experiance; open to operator peers.",
+    "source": "Applicant"
+  },
+  {
+    "source_record_id": "airtable-008",
+    "name": "David Chen ",
+    "email": "david@MorrowCommerce.com",
+    "company": "morrow commerce",
+    "role_title": "Co-founder",
+    "bio_notes": "E-commerce operator turned founder. Building a repeat-purchase brand with a distributed team across Singapore and London.",
+    "source": "referral"
+  },
+  {
+    "source_record_id": "airtable-009",
+    "name": "Aisha Khan",
+    "email": "aisha.khan@proton.me",
+    "company": "",
+    "role_title": "Head of Community",
+    "bio_notes": "Runs founder programs and community partnerships. Climate curious, strong network in Delhi + Dubai. Check timezone.",
+    "source": "event"
+  },
+  {
+    "source_record_id": "airtable-010",
+    "name": "Sofia Alvarez",
+    "email": "sofia@mercurygrove.io",
+    "company": "Mercury Grove",
+    "role_title": "Founder / CEO",
+    "bio_notes": "Consumer health startup focused on habit change. Former growth lead, now hiring first operations team and looking for thoughtful peers.",
+    "source": "applicant"
+  },
+  {
+    "source_record_id": "airtable-011",
+    "name": "Aarav Iyer",
+    "email": "aarav@greenledger.in",
+    "company": "GreenLedger",
+    "role_title": "Founder",
+    "bio_notes": "Climate fintech for MSME carbon accounting. Ex-consulting, good at enterprise sales but early on product cadence.",
+    "source": "referral"
+  },
+  {
+    "source_record_id": "airtable-012",
+    "name": "Nikhil Sood",
+    "email": "nikhil@fluxforge.dev",
+    "company": "Flux Forge",
+    "role_title": "CTO",
+    "bio_notes": "Building API tooling for AI agents. Strong backend chops, wants intros to design partners in dev infra.",
+    "source": "event"
+  },
+  {
+    "source_record_id": "airtable-013",
+    "name": " nikhil sood",
+    "email": "NIKHIL@FLUXFORGE.DEV",
+    "company": "fluxforge",
+    "role_title": "Co founder / CTO",
+    "bio_notes": "Same devtools API infra founder; met at BLR dinner. Needs design partner intros, very technical.",
+    "source": "referral"
+  },
+  {
+    "source_record_id": "airtable-014",
+    "name": "Isha Malhotra",
+    "email": "isha@kindcart.co",
+    "company": "KindCart",
+    "role_title": "Founder",
+    "bio_notes": "Consumer brand builder, sustainable personal care. Previously ran growth at a D2C unicorn, sharp operator.",
+    "source": "applicant"
+  },
+  {
+    "source_record_id": "airtable-015",
+    "name": "James Whitaker",
+    "email": "james@clearclinic.ai",
+    "company": "ClearClinic",
+    "role_title": "COO",
+    "bio_notes": "Scaling revenue ops for healthcare workflow automation. Ex-McKinsey, thoughtful on compliance-heavy sales.",
+    "source": "referral"
+  },
+  {
+    "source_record_id": "airtable-016",
+    "name": "Meera Subramanian",
+    "email": "",
+    "company": "Tandem Bio",
+    "role_title": "Chief of Staff",
+    "bio_notes": "Works across fundraising, hiring and board prep at a healthtech scaleup. Very plugged into Chennai SaaS founders.",
+    "source": "event"
+  },
+  {
+    "source_record_id": "airtable-017",
+    "name": "Omar Farouk",
+    "email": "omar@atlasops.co",
+    "company": "AtlasOps",
+    "role_title": "Operator in Residence",
+    "bio_notes": "Helps seed teams set up finance, hiring, and operating rhythm. Background in marketplace expansion.",
+    "source": "referral"
+  },
+  {
+    "source_record_id": "airtable-018",
+    "name": "Leah Stein",
+    "email": "leah@terravault.energy",
+    "company": "TerraVault Energy",
+    "role_title": "Founder",
+    "bio_notes": "Grid storage analytics for renewable developers. Looking for india climate founders and infra policy operators.",
+    "source": "applicant"
+  },
+  {
+    "source_record_id": "airtable-019",
+    "name": "leah  stein",
+    "email": " leah.stein@terravault.energy",
+    "company": "terra vault energy",
+    "role_title": "CEO",
+    "bio_notes": "Renewable grid storage analytics founder; wants policy + developer network in India. Spoke at climate event.",
+    "source": "event"
+  },
+  {
+    "source_record_id": "airtable-020",
+    "name": "Rohan Das",
+    "email": "rohan@paylok.in",
+    "company": "PayLok",
+    "role_title": "Head of Partnerships",
+    "bio_notes": "Fintech partnerships operator; scaled bank integrations and lender marketplace deals. Practical and very responsive.",
+    "source": "referral"
+  },
+  {
+    "source_record_id": "airtable-021",
+    "name": "Fatima Al-Hassan",
+    "email": "fatima@nurawell.com",
+    "company": "NuraWell",
+    "role_title": "Founder",
+    "bio_notes": "Preventive health platform for GCC employers. Looking for community around hiring product leaders and clinical ops.",
+    "source": "applicant"
+  },
+  {
+    "source_record_id": "airtable-022",
+    "name": "Karan Bhatia",
+    "email": "karan.bhatia@example.com",
+    "company": "",
+    "role_title": "Founder",
+    "bio_notes": "",
+    "source": "applicant"
+  },
+  {
+    "source_record_id": "airtable-023",
+    "name": "Emily Carter",
+    "email": "emily@northloop.tools",
+    "company": "NorthLoop Tools",
+    "role_title": "VP Product",
+    "bio_notes": "Dev productivity operator; took internal tools from hacky scripts to platform used by 800 engineers.",
+    "source": "event"
+  },
+  {
+    "source_record_id": "airtable-024",
+    "name": "Vivek Menon",
+    "email": "vivek@riverbase.ai",
+    "company": "RiverBase AI",
+    "role_title": "Founder",
+    "bio_notes": "AI data pipeline startup for regulated teams. Strong technical founder but go-to-market still fuzzy.",
+    "source": "referral"
+  },
+  {
+    "source_record_id": "airtable-025",
+    "name": "Tara Singh",
+    "email": "tara@bluekettle.co",
+    "company": "Blue Kettle",
+    "role_title": "COO",
+    "bio_notes": "Consumer subscription operator, strong retention and supply chain background. Wants peers who understand premium community-led brands.",
+    "source": "applicant"
+  },
+  {
+    "source_record_id": "airtable-026",
+    "name": "Hiro Tanaka",
+    "email": "hiro@medbridge.jp",
+    "company": "MedBridge",
+    "role_title": "Founder",
+    "bio_notes": "Health data interoperability for clinics in Japan. Quiet, detailed, asks precise questions about privacy and deployment.",
+    "source": "referral"
+  },
+  {
+    "source_record_id": "airtable-027",
+    "name": "Sara Haddad",
+    "email": "sara@earthmarket.io",
+    "company": "EarthMarket",
+    "role_title": "Growth Lead",
+    "bio_notes": "Climate marketplace growth, supplier onboarding and international expansion. May be applicant later.",
+    "source": "event"
+  },
+  {
+    "source_record_id": "airtable-028",
+    "name": "Devansh Kulkarni",
+    "email": "devansh@shipmint.com",
+    "company": "ShipMint",
+    "role_title": "Founder",
+    "bio_notes": "Logistics SaaS for D2C brands. Obsessed with ops automation, scrappy, strong founder-market fit.",
+    "source": "applicant"
+  },
+  {
+    "source_record_id": "airtable-029",
+    "name": "Mina Park",
+    "email": "mina@loophealth.co",
+    "company": "Loop Health",
+    "role_title": "People Ops",
+    "bio_notes": "Built hiring and performance systems for a 180-person health startup. Looking for operator network.",
+    "source": "referral"
+  },
+  {
+    "source_record_id": "airtable-030",
+    "name": "George Mensah",
+    "email": "george@farmgrid.africa",
+    "company": "FarmGrid Africa",
+    "role_title": "Founder",
+    "bio_notes": "",
+    "source": "applicant"
+  },
+  {
+    "source_record_id": "airtable-031",
+    "name": "Sanjana Kapoor",
+    "email": "sanjana@mintmind.ai",
+    "company": "MintMind AI",
+    "role_title": "Founder",
+    "bio_notes": "AI assistant for wealth advisors. Finance founder with product taste; wants candid feedback on trust and compliance.",
+    "source": "referral"
+  },
+  {
+    "source_record_id": "airtable-032",
+    "name": "Miguel Santos",
+    "email": "miguel@casahealth.com",
+    "company": "Casa Health",
+    "role_title": "Head of Ops",
+    "bio_notes": "Brazil-based health ops leader. Ran city launches, clinic partnerships, and field teams. English profile has typos.",
+    "source": "event"
+  },
+  {
+    "source_record_id": "airtable-033",
+    "name": "Neha Verma",
+    "email": "neha@tracecarbon.in",
+    "company": "tracecarbon",
+    "role_title": "Co-Founder",
+    "bio_notes": "Climate data infra for exporters. Needs warm intros to manufacturing founders and EU compliance experts.",
+    "source": "applicant"
+  },
+  {
+    "source_record_id": "airtable-034",
+    "name": "neha  verma ",
+    "email": "neha.verma@tracecarbon.in",
+    "company": "Trace Carbon",
+    "role_title": "CEO",
+    "bio_notes": "Exporter carbon accounting founder. Strong manufacturing network; same as Neha? spelling from event badge.",
+    "source": "event"
+  },
+  {
+    "source_record_id": "airtable-035",
+    "name": "Oliver Grant",
+    "email": "oliver@bytebarn.dev",
+    "company": "",
+    "role_title": "Founder",
+    "bio_notes": "Building dev tools for observability pipelines. Very product-led, could help infra founders avoid overbuilding.",
+    "source": "referral"
+  },
+  {
+    "source_record_id": "airtable-036",
+    "name": "Pooja Reddy",
+    "email": "pooja@matrahq.com",
+    "company": "MatraHQ",
+    "role_title": "Chief of Staff",
+    "bio_notes": "Founder office operator at a fast growing SaaS company. Can unblock hiring process, dashboards, and weekly business reviews.",
+    "source": "referral"
+  },
+  {
+    "source_record_id": "airtable-037",
+    "name": "Daniel Kim",
+    "email": "daniel@freshcrate.co",
+    "company": "FreshCrate",
+    "role_title": "Founder",
+    "bio_notes": "Consumer grocery subscription in Seoul. Notes say strong community instincts, unit economics still early.",
+    "source": "applicant"
+  },
+  {
+    "source_record_id": "airtable-038",
+    "name": "Natasha Fernandes",
+    "email": "natasha@dockline.io",
+    "company": "Dockline",
+    "role_title": "Revenue Ops",
+    "bio_notes": "Set up HubSpot, lifecycle email and board reporting for B2B SaaS. Great fit for operator circles.",
+    "source": "event"
+  },
+  {
+    "source_record_id": "airtable-039",
+    "name": "Aditi Sharma",
+    "email": "aditi@rootskin.in",
+    "company": "RootSkin",
+    "role_title": "Founder",
+    "bio_notes": "Premium ayurveda skincare brand. ex-brand manager, has clear distribution thesis, wants international expansion peers.",
+    "source": "applicant"
+  },
+  {
+    "source_record_id": "airtable-040",
+    "name": "Yusuf Khan",
+    "email": "",
+    "company": "LedgerLane",
+    "role_title": "Product Manager",
+    "bio_notes": "",
+    "source": "event"
+  },
+  {
+    "source_record_id": "airtable-041",
+    "name": "Chen Wei",
+    "email": "chen@climatetrace.sg",
+    "company": "ClimateTrace SG",
+    "role_title": "Founder",
+    "bio_notes": "Carbon procurement software for enterprise buyers. Wants india network, especially founders selling into large corporates.",
+    "source": "referral"
+  },
+  {
+    "source_record_id": "airtable-042",
+    "name": "Paula Ribeiro",
+    "email": "paula@flowclinic.com",
+    "company": "FlowClinic",
+    "role_title": "COO",
+    "bio_notes": "Operations leader for clinics marketplace. Strong on process design, founder is asking for peer community fit.",
+    "source": "referral"
+  },
+  {
+    "source_record_id": "airtable-043",
+    "name": "Arjun Sen",
+    "email": "arjun@kernellabs.dev",
+    "company": "Kernel Labs",
+    "role_title": "Founder",
+    "bio_notes": "Open-source dev tooling around test data. Thoughtful builder, sometimes rambly in app form, high signal in person.",
+    "source": "applicant"
+  },
+  {
+    "source_record_id": "airtable-044",
+    "name": "Ines Muller",
+    "email": "ines@wellnest.eu",
+    "company": "WellNest",
+    "role_title": "Founder",
+    "bio_notes": "Consumer wellness marketplace in Berlin. Looking for intros to growth operators and community-led distribution experts.",
+    "source": "event"
+  },
+  {
+    "source_record_id": "airtable-045",
+    "name": "Kabir Chawla",
+    "email": "kabir@cobaltrails.com",
+    "company": "",
+    "role_title": "Investor",
+    "bio_notes": "Angel and ex-founder. Helpful with fintech, but not the core applicant persona. Keep in CRM for intros.",
+    "source": "referral"
+  },
+  {
+    "source_record_id": "airtable-046",
+    "name": "Harini Krishnan",
+    "email": "harini@zenqueue.io",
+    "company": "ZenQueue",
+    "role_title": "Founder",
+    "bio_notes": "Ops automation for healthcare contact centers. ex-call-center ops, founder-market fit is strong; spelling errors in app but compelling.",
+    "source": "applicant"
+  },
+  {
+    "source_record_id": "airtable-047",
+    "name": "harini krishnan",
+    "email": "harini.k@zenqueue.io",
+    "company": "Zen Queue",
+    "role_title": "CEO / founder",
+    "bio_notes": "Healthcare call centre automation founder. Same as Harini from ZenQueue likely; met through referral.",
+    "source": "referral"
+  },
+  {
+    "source_record_id": "airtable-048",
+    "name": "Noah Williams",
+    "email": "noah@gridcraft.energy",
+    "company": "GridCraft",
+    "role_title": "Product Lead",
+    "bio_notes": "",
+    "source": "event"
+  },
+  {
+    "source_record_id": "airtable-049",
+    "name": "Srishti Jain",
+    "email": "srishti@carepath.in",
+    "company": "CarePath",
+    "role_title": "Founder",
+    "bio_notes": "Building chronic care navigation for Indian families. Deep empathy, strong ops instincts, needs payer partnerships.",
+    "source": "applicant"
+  },
+  {
+    "source_record_id": "airtable-050",
+    "name": "Tomas Novak",
+    "email": "tomas@signalplane.dev",
+    "company": "SignalPlane",
+    "role_title": "Founder",
+    "bio_notes": "Developer workflow analytics. Looking for intro to infra buyers and founders who care about engineering productivity.",
+    "source": "referral"
+  },
+  {
+    "source_record_id": "airtable-051",
+    "name": "tomas novak ",
+    "email": "tom.novak@signalplane.dev",
+    "company": "Signal Plane",
+    "role_title": "founder",
+    "bio_notes": "Dev workflow analytics founder, maybe same Tomas from SignalPlane. Old CRM row from conf badge.",
+    "source": "event"
+  },
+  {
+    "source_record_id": "airtable-052",
+    "name": "Alisha D'Mello",
+    "email": "alisha@weavemoney.in",
+    "company": "WeaveMoney",
+    "role_title": "Founder",
+    "bio_notes": "Fintech for women-led microbusinesses. community oriented, strong mission, looking for underwriting and distribution mentors.",
+    "source": "applicant"
+  },
+  {
+    "source_record_id": "airtable-053",
+    "name": "Mateo Ruiz",
+    "email": "mateo@sunroute.mx",
+    "company": "SunRoute",
+    "role_title": "Founder",
+    "bio_notes": "Climate logistics for solar installers. Practical operator, Spanish-first notes translated quickly; great potential intro to grid people.",
+    "source": "referral"
+  },
+  {
+    "source_record_id": "airtable-054",
+    "name": "Ritika Agarwal",
+    "email": "ritika@example.com",
+    "company": "",
+    "role_title": "Ops Lead",
+    "bio_notes": "",
+    "source": "applicant"
+  },
+  {
+    "source_record_id": "airtable-055",
+    "name": "Ben Robinson",
+    "email": "ben@craftledger.io",
+    "company": "CraftLedger",
+    "role_title": "Founder",
+    "bio_notes": "Accounting workflow for creative agencies. Founder has clear niche but weak network in India; could benefit from finance operator intros.",
+    "source": "event"
+  }
+]

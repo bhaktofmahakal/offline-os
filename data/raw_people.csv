@@ -1,0 +1,56 @@
+source_record_id,name,email,company,role_title,bio_notes,source
+airtable-001,Rahul Mehta,Rahul.Mehta@NexoraPay.in,Nexora Pay,Co-Founder & COO,Built payments infra for mid-market merchants. Previously product at a large bank; very hands on with ops + partnerships.,referral
+airtable-002, rahul mehta , rahul.mehta@nexorapay.in ,nexora pay,COO / cofounder,"Payments infra for merchants, ex-bank product. Excells at getting messy cross-functional projects over the line.",event
+airtable-003,Rahul  Mehta ,rahul.mehta+old@nexorapay.in,NexoraPay,Founder - Ops,Founder of NexoraPay. Looking for other operators who have scaled fintech teams. email may be old.,applicant
+airtable-004,Ananya Rao,ananya.rao@gmail.com,,Product & Ops,Building tools for small business finance. Strong user research and launch experience; keen to meet other early stage founders.,applicant
+airtable-005,Maya O'Connell,maya@northstarclimate.com,Northstar Climate,VP Operations,,referral
+airtable-006,Luca Bianchi,luca@stackharbor.dev,StackHarbor,Founder,Dev tools founder working on infra observability. Previously eng lead; writes very clearly but profile notes are incomplete.,event
+airtable-007,priya nair ,priya.nair@careloop.health,CareLoop Health,product lead,Working on care navigation for employers in Bengaluru. Big on access + better patient experiance; open to operator peers.,Applicant
+airtable-008,David Chen ,david@MorrowCommerce.com,morrow commerce,Co-founder,E-commerce operator turned founder. Building a repeat-purchase brand with a distributed team across Singapore and London.,referral
+airtable-009,Aisha Khan,aisha.khan@proton.me,,Head of Community,"Runs founder programs and community partnerships. Climate curious, strong network in Delhi + Dubai. Check timezone.",event
+airtable-010,Sofia Alvarez,sofia@mercurygrove.io,Mercury Grove,Founder / CEO,"Consumer health startup focused on habit change. Former growth lead, now hiring first operations team and looking for thoughtful peers.",applicant
+airtable-011,Aarav Iyer,aarav@greenledger.in,GreenLedger,Founder,"Climate fintech for MSME carbon accounting. Ex-consulting, good at enterprise sales but early on product cadence.",referral
+airtable-012,Nikhil Sood,nikhil@fluxforge.dev,Flux Forge,CTO,"Building API tooling for AI agents. Strong backend chops, wants intros to design partners in dev infra.",event
+airtable-013, nikhil sood,NIKHIL@FLUXFORGE.DEV,fluxforge,Co founder / CTO,"Same devtools API infra founder; met at BLR dinner. Needs design partner intros, very technical.",referral
+airtable-014,Isha Malhotra,isha@kindcart.co,KindCart,Founder,"Consumer brand builder, sustainable personal care. Previously ran growth at a D2C unicorn, sharp operator.",applicant
+airtable-015,James Whitaker,james@clearclinic.ai,ClearClinic,COO,"Scaling revenue ops for healthcare workflow automation. Ex-McKinsey, thoughtful on compliance-heavy sales.",referral
+airtable-016,Meera Subramanian,,Tandem Bio,Chief of Staff,"Works across fundraising, hiring and board prep at a healthtech scaleup. Very plugged into Chennai SaaS founders.",event
+airtable-017,Omar Farouk,omar@atlasops.co,AtlasOps,Operator in Residence,"Helps seed teams set up finance, hiring, and operating rhythm. Background in marketplace expansion.",referral
+airtable-018,Leah Stein,leah@terravault.energy,TerraVault Energy,Founder,Grid storage analytics for renewable developers. Looking for india climate founders and infra policy operators.,applicant
+airtable-019,leah  stein, leah.stein@terravault.energy,terra vault energy,CEO,Renewable grid storage analytics founder; wants policy + developer network in India. Spoke at climate event.,event
+airtable-020,Rohan Das,rohan@paylok.in,PayLok,Head of Partnerships,Fintech partnerships operator; scaled bank integrations and lender marketplace deals. Practical and very responsive.,referral
+airtable-021,Fatima Al-Hassan,fatima@nurawell.com,NuraWell,Founder,Preventive health platform for GCC employers. Looking for community around hiring product leaders and clinical ops.,applicant
+airtable-022,Karan Bhatia,karan.bhatia@example.com,,Founder,,applicant
+airtable-023,Emily Carter,emily@northloop.tools,NorthLoop Tools,VP Product,Dev productivity operator; took internal tools from hacky scripts to platform used by 800 engineers.,event
+airtable-024,Vivek Menon,vivek@riverbase.ai,RiverBase AI,Founder,AI data pipeline startup for regulated teams. Strong technical founder but go-to-market still fuzzy.,referral
+airtable-025,Tara Singh,tara@bluekettle.co,Blue Kettle,COO,"Consumer subscription operator, strong retention and supply chain background. Wants peers who understand premium community-led brands.",applicant
+airtable-026,Hiro Tanaka,hiro@medbridge.jp,MedBridge,Founder,"Health data interoperability for clinics in Japan. Quiet, detailed, asks precise questions about privacy and deployment.",referral
+airtable-027,Sara Haddad,sara@earthmarket.io,EarthMarket,Growth Lead,"Climate marketplace growth, supplier onboarding and international expansion. May be applicant later.",event
+airtable-028,Devansh Kulkarni,devansh@shipmint.com,ShipMint,Founder,"Logistics SaaS for D2C brands. Obsessed with ops automation, scrappy, strong founder-market fit.",applicant
+airtable-029,Mina Park,mina@loophealth.co,Loop Health,People Ops,Built hiring and performance systems for a 180-person health startup. Looking for operator network.,referral
+airtable-030,George Mensah,george@farmgrid.africa,FarmGrid Africa,Founder,,applicant
+airtable-031,Sanjana Kapoor,sanjana@mintmind.ai,MintMind AI,Founder,AI assistant for wealth advisors. Finance founder with product taste; wants candid feedback on trust and compliance.,referral
+airtable-032,Miguel Santos,miguel@casahealth.com,Casa Health,Head of Ops,"Brazil-based health ops leader. Ran city launches, clinic partnerships, and field teams. English profile has typos.",event
+airtable-033,Neha Verma,neha@tracecarbon.in,tracecarbon,Co-Founder,Climate data infra for exporters. Needs warm intros to manufacturing founders and EU compliance experts.,applicant
+airtable-034,neha  verma ,neha.verma@tracecarbon.in,Trace Carbon,CEO,Exporter carbon accounting founder. Strong manufacturing network; same as Neha? spelling from event badge.,event
+airtable-035,Oliver Grant,oliver@bytebarn.dev,,Founder,"Building dev tools for observability pipelines. Very product-led, could help infra founders avoid overbuilding.",referral
+airtable-036,Pooja Reddy,pooja@matrahq.com,MatraHQ,Chief of Staff,"Founder office operator at a fast growing SaaS company. Can unblock hiring process, dashboards, and weekly business reviews.",referral
+airtable-037,Daniel Kim,daniel@freshcrate.co,FreshCrate,Founder,"Consumer grocery subscription in Seoul. Notes say strong community instincts, unit economics still early.",applicant
+airtable-038,Natasha Fernandes,natasha@dockline.io,Dockline,Revenue Ops,"Set up HubSpot, lifecycle email and board reporting for B2B SaaS. Great fit for operator circles.",event
+airtable-039,Aditi Sharma,aditi@rootskin.in,RootSkin,Founder,"Premium ayurveda skincare brand. ex-brand manager, has clear distribution thesis, wants international expansion peers.",applicant
+airtable-040,Yusuf Khan,,LedgerLane,Product Manager,,event
+airtable-041,Chen Wei,chen@climatetrace.sg,ClimateTrace SG,Founder,"Carbon procurement software for enterprise buyers. Wants india network, especially founders selling into large corporates.",referral
+airtable-042,Paula Ribeiro,paula@flowclinic.com,FlowClinic,COO,"Operations leader for clinics marketplace. Strong on process design, founder is asking for peer community fit.",referral
+airtable-043,Arjun Sen,arjun@kernellabs.dev,Kernel Labs,Founder,"Open-source dev tooling around test data. Thoughtful builder, sometimes rambly in app form, high signal in person.",applicant
+airtable-044,Ines Muller,ines@wellnest.eu,WellNest,Founder,Consumer wellness marketplace in Berlin. Looking for intros to growth operators and community-led distribution experts.,event
+airtable-045,Kabir Chawla,kabir@cobaltrails.com,,Investor,"Angel and ex-founder. Helpful with fintech, but not the core applicant persona. Keep in CRM for intros.",referral
+airtable-046,Harini Krishnan,harini@zenqueue.io,ZenQueue,Founder,"Ops automation for healthcare contact centers. ex-call-center ops, founder-market fit is strong; spelling errors in app but compelling.",applicant
+airtable-047,harini krishnan,harini.k@zenqueue.io,Zen Queue,CEO / founder,Healthcare call centre automation founder. Same as Harini from ZenQueue likely; met through referral.,referral
+airtable-048,Noah Williams,noah@gridcraft.energy,GridCraft,Product Lead,,event
+airtable-049,Srishti Jain,srishti@carepath.in,CarePath,Founder,"Building chronic care navigation for Indian families. Deep empathy, strong ops instincts, needs payer partnerships.",applicant
+airtable-050,Tomas Novak,tomas@signalplane.dev,SignalPlane,Founder,Developer workflow analytics. Looking for intro to infra buyers and founders who care about engineering productivity.,referral
+airtable-051,tomas novak ,tom.novak@signalplane.dev,Signal Plane,founder,"Dev workflow analytics founder, maybe same Tomas from SignalPlane. Old CRM row from conf badge.",event
+airtable-052,Alisha D'Mello,alisha@weavemoney.in,WeaveMoney,Founder,"Fintech for women-led microbusinesses. community oriented, strong mission, looking for underwriting and distribution mentors.",applicant
+airtable-053,Mateo Ruiz,mateo@sunroute.mx,SunRoute,Founder,"Climate logistics for solar installers. Practical operator, Spanish-first notes translated quickly; great potential intro to grid people.",referral
+airtable-054,Ritika Agarwal,ritika@example.com,,Ops Lead,,applicant
+airtable-055,Ben Robinson,ben@craftledger.io,CraftLedger,Founder,Accounting workflow for creative agencies. Founder has clear niche but weak network in India; could benefit from finance operator intros.,event

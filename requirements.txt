@@ -1,0 +1,6 @@
+pandas
+python-dotenv
+rapidfuzz
+google-genai
+pydantic
+supabase

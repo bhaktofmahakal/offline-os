@@ -1,0 +1,121 @@
+{
+  "name": "Offline CRM - New Applicant Ingest & AI Enrichment",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "new-offline-applicant",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger-node",
+      "name": "Webhook: New Applicant",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "offline-crm-new-applicant"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/process-new-record",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body || $json) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "http-pipeline-api-node",
+      "name": "HTTP: Process via Python Pipeline",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format Slack Block-Kit Message\nconst res = $input.first().json;\n\nlet messageText = '';\nlet blocks = [];\n\nif (res.is_duplicate) {\n  messageText = `⚠️ Duplicate Detected: ${res.name} is a duplicate of ${res.duplicate_of} (${Math.round((res.confidence || 0) * 100)}% match)`;\n  blocks = [\n    {\n      type: 'header',\n      text: { type: 'plain_text', text: '⚠️ Duplicate Applicant Flagged', emoji: true }\n    },\n    {\n      type: 'section',\n      text: {\n        type: 'mrkdwn',\n        text: `*Name:* ${res.name}\\n*Duplicate Of:* \\`${res.duplicate_of}\\`\\n*Confidence:* ${Math.round((res.confidence || 0) * 100)}%\\n*Reasoning:* ${res.reasoning || 'N/A'}`\n      }\n    }\n  ];\n} else {\n  const fitScore = res.fit_score !== null ? `${res.fit_score}/100` : 'N/A';\n  const tags = (res.sector_tags || []).map(t => `#${t}`).join(' ');\n  const intros = (res.top_introductions || []).map(i => `• *${i.matched_person_name}* (${i.matched_person_company || 'Stealth'}) - ${i.shared_context} [${i.match_band.toUpperCase()}]`).join('\\n') || 'None suggested';\n\n  messageText = `✨ New Member Ingested: ${res.name} (${res.role_title} @ ${res.company || 'Stealth'}) | Fit Score: ${fitScore}`;\n  blocks = [\n    {\n      type: 'header',\n      text: { type: 'plain_text', text: '✨ New Offline Member Processed', emoji: true }\n    },\n    {\n      type: 'section',\n      fields: [\n        { type: 'mrkdwn', text: `*Name:*\\n${res.name}` },\n        { type: 'mrkdwn', text: `*Role & Company:*\\n${res.role_title || 'N/A'} at ${res.company || 'Stealth'}` },\n        { type: 'mrkdwn', text: `*Role Type / Seniority:*\\n${res.role_type || 'N/A'} (${res.seniority || 'N/A'})` },\n        { type: 'mrkdwn', text: `*Fit Score:*\\n🎯 *${fitScore}*` }\n      ]\n    },\n    {\n      type: 'section',\n      text: {\n        type: 'mrkdwn',\n        text: `*Sectors:* ${tags || 'General'}\\n*Fit Reasoning:* _${res.fit_score_reasoning || 'N/A'}_`\n      }\n    },\n    {\n      type: 'section',\n      text: {\n        type: 'mrkdwn',\n        text: `*Top Intro Recommendations:*\\n${intros}`\n      }\n    }\n  ];\n}\n\nreturn {\n  json: {\n    slack_payload: {\n      text: messageText,\n      blocks: blocks\n    },\n    pipeline_result: res\n  }\n};"
+      },
+      "id": "code-slack-formatter-node",
+      "name": "Code: Format Slack Notification",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hooks.slack.com/services/REPLACE_WITH_YOUR_SLACK_WEBHOOK",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.slack_payload) }}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "id": "http-slack-notification-node",
+      "name": "HTTP: Send Slack Webhook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [960, 200],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json.pipeline_result) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "respond-webhook-node",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [960, 400]
+    }
+  ],
+  "connections": {
+    "Webhook: New Applicant": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Process via Python Pipeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Process via Python Pipeline": {
+      "main": [
+        [
+          {
+            "node": "Code: Format Slack Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Format Slack Notification": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Send Slack Webhook",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

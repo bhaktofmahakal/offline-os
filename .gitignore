@@ -1,0 +1,37 @@
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Dependencies & Build Artefacts
+node_modules/
+.next/
+out/
+dist/
+build/
+.vercel/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite
+*.sqlite3
+data/gemini_cache.sqlite
+.venv/
+venv/
+env/
+
+# System & Agent Workspace
+.agents/
+.markdown-collab/
+.system_generated/
+.user_uploaded/
+scratch/
+skills-lock.json
+*.log
+
+.DS_Store
+Thumbs.db
