@@ -62,5 +62,6 @@ flowchart TD
    * *Rationale:* Designed as a private single-tenant operator console. Next.js server route handlers (`app/api/people`, `app/api/introductions`) mediate all database access securely server-side with zero client-side key exposure. Multi-tenant team authentication (RBAC) was deferred to future scope.
 3. **External Web Enrichment (Tavily/Tinyfish) Intentionally Skipped**:
    * *Rationale:* The test applicant dataset consists of synthetic profiles designed to test edge cases. Querying live search engines for nonexistent people would yield hallucinations or false positives. Synthetic bio notes were enriched directly via Gemini.
-4. **Cloud n8n Localhost Tunneling**:
-   * *Rationale:* Because the free Render-hosted n8n instance runs in the cloud and the Python pipeline runs on local localhost port 8000, testing the cloud webhook requires exposing port 8000 via ngrok (`ngrok http 8000`), as documented in `n8n/SETUP.md`.
+4. **Cloud Pipeline API Integration**:
+   * *Rationale:* The Python enrichment and vector similarity pipeline is deployed as a high-performance FastAPI service on Render (`https://offline-os.onrender.com`), enabling cloud-native execution directly invoked by n8n webhooks and external ingestion channels with zero local machine dependencies.
+

@@ -42,23 +42,19 @@ python -m pipeline.api
 > Then update the URL in the n8n HTTP Request node to your public ngrok URL (e.g. `https://xxxx.ngrok-free.app/process-new-record`).
 
 ---
+### Step 2: Live Cloud Pipeline API (Render)
+The Python enrichment & deduplication pipeline runs live on Render:
+* **Live API URL:** `https://offline-os.onrender.com`
+* **Ingestion Endpoint:** `POST https://offline-os.onrender.com/process-new-record`
+* **Health Check:** `GET https://offline-os.onrender.com/health`
 
-### Step 2: Import Workflow into n8n
-
-1. Log into your n8n instance: `https://n8n-render-utsav.onrender.com`
-2. Go to **Workflows** ➔ Click **Add Workflow** (or the `+` icon).
-3. In the top-right menu (three dots `...`), select **Import from File**.
-4. Choose [`n8n/offline-crm-pipeline.json`](file:///u:/offline-os/n8n/offline-crm-pipeline.json).
-5. The workflow will appear on your canvas with all 5 nodes connected.
-
----
-
-### Step 3: Configure Variables & Credentials
-
-1. **HTTP Request Node (`HTTP: Process via Python Pipeline`):**
-   * Change `http://localhost:8000/process-new-record` to your hosted / tunnel URL if n8n is running in the cloud.
-2. **Slack Notification Node (`HTTP: Send Slack Webhook`):**
-   * Replace `https://hooks.slack.com/services/REPLACE_WITH_YOUR_SLACK_WEBHOOK` with your Slack incoming webhook URL. *(If you don't have Slack configured yet, the node has `Continue on Fail` enabled so it won't block the pipeline).*
+### Step 3: Configure Cloud Workflow & Notification Destinations
+1. In n8n, open the imported workflow **"Offline CRM - New Applicant Ingest & AI Enrichment"**.
+2. Double-click the **"HTTP: Process via Python Pipeline"** node:
+   * **URL:** Pre-configured to `https://offline-os.onrender.com/process-new-record`
+3. (Optional) Double-click the **"HTTP: Send Slack Webhook"** node:
+   * Paste your team's live Slack Incoming Webhook URL (`https://hooks.slack.com/services/T.../B.../...`) or Discord webhook URL.
+   * If you do not use Slack, the workflow automatically bypasses notification errors (`continueOnFail: true`) and returns the complete enriched applicant payload directly in the HTTP 200 webhook response.
 3. Click **Save** and toggle the workflow to **Active**.
 
 ---
