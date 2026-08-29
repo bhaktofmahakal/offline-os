@@ -18,9 +18,10 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://localhost:8000/process-new-record",
+        "url": "https://offline-os.onrender.com/process-new-record",
         "sendBody": true,
         "specifyBody": "json",
+
         "jsonBody": "={{ JSON.stringify($json.body || $json) }}",
         "options": {
           "timeout": 30000
