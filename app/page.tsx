@@ -29,8 +29,14 @@ import {
   FileText,
   Activity,
   ArrowRight,
-  RefreshCw
+  RefreshCw,
+  UploadCloud,
+  FileSpreadsheet,
+  X,
+  Play,
+  CheckCircle
 } from 'lucide-react';
+
 
 interface Person {
   id: number;
@@ -87,6 +93,125 @@ export default function OfflineCRM() {
   const [copiedIntroId, setCopiedIntroId] = useState<number | null>(null);
   const [darkMode, setDarkMode] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Airtable Batch Import Modal State
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [importText, setImportText] = useState('');
+  const [importing, setImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState<{ current: number; total: number; logs: string[] }>({
+    current: 0,
+    total: 0,
+    logs: [],
+  });
+
+  const handleLoadSampleAirtableData = () => {
+    const sample = `Name,Email,Company,Role,Bio
+Dr. Elena Rostova,elena.rostova@biosynthetica.health,BioSynthetica Dynamics,Founder & CEO,Building programmable RNA therapies and synthetic genomics delivery vectors. Ex-Genentech Director of Genomic Medicine.
+Marcus Vance,marcus.vance@solaronmicro.energy,Solaron Microgrids,Co-Founder & CTO,Developing solid-state perovskite solar microgrids for autonomous edge computing and remote industrial facilities. Ex-Tesla Solar architect.
+Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native distributed SQL query planners for real-time streaming data lakes. Former senior database engineer at Snowflake.`;
+    setImportText(sample);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      if (text) setImportText(text);
+    };
+    reader.readAsText(file);
+  };
+
+  const parseCSVRows = (text: string) => {
+    const lines = text.trim().split('\n').filter(l => l.trim().length > 0);
+    if (lines.length === 0) return [];
+
+    // Parse header
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/['"]+/g, ''));
+    const records: Array<{ name: string; email: string; company?: string; role_title?: string; bio_notes?: string }> = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      const parts = lines[i].split(',').map(p => p.trim().replace(/^["']|["']$/g, ''));
+      if (parts.length < 2) continue;
+
+      const record: any = {};
+      headers.forEach((h, idx) => {
+        const val = parts[idx] || '';
+        if (h.includes('name')) record.name = val;
+        else if (h.includes('email') || h.includes('mail')) record.email = val;
+        else if (h.includes('company') || h.includes('org')) record.company = val;
+        else if (h.includes('role') || h.includes('title')) record.role_title = val;
+        else if (h.includes('bio') || h.includes('note')) record.bio_notes = val;
+      });
+
+      if (!record.name && parts[0]) record.name = parts[0];
+      if (!record.email && parts[1]) record.email = parts[1];
+      if (!record.company && parts[2]) record.company = parts[2];
+      if (!record.role_title && parts[3]) record.role_title = parts[3];
+      if (!record.bio_notes && parts[4]) record.bio_notes = parts.slice(4).join(', ');
+
+      if (record.name) records.push(record);
+    }
+    return records;
+  };
+
+  const handleExecuteBatchImport = async () => {
+    if (!importText.trim()) return;
+    const parsed = parseCSVRows(importText);
+    if (parsed.length === 0) {
+      alert('Could not parse any valid rows. Ensure format is: Name, Email, Company, Role, Bio');
+      return;
+    }
+
+    setImporting(true);
+    setImportProgress({ current: 0, total: parsed.length, logs: [`🚀 Starting batch ingestion of ${parsed.length} Airtable records...`] });
+
+    for (let idx = 0; idx < parsed.length; idx++) {
+      const row = parsed[idx];
+      try {
+        const res = await fetch('https://offline-os.onrender.com/process-new-record', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            source_record_id: `airtable-import-${Date.now()}-${idx}`,
+            name: row.name,
+            email: row.email,
+            company: row.company,
+            role_title: row.role_title,
+            bio_notes: row.bio_notes,
+            source: 'airtable_batch_import',
+          }),
+        });
+
+        const data = await res.json();
+        const scoreText = data.fit_score ? `Fit: ${data.fit_score}/100` : 'Duplicate Flagged';
+        const introsText = data.top_introductions ? ` | ${data.top_introductions.length} Intros` : '';
+        const logMsg = `[${idx + 1}/${parsed.length}] ✅ ${row.name} (${row.company || 'Ind.'}) ➔ ${scoreText}${introsText}`;
+
+        setImportProgress(prev => ({
+          ...prev,
+          current: idx + 1,
+          logs: [...prev.logs, logMsg]
+        }));
+      } catch (err: any) {
+        setImportProgress(prev => ({
+          ...prev,
+          current: idx + 1,
+          logs: [...prev.logs, `[${idx + 1}/${parsed.length}] ❌ Error processing ${row.name}: ${err.message}`]
+        }));
+      }
+    }
+
+    setImportProgress(prev => ({
+      ...prev,
+      logs: [...prev.logs, '🎉 Batch processing complete! Refreshing live console...']
+    }));
+
+    await fetchData();
+    setImporting(false);
+  };
+
 
   // Toggle Dark Mode
   useEffect(() => {
@@ -325,6 +450,14 @@ export default function OfflineCRM() {
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsImportModalOpen(true)}
+              className="h-8 px-3 text-xs bg-surface-raised border border-line hover:border-signal/50 text-ink font-medium rounded flex items-center gap-1.5 transition-colors shadow-sm"
+              title="Batch import Airtable CSV export or paste raw rows"
+            >
+              <UploadCloud className="w-3.5 h-3.5 text-signal" />
+              <span>Import Airtable / CSV</span>
+            </button>
             <Link
               href="/apply"
               target="_blank"
@@ -347,6 +480,7 @@ export default function OfflineCRM() {
               <span>Pipeline Active</span>
             </div>
           </div>
+
 
         </header>
 
@@ -970,6 +1104,133 @@ export default function OfflineCRM() {
           </div>
         </aside>
       )}
+
+      {/* 4. AIRTABLE / CSV BATCH IMPORT MODAL */}
+      {isImportModalOpen && (
+        <div className="fixed inset-0 z-50 bg-ink/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-surface border border-line rounded-lg shadow-2xl max-w-2xl w-full flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="p-4 border-b border-line flex items-center justify-between bg-surface-raised">
+              <div className="flex items-center gap-2.5">
+                <div className="p-1.5 rounded bg-signal-soft/40 text-signal">
+                  <UploadCloud className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-ink">Import Airtable / CSV Batch</h3>
+                  <p className="text-[11px] text-ink-muted">Stream raw Airtable exports directly through the live AI intelligence pipeline</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  if (!importing) setIsImportModalOpen(false);
+                }}
+                disabled={importing}
+                className="p-1 rounded text-ink-muted hover:text-ink hover:bg-surface-muted transition-colors disabled:opacity-40"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 overflow-y-auto space-y-4 text-xs flex-1">
+              {!importing && importProgress.logs.length === 0 ? (
+                <>
+                  {/* File Upload Zone */}
+                  <div className="border-2 border-dashed border-line hover:border-signal/50 rounded-lg p-5 text-center transition-colors bg-surface-raised/40 relative">
+                    <input
+                      type="file"
+                      accept=".csv,.tsv,.txt,.json"
+                      onChange={handleFileUpload}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    <FileSpreadsheet className="w-8 h-8 text-ink-muted mx-auto mb-2" />
+                    <div className="font-medium text-ink">Drag and drop your Airtable CSV file here</div>
+                    <div className="text-[11px] text-ink-faint mt-0.5">Supports .csv, .tsv, and raw text with headers (Name, Email, Company, Role, Bio)</div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-ink-muted">
+                    <span className="text-[11px] uppercase font-mono tracking-wider">Or Paste Raw CSV Data Below</span>
+                    <button
+                      type="button"
+                      onClick={handleLoadSampleAirtableData}
+                      className="text-[11px] text-signal hover:underline font-mono"
+                    >
+                      + Load Sample Batch (3 Founders)
+                    </button>
+                  </div>
+
+                  <textarea
+                    rows={7}
+                    value={importText}
+                    onChange={e => setImportText(e.target.value)}
+                    placeholder="Name,Email,Company,Role,Bio&#10;Dr. Alex Mercer,alex@neuroflow.ai,NeuroFlow AI,Founder & CEO,Building brain-computer interface decoders...&#10;Kavita Raman,kavita@greengrid.in,GreenGrid Power,Co-Founder,Scaling grid-scale energy storage..."
+                    className="w-full font-mono text-[11px] p-3 bg-surface-raised border border-line rounded focus:outline-none focus:ring-1 focus:ring-signal text-ink placeholder:text-ink-faint leading-relaxed"
+                  />
+                </>
+              ) : (
+                <div className="space-y-4">
+                  {/* Ingestion Progress Bar */}
+                  <div>
+                    <div className="flex items-center justify-between text-xs font-mono mb-1.5">
+                      <span className="text-ink font-semibold">AI Ingestion & Vector Pipeline Active</span>
+                      <span className="text-signal font-bold">
+                        {importProgress.current} / {importProgress.total} records
+                      </span>
+                    </div>
+                    <div className="w-full h-2 bg-surface-muted rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-signal transition-all duration-300"
+                        style={{
+                          width: `${importProgress.total ? (importProgress.current / importProgress.total) * 100 : 0}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Live Progress Logs Terminal */}
+                  <div className="bg-ink/90 dark:bg-black/80 rounded border border-line p-3 font-mono text-[11px] text-surface space-y-1.5 max-h-56 overflow-y-auto">
+                    {importProgress.logs.map((log, lIdx) => (
+                      <div key={lIdx} className="leading-tight">
+                        {log}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-line bg-surface-raised flex items-center justify-between gap-3">
+              <div className="text-[11px] text-ink-faint font-mono">
+                {importing ? 'Processing Gemini classification + pgvector...' : `${parseCSVRows(importText).length} rows ready`}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setIsImportModalOpen(false);
+                    setImportProgress({ current: 0, total: 0, logs: [] });
+                  }}
+                  disabled={importing}
+                  className="px-3 py-1.5 text-xs text-ink-muted hover:text-ink rounded border border-line hover:bg-surface-muted transition-colors disabled:opacity-40"
+                >
+                  {importProgress.logs.length > 0 && !importing ? 'Close' : 'Cancel'}
+                </button>
+                {(!importing && importProgress.logs.length === 0) && (
+                  <button
+                    onClick={handleExecuteBatchImport}
+                    disabled={!importText.trim()}
+                    className="px-4 py-1.5 text-xs bg-signal text-surface font-medium hover:bg-signal/90 rounded flex items-center gap-1.5 transition-colors disabled:opacity-40 shadow-sm"
+                  >
+                    <Play className="w-3.5 h-3.5" />
+                    <span>Run AI Ingestion Pipeline</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
