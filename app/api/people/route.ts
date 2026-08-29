@@ -33,20 +33,26 @@ export async function PATCH(request: Request) {
 
   try {
     const body = await request.json();
-    const { id, is_duplicate_of, duplicate_confidence } = body;
+    const { id, is_duplicate_of, duplicate_confidence, review_status } = body;
 
     if (id === undefined) {
       return NextResponse.json({ error: 'Missing required field id' }, { status: 400 });
     }
 
+    const updatePayload: Record<string, any> = {
+      is_duplicate_of: is_duplicate_of !== undefined ? is_duplicate_of : null,
+      duplicate_confidence: duplicate_confidence !== undefined ? duplicate_confidence : null,
+    };
+    if (review_status !== undefined) {
+      updatePayload.review_status = review_status;
+    }
+
     const { data, error } = await supabase
       .from('people')
-      .update({
-        is_duplicate_of: is_duplicate_of !== undefined ? is_duplicate_of : null,
-        duplicate_confidence: duplicate_confidence !== undefined ? duplicate_confidence : null,
-      })
+      .update(updatePayload)
       .eq('id', id)
       .select();
+
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
