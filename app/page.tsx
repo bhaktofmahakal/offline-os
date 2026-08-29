@@ -1107,17 +1107,17 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
       {/* 4. AIRTABLE / CSV BATCH IMPORT MODAL */}
       {isImportModalOpen && (
-        <div className="fixed inset-0 z-50 bg-ink/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-surface border border-line rounded-lg shadow-2xl max-w-2xl w-full flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-surface border border-line rounded-xl shadow-2xl max-w-3xl w-full flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             {/* Modal Header */}
-            <div className="p-4 border-b border-line flex items-center justify-between bg-surface-raised">
-              <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded bg-signal-soft/40 text-signal">
-                  <UploadCloud className="w-4 h-4" />
+            <div className="p-4 px-6 border-b border-line flex items-center justify-between bg-surface-raised">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-signal-soft text-signal border border-signal/20">
+                  <UploadCloud className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-ink">Import Airtable / CSV Batch</h3>
-                  <p className="text-[11px] text-ink-muted">Stream raw Airtable exports directly through the live AI intelligence pipeline</p>
+                  <h3 className="text-sm font-bold text-ink">Import Airtable / CSV Batch</h3>
+                  <p className="text-xs text-ink-muted">Stream raw Airtable export files directly through the live AI intelligence pipeline</p>
                 </div>
               </div>
               <button
@@ -1125,61 +1125,64 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   if (!importing) setIsImportModalOpen(false);
                 }}
                 disabled={importing}
-                className="p-1 rounded text-ink-muted hover:text-ink hover:bg-surface-muted transition-colors disabled:opacity-40"
+                className="p-1.5 rounded-md text-ink-muted hover:text-ink hover:bg-surface-muted transition-colors disabled:opacity-40"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="p-5 overflow-y-auto space-y-4 text-xs flex-1">
+            <div className="p-6 overflow-y-auto space-y-4 text-xs flex-1">
               {!importing && importProgress.logs.length === 0 ? (
                 <>
                   {/* File Upload Zone */}
-                  <div className="border-2 border-dashed border-line hover:border-signal/50 rounded-lg p-5 text-center transition-colors bg-surface-raised/40 relative">
+                  <div className="border-2 border-dashed border-line hover:border-signal rounded-xl p-6 text-center transition-colors bg-surface-raised/50 relative cursor-pointer group">
                     <input
                       type="file"
                       accept=".csv,.tsv,.txt,.json"
                       onChange={handleFileUpload}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     />
-                    <FileSpreadsheet className="w-8 h-8 text-ink-muted mx-auto mb-2" />
-                    <div className="font-medium text-ink">Drag and drop your Airtable CSV file here</div>
-                    <div className="text-[11px] text-ink-faint mt-0.5">Supports .csv, .tsv, and raw text with headers (Name, Email, Company, Role, Bio)</div>
+                    <FileSpreadsheet className="w-10 h-10 text-ink-muted group-hover:text-signal mx-auto mb-2 transition-colors" />
+                    <div className="font-semibold text-sm text-ink">Drag and drop your Airtable CSV file here</div>
+                    <div className="text-xs text-ink-faint mt-1">Supports standard Airtable export formats (.csv, .tsv, .json)</div>
                   </div>
 
-                  <div className="flex items-center justify-between text-ink-muted">
-                    <span className="text-[11px] uppercase font-mono tracking-wider">Or Paste Raw CSV Data Below</span>
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-xs uppercase font-mono tracking-wider text-ink-muted">Or Paste Raw CSV Data Below</span>
                     <button
                       type="button"
                       onClick={handleLoadSampleAirtableData}
-                      className="text-[11px] text-signal hover:underline font-mono"
+                      className="text-xs text-signal hover:underline font-mono font-medium"
                     >
                       + Load Sample Batch (3 Founders)
                     </button>
                   </div>
 
                   <textarea
-                    rows={7}
+                    rows={8}
                     value={importText}
                     onChange={e => setImportText(e.target.value)}
                     placeholder="Name,Email,Company,Role,Bio&#10;Dr. Alex Mercer,alex@neuroflow.ai,NeuroFlow AI,Founder & CEO,Building brain-computer interface decoders...&#10;Kavita Raman,kavita@greengrid.in,GreenGrid Power,Co-Founder,Scaling grid-scale energy storage..."
-                    className="w-full font-mono text-[11px] p-3 bg-surface-raised border border-line rounded focus:outline-none focus:ring-1 focus:ring-signal text-ink placeholder:text-ink-faint leading-relaxed"
+                    className="w-full font-mono text-xs p-3.5 bg-surface-raised border border-line rounded-lg focus:outline-none focus:ring-1 focus:ring-signal text-ink placeholder:text-ink-faint leading-relaxed"
                   />
                 </>
               ) : (
                 <div className="space-y-4">
                   {/* Ingestion Progress Bar */}
-                  <div>
-                    <div className="flex items-center justify-between text-xs font-mono mb-1.5">
-                      <span className="text-ink font-semibold">AI Ingestion & Vector Pipeline Active</span>
+                  <div className="p-4 bg-surface-raised border border-line rounded-lg">
+                    <div className="flex items-center justify-between text-xs font-mono mb-2">
+                      <span className="text-ink font-semibold flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-signal animate-pulse"></span>
+                        <span>AI Pipeline Execution Active</span>
+                      </span>
                       <span className="text-signal font-bold">
-                        {importProgress.current} / {importProgress.total} records
+                        {importProgress.current} / {importProgress.total} records completed
                       </span>
                     </div>
-                    <div className="w-full h-2 bg-surface-muted rounded-full overflow-hidden">
+                    <div className="w-full h-2.5 bg-surface-muted rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-signal transition-all duration-300"
+                        className="h-full bg-signal transition-all duration-300 ease-out"
                         style={{
                           width: `${importProgress.total ? (importProgress.current / importProgress.total) * 100 : 0}%`,
                         }}
@@ -1188,10 +1191,15 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   </div>
 
                   {/* Live Progress Logs Terminal */}
-                  <div className="bg-ink/90 dark:bg-black/80 rounded border border-line p-3 font-mono text-[11px] text-surface space-y-1.5 max-h-56 overflow-y-auto">
+                  <div className="bg-zinc-950 text-zinc-100 rounded-lg border border-zinc-800 p-4 font-mono text-xs space-y-2 max-h-72 overflow-y-auto shadow-inner">
+                    <div className="text-zinc-500 text-[11px] pb-1 border-b border-zinc-800 flex items-center justify-between">
+                      <span>CONSOLE LOG STREAM</span>
+                      <span>Render Python Pipeline + pgvector</span>
+                    </div>
                     {importProgress.logs.map((log, lIdx) => (
-                      <div key={lIdx} className="leading-tight">
-                        {log}
+                      <div key={lIdx} className="leading-relaxed flex items-start gap-2">
+                        <span className="text-zinc-500 select-none">&gt;</span>
+                        <span className="text-emerald-400">{log}</span>
                       </div>
                     ))}
                   </div>
@@ -1200,26 +1208,33 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-line bg-surface-raised flex items-center justify-between gap-3">
-              <div className="text-[11px] text-ink-faint font-mono">
-                {importing ? 'Processing Gemini classification + pgvector...' : `${parseCSVRows(importText).length} rows ready`}
+            <div className="p-4 px-6 border-t border-line bg-surface-raised flex items-center justify-between gap-3">
+              <div className="text-xs text-ink-muted font-mono">
+                {importing ? (
+                  <span className="flex items-center gap-1.5 text-signal">
+                    <span className="w-2 h-2 rounded-full bg-signal animate-ping"></span>
+                    Running Gemini Classification & Matchmaking...
+                  </span>
+                ) : (
+                  `${parseCSVRows(importText).length} valid rows ready for ingestion`
+                )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <button
                   onClick={() => {
                     setIsImportModalOpen(false);
                     setImportProgress({ current: 0, total: 0, logs: [] });
                   }}
                   disabled={importing}
-                  className="px-3 py-1.5 text-xs text-ink-muted hover:text-ink rounded border border-line hover:bg-surface-muted transition-colors disabled:opacity-40"
+                  className="px-4 py-2 text-xs font-medium text-ink-muted hover:text-ink rounded-lg border border-line hover:bg-surface-muted transition-colors disabled:opacity-40"
                 >
-                  {importProgress.logs.length > 0 && !importing ? 'Close' : 'Cancel'}
+                  {importProgress.logs.length > 0 && !importing ? 'Close & View Dashboard' : 'Cancel'}
                 </button>
                 {(!importing && importProgress.logs.length === 0) && (
                   <button
                     onClick={handleExecuteBatchImport}
                     disabled={!importText.trim()}
-                    className="px-4 py-1.5 text-xs bg-signal text-surface font-medium hover:bg-signal/90 rounded flex items-center gap-1.5 transition-colors disabled:opacity-40 shadow-sm"
+                    className="px-5 py-2 text-xs bg-signal text-surface font-semibold hover:bg-signal/90 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-40 shadow-sm"
                   >
                     <Play className="w-3.5 h-3.5" />
                     <span>Run AI Ingestion Pipeline</span>
@@ -1233,4 +1248,5 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
     </div>
   );
 }
+
 
