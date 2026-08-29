@@ -955,11 +955,13 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                       <span className="font-semibold text-ink">Adjudication Rationale:</span> {duplicate.fit_score_reasoning?.replace('Duplicate record - excluded from fit scoring.', '') || `AI Deduplication Engine confirmed match confidence ${Math.round((duplicate.duplicate_confidence || 0.95)*100)}%.`}
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
-        )}
+        </div>
+      )}
+
 
 
         {/* TAB 3: INTRODUCTIONS WORKSPACE */}
