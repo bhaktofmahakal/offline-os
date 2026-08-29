@@ -124,26 +124,30 @@ def process_new_record(payload: IncomingRecord):
     if existing_people:
         test_pool = existing_people + [cleaned_record]
         target_idx = len(test_pool) - 1
+        candidate_scores = []
+        from pipeline.dedupe import _score_pair
         for idx, other in enumerate(existing_people):
-            # Skip comparing against itself if already in database
             if other.get("source_record_id") == cleaned_record["source_record_id"]:
                 continue
-            from pipeline.dedupe import _score_pair
             pair_score = _score_pair(other, cleaned_record, idx, target_idx)
-            if pair_score.similarity >= OBVIOUS_DUPLICATE_THRESHOLD:
+            candidate_scores.append((pair_score.similarity, other))
+
+        candidate_scores.sort(key=lambda x: x[0], reverse=True)
+        if candidate_scores:
+            best_sim, best_other = candidate_scores[0]
+            if best_sim >= OBVIOUS_DUPLICATE_THRESHOLD:
                 is_dup = True
-                dup_parent_id = other.get("source_record_id") or str(other.get("id"))
-                dup_confidence = round(pair_score.similarity / 100, 4)
-                dup_reasoning = f"RapidFuzz composite similarity {pair_score.similarity}% with {other.get('name')} ({other.get('company')})."
-                break
-            elif AMBIGUOUS_LOW <= pair_score.similarity < AMBIGUOUS_HIGH:
-                judgment = judge_pair_with_gemini(other, cleaned_record)
+                dup_parent_id = best_other.get("source_record_id") or str(best_other.get("id"))
+                dup_confidence = round(best_sim / 100, 4)
+                dup_reasoning = f"RapidFuzz composite similarity {best_sim}% with {best_other.get('name')} ({best_other.get('company')})."
+            elif AMBIGUOUS_LOW <= best_sim < AMBIGUOUS_HIGH:
+                judgment = judge_pair_with_gemini(best_other, cleaned_record)
                 if judgment.same_person:
                     is_dup = True
-                    dup_parent_id = other.get("source_record_id") or str(other.get("id"))
+                    dup_parent_id = best_other.get("source_record_id") or str(best_other.get("id"))
                     dup_confidence = round(judgment.confidence, 4)
                     dup_reasoning = judgment.reasoning
-                    break
+
 
 
     if is_dup:
@@ -274,8 +278,9 @@ def process_new_record(payload: IncomingRecord):
                 candidates.append((sim, other))
 
         candidates.sort(key=lambda x: x[0], reverse=True)
-        for sim, other in candidates[:3]:
+        for sim, other in candidates[:2]:
             try:
+
                 rationale = generate_intro_rationale(cleaned_record, other, sim)
                 intro_dict = {
                     "matched_person_name": other["name"],
