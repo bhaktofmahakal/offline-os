@@ -7,6 +7,7 @@ from typing import Any, Optional
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from supabase import create_client
 
@@ -31,6 +32,22 @@ app = FastAPI(
     title="Offline CRM Pipeline API",
     description="Webhook endpoint for processing incoming applicant records through clean, dedupe, enrich, fit score, and intro matching.",
     version="1.0.0",
+)
+
+# CORS configuration
+allowed_origins = [
+    origin.strip() for origin in os.getenv(
+        "CORS_ALLOWED_ORIGINS",
+        "https://offline-os-gray.vercel.app,http://localhost:3000"
+    ).split(",")
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 
