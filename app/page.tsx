@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
 import {
+
   Users,
   CopyCheck,
   Sparkles,
@@ -323,6 +325,14 @@ export default function OfflineCRM() {
           </div>
 
           <div className="flex items-center gap-3">
+            <Link
+              href="/apply"
+              target="_blank"
+              className="h-8 px-3 text-xs bg-signal text-surface font-medium hover:bg-signal/90 rounded flex items-center gap-1.5 transition-colors shadow-sm"
+            >
+              <span>Public Apply Form</span>
+              <ExternalLink className="w-3 h-3" />
+            </Link>
             <button
               onClick={fetchData}
               disabled={refreshing}
@@ -337,6 +347,7 @@ export default function OfflineCRM() {
               <span>Pipeline Active</span>
             </div>
           </div>
+
         </header>
 
 
