@@ -229,8 +229,9 @@ export default function ApplyPage() {
                   Application Ingested & Processed Live!
                 </h2>
                 <p className="text-xs text-[#5A5E5A]">
-                  Your record has been evaluated by Gemini AI and saved into Supabase.
+                  Your application has been evaluated by the AI Intelligence Engine and verified.
                 </p>
+
               </div>
             </div>
 
