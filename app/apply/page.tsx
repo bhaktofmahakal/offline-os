@@ -29,32 +29,65 @@ export default function ApplyPage() {
     setResult(null);
 
     try {
-      // Direct call to live Render Python Pipeline API (or through n8n webhook)
-      const res = await fetch('https://offline-os.onrender.com/process-new-record', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          source_record_id: `applicant-web-${Date.now()}`,
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          company: formData.company.trim() || undefined,
-          role_title: formData.role_title.trim() || undefined,
-          bio_notes: formData.bio_notes.trim() || undefined,
-          source: 'public_application_form',
-        }),
-      });
+      // 1. Send to live n8n Webhook (orchestrator triggers Render Pipeline + Slack Notification)
 
-      if (!res.ok) {
-        throw new Error(`Server returned status ${res.status}`);
+      let data = null;
+      try {
+        const n8nRes = await fetch('https://n8n-render-utsav.onrender.com/webhook/new-offline-applicant', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            source_record_id: `applicant-web-${Date.now()}`,
+            name: formData.name.trim(),
+            email: formData.email.trim(),
+            company: formData.company.trim() || undefined,
+            role_title: formData.role_title.trim() || undefined,
+            bio_notes: formData.bio_notes.trim() || undefined,
+            source: 'public_application_form',
+          }),
+        });
+
+        if (n8nRes.ok) {
+          const rawText = await n8nRes.text();
+          if (rawText) {
+            try {
+              data = JSON.parse(rawText);
+            } catch (_) {}
+          }
+        }
+      } catch (n8nErr) {
+        console.warn('n8n webhook warning, falling back to direct pipeline:', n8nErr);
       }
 
-      const data = await res.json();
+      // 2. If n8n response was empty or bypassed, ensure direct evaluation from Render Pipeline
+      if (!data || !data.fit_score) {
+        const res = await fetch('https://offline-os.onrender.com/process-new-record', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            source_record_id: `applicant-web-${Date.now()}`,
+            name: formData.name.trim(),
+            email: formData.email.trim(),
+            company: formData.company.trim() || undefined,
+            role_title: formData.role_title.trim() || undefined,
+            bio_notes: formData.bio_notes.trim() || undefined,
+            source: 'public_application_form',
+          }),
+        });
+
+        if (!res.ok) {
+          throw new Error(`Server returned status ${res.status}`);
+        }
+        data = await res.json();
+      }
+
       setResult(data);
     } catch (err: any) {
       setError(err.message || 'Failed to submit application. Please try again.');
     } finally {
       setSubmitting(false);
     }
+
   };
 
   return (
