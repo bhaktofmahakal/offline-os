@@ -446,19 +446,40 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
     return `"${str}"`;
   };
 
-  // Helper function to trigger clean file downloads using Blob and ObjectURL
-  const downloadBlob = (content: string, filename: string, mimeType: string) => {
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    setTimeout(() => {
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    }, 150);
+  // Helper function to trigger clean file downloads with guaranteed filename and extension in Chrome/Edge/Safari
+  const downloadFile = (content: string, filename: string, mimeType: string) => {
+    try {
+      const blob = new Blob([content], { type: mimeType });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = filename;
+      a.setAttribute('download', filename);
+      document.body.appendChild(a);
+      a.click();
+      // Keep object URL alive for 30s so Chrome download manager has ample time to resolve filename & extension
+      setTimeout(() => {
+        if (document.body.contains(a)) {
+          document.body.removeChild(a);
+        }
+        window.URL.revokeObjectURL(url);
+      }, 30000);
+    } catch {
+      // Direct Data URI fallback
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = `data:${mimeType},` + encodeURIComponent(content);
+      a.download = filename;
+      a.setAttribute('download', filename);
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        if (document.body.contains(a)) {
+          document.body.removeChild(a);
+        }
+      }, 5000);
+    }
   };
 
   // Export filtered people dataset to CSV
@@ -508,7 +529,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
     ]);
 
     const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
-    downloadBlob(csvContent, `offline_crm_members_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8;');
+    downloadFile(csvContent, `offline_crm_members_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8');
   };
 
   // Export filtered people dataset to JSON
@@ -518,7 +539,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       return;
     }
     const jsonContent = JSON.stringify(filteredPeople, null, 2);
-    downloadBlob(jsonContent, `offline_crm_members_${new Date().toISOString().slice(0, 10)}.json`, 'application/json;charset=utf-8;');
+    downloadFile(jsonContent, `offline_crm_members_${new Date().toISOString().slice(0, 10)}.json`, 'application/json;charset=utf-8');
   };
 
   // Export duplicate candidate pairs to CSV
@@ -567,7 +588,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
     });
 
     const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
-    downloadBlob(csvContent, `offline_crm_duplicates_${duplicateFilter.toLowerCase()}_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8;');
+    downloadFile(csvContent, `offline_crm_duplicates_${duplicateFilter.toLowerCase()}_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8');
   };
 
   // Export approved or filtered introductions to CSV
@@ -613,7 +634,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
     ]);
 
     const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
-    downloadBlob(csvContent, `offline_crm_intros_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8;');
+    downloadFile(csvContent, `offline_crm_intros_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8');
   };
 
   // Metrics Summary
