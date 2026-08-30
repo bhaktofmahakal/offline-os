@@ -436,35 +436,79 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
     setStatusFilter('ALL');
   };
 
+  // Helper function to safely escape CSV cell values for Excel, Google Sheets, and LibreOffice
+  const escapeCSV = (val: unknown): string => {
+    if (val === null || val === undefined) return '""';
+    if (Array.isArray(val)) {
+      return `"${val.join('; ').replace(/"/g, '""')}"`;
+    }
+    const str = String(val).replace(/"/g, '""');
+    return `"${str}"`;
+  };
+
+  // Helper function to trigger clean file downloads using Blob and ObjectURL
+  const downloadBlob = (content: string, filename: string, mimeType: string) => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 150);
+  };
+
   // Export filtered people dataset to CSV
   const handleExportCSV = () => {
     if (filteredPeople.length === 0) {
       alert('No members matching current filters to export.');
       return;
     }
-    const headers = ['ID', 'Name', 'Email', 'Company', 'Role Title', 'Role Type', 'Seniority', 'Sector Tags', 'Fit Score', 'Fit Reasoning', 'Status'];
+    const headers = [
+      'ID',
+      'Name',
+      'Email',
+      'Normalized Email',
+      'Company',
+      'Role Title',
+      'Role Type',
+      'Seniority',
+      'Sector Tags',
+      'Community Fit Tags',
+      'Fit Score',
+      'Fit Reasoning',
+      'Status',
+      'Is Incomplete',
+      'Missing Fields',
+      'Bio Notes',
+      'Source'
+    ];
+
     const rows = filteredPeople.map(p => [
       p.id,
-      `"${(p.name || '').replace(/"/g, '""')}"`,
-      `"${(p.email_normalized || p.email || '').replace(/"/g, '""')}"`,
-      `"${(p.company || '').replace(/"/g, '""')}"`,
-      `"${(p.role_title || '').replace(/"/g, '""')}"`,
-      `"${(p.role_type || '').replace(/"/g, '""')}"`,
-      `"${(p.seniority || '').replace(/"/g, '""')}"`,
-      `"${(p.sector_tags || []).join('; ').replace(/"/g, '""')}"`,
+      escapeCSV(p.name),
+      escapeCSV(p.email),
+      escapeCSV(p.email_normalized || p.email),
+      escapeCSV(p.company),
+      escapeCSV(p.role_title),
+      escapeCSV(p.role_type),
+      escapeCSV(p.seniority),
+      escapeCSV(p.sector_tags),
+      escapeCSV(p.community_fit_tags),
       p.fit_score !== null ? p.fit_score : '',
-      `"${(p.fit_score_reasoning || '').replace(/"/g, '""')}"`,
-      p.is_duplicate_of !== null ? `Duplicate of #${p.is_duplicate_of}` : (p.is_incomplete ? 'Incomplete' : 'Canonical')
+      escapeCSV(p.fit_score_reasoning),
+      escapeCSV(p.is_duplicate_of !== null ? `Duplicate of #${p.is_duplicate_of}` : (p.is_incomplete ? 'Incomplete' : 'Canonical')),
+      p.is_incomplete ? 'TRUE' : 'FALSE',
+      escapeCSV(p.missing_fields),
+      escapeCSV(p.bio_notes),
+      escapeCSV(p.source)
     ]);
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `offline_crm_members_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+    downloadBlob(csvContent, `offline_crm_members_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8;');
   };
 
   // Export filtered people dataset to JSON
@@ -473,13 +517,57 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       alert('No members matching current filters to export.');
       return;
     }
-    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(filteredPeople, null, 2));
-    const link = document.createElement('a');
-    link.setAttribute('href', dataStr);
-    link.setAttribute('download', `offline_crm_members_${new Date().toISOString().slice(0, 10)}.json`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const jsonContent = JSON.stringify(filteredPeople, null, 2);
+    downloadBlob(jsonContent, `offline_crm_members_${new Date().toISOString().slice(0, 10)}.json`, 'application/json;charset=utf-8;');
+  };
+
+  // Export duplicate candidate pairs to CSV
+  const handleExportDuplicatesCSV = () => {
+    if (duplicatePairs.length === 0) {
+      alert('No duplicate pairs to export in the current view.');
+      return;
+    }
+    const headers = [
+      'Duplicate Record ID',
+      'Duplicate Name',
+      'Duplicate Email',
+      'Duplicate Company',
+      'Duplicate Role',
+      'Match Confidence',
+      'Canonical Record ID',
+      'Canonical Name',
+      'Canonical Email',
+      'Canonical Company',
+      'Canonical Role',
+      'Review Status',
+      'AI Adjudication Rationale',
+      'Duplicate Bio',
+      'Canonical Bio'
+    ];
+
+    const rows = duplicatePairs.map(({ duplicate, canonical }) => {
+      const isMerged = mergedIds.has(duplicate.id) || duplicate.review_status === 'merged';
+      return [
+        duplicate.id,
+        escapeCSV(duplicate.name),
+        escapeCSV(duplicate.email_normalized || duplicate.email),
+        escapeCSV(duplicate.company),
+        escapeCSV(duplicate.role_title),
+        `${Math.round((duplicate.duplicate_confidence || 1.0) * 100)}%`,
+        canonical ? canonical.id : (duplicate.is_duplicate_of || ''),
+        escapeCSV(canonical?.name || ''),
+        escapeCSV(canonical?.email_normalized || canonical?.email || ''),
+        escapeCSV(canonical?.company || ''),
+        escapeCSV(canonical?.role_title || ''),
+        escapeCSV(isMerged ? 'Merged into Canonical' : 'Pending Review'),
+        escapeCSV(duplicate.duplicate_confidence === 1.0 ? 'AI Deduplication Engine: Exact identity match with identical email and company affiliation.' : 'AI Deduplication Engine: Ambiguous profile match adjudicated with high confidence.'),
+        escapeCSV(duplicate.bio_notes),
+        escapeCSV(canonical?.bio_notes || '')
+      ];
+    });
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+    downloadBlob(csvContent, `offline_crm_duplicates_${duplicateFilter.toLowerCase()}_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8;');
   };
 
   // Export approved or filtered introductions to CSV
@@ -508,30 +596,24 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
     const rows = filteredIntros.map(i => [
       i.id,
-      i.status,
+      escapeCSV(i.status),
       `${Math.round(i.match_score * 100)}%`,
-      i.match_band,
-      `"${(i.person_a?.name || '').replace(/"/g, '""')}"`,
-      `"${(i.person_a?.company || '').replace(/"/g, '""')}"`,
-      `"${(i.person_a?.role_title || '').replace(/"/g, '""')}"`,
-      `"${(i.person_a?.email_normalized || i.person_a?.email || '').replace(/"/g, '""')}"`,
-      `"${(i.person_b?.name || '').replace(/"/g, '""')}"`,
-      `"${(i.person_b?.company || '').replace(/"/g, '""')}"`,
-      `"${(i.person_b?.role_title || '').replace(/"/g, '""')}"`,
-      `"${(i.person_b?.email_normalized || i.person_b?.email || '').replace(/"/g, '""')}"`,
-      `"${(i.shared_context || '').replace(/"/g, '""')}"`,
-      `"${(i.suggested_intro || '').replace(/"/g, '""')}"`,
-      `"${(i.reasoning || '').replace(/"/g, '""')}"`
+      escapeCSV(i.match_band),
+      escapeCSV(i.person_a?.name),
+      escapeCSV(i.person_a?.company),
+      escapeCSV(i.person_a?.role_title),
+      escapeCSV(i.person_a?.email_normalized || i.person_a?.email),
+      escapeCSV(i.person_b?.name),
+      escapeCSV(i.person_b?.company),
+      escapeCSV(i.person_b?.role_title),
+      escapeCSV(i.person_b?.email_normalized || i.person_b?.email),
+      escapeCSV(i.shared_context),
+      escapeCSV(i.suggested_intro),
+      escapeCSV(i.reasoning)
     ]);
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `offline_crm_intros_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+    downloadBlob(csvContent, `offline_crm_intros_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8;');
   };
 
   // Metrics Summary
@@ -816,17 +898,6 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
               <UploadCloud className="w-3.5 h-3.5 text-signal" />
               <span className="hidden sm:inline">Import CSV</span>
               <span className="sm:hidden">Import</span>
-            </button>
-
-            {/* Export Filtered CSV */}
-            <button
-              onClick={handleExportCSV}
-              className="min-h-[40px] px-3 text-xs bg-surface-raised border border-line hover:border-signal/50 text-ink font-medium rounded flex items-center gap-1.5 transition-colors shadow-sm"
-              title="Export current filtered view to CSV"
-            >
-              <Download className="w-3.5 h-3.5 text-ink-muted" />
-              <span className="hidden sm:inline">Export CSV</span>
-              <span className="sm:hidden">Export</span>
             </button>
 
             <Link
@@ -1314,37 +1385,48 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                 </p>
               </div>
 
-              {/* View Toggle Tabs */}
-              <div className="flex items-center bg-surface border border-line rounded-lg p-1 text-xs gap-1">
+              {/* View Toggle Tabs & Export Button */}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center bg-surface border border-line rounded-lg p-1 text-xs gap-1">
+                  <button
+                    onClick={() => setDuplicateFilter('PENDING')}
+                    className={`px-3 py-1 rounded font-medium transition-colors ${
+                      duplicateFilter === 'PENDING'
+                        ? 'bg-signal text-surface font-semibold shadow-xs'
+                        : 'text-ink-muted hover:text-ink'
+                    }`}
+                  >
+                    Pending Review ({metrics.duplicates})
+                  </button>
+                  <button
+                    onClick={() => setDuplicateFilter('MERGED')}
+                    className={`px-3 py-1 rounded font-medium transition-colors ${
+                      duplicateFilter === 'MERGED'
+                        ? 'bg-signal text-surface font-semibold shadow-xs'
+                        : 'text-ink-muted hover:text-ink'
+                    }`}
+                  >
+                    Resolved Merged ({metrics.resolvedDuplicates})
+                  </button>
+                  <button
+                    onClick={() => setDuplicateFilter('ALL')}
+                    className={`px-3 py-1 rounded font-medium transition-colors ${
+                      duplicateFilter === 'ALL'
+                        ? 'bg-signal text-surface font-semibold shadow-xs'
+                        : 'text-ink-muted hover:text-ink'
+                    }`}
+                  >
+                    All History ({metrics.totalDuplicates})
+                  </button>
+                </div>
+
                 <button
-                  onClick={() => setDuplicateFilter('PENDING')}
-                  className={`px-3 py-1 rounded font-medium transition-colors ${
-                    duplicateFilter === 'PENDING'
-                      ? 'bg-signal text-surface font-semibold shadow-xs'
-                      : 'text-ink-muted hover:text-ink'
-                  }`}
+                  onClick={handleExportDuplicatesCSV}
+                  className="h-8 px-3 bg-surface border border-line hover:border-signal/50 text-ink rounded text-xs font-medium flex items-center gap-1.5 transition-colors shadow-xs"
+                  title="Export duplicate pairs and audit history to CSV"
                 >
-                  Pending Review ({metrics.duplicates})
-                </button>
-                <button
-                  onClick={() => setDuplicateFilter('MERGED')}
-                  className={`px-3 py-1 rounded font-medium transition-colors ${
-                    duplicateFilter === 'MERGED'
-                      ? 'bg-signal text-surface font-semibold shadow-xs'
-                      : 'text-ink-muted hover:text-ink'
-                  }`}
-                >
-                  Resolved Merged ({metrics.resolvedDuplicates})
-                </button>
-                <button
-                  onClick={() => setDuplicateFilter('ALL')}
-                  className={`px-3 py-1 rounded font-medium transition-colors ${
-                    duplicateFilter === 'ALL'
-                      ? 'bg-signal text-surface font-semibold shadow-xs'
-                      : 'text-ink-muted hover:text-ink'
-                  }`}
-                >
-                  All History ({metrics.totalDuplicates})
+                  <Download className="w-3.5 h-3.5 text-signal" />
+                  <span>Export Duplicates CSV</span>
                 </button>
               </div>
             </div>
