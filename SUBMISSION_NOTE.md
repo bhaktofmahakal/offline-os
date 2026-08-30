@@ -10,9 +10,8 @@ I built **Offline OS**, a production-grade, AI-native relationship CRM and autom
 ### 🌐 Live Production Deployments:
 * **Operator Console (Dashboard)**: [https://offline-os-gray.vercel.app/](https://offline-os-gray.vercel.app/)
 * **Public Application Portal**: [https://offline-os-gray.vercel.app/apply](https://offline-os-gray.vercel.app/apply)
-* **Live Python Pipeline API**: [https://offline-os.onrender.com/health](https://offline-os.onrender.com/health)
 * **GitHub Repository**: [https://github.com/bhaktofmahakal/offline-os](https://github.com/bhaktofmahakal/offline-os)
-* **n8n Webhook Orchestrator**: `https://n8n-render-utsav.onrender.com/webhook/new-offline-applicant`
+* **n8n Workflow Definition**: [`n8n/offline-crm-pipeline.json`](n8n/offline-crm-pipeline.json) (Production-ready importable JSON)
 
 ---
 

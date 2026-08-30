@@ -10,7 +10,6 @@ A production-grade, automated CRM intelligence engine and operator console built
 | :--- | :--- | :--- |
 | **Operator Console (Dashboard)** | **Vercel** | **[https://offline-os-gray.vercel.app](https://offline-os-gray.vercel.app)** |
 | **Public Apply Portal** | **Vercel** | **[https://offline-os-gray.vercel.app/apply](https://offline-os-gray.vercel.app/apply)** |
-| **Python Pipeline API** | **Render** | **[https://offline-os.onrender.com](https://offline-os.onrender.com/health)** |
 | **GitHub Repository** | **GitHub** | **[https://github.com/bhaktofmahakal/offline-os](https://github.com/bhaktofmahakal/offline-os)** |
 
 
