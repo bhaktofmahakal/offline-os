@@ -8,10 +8,13 @@ A production-grade, automated CRM intelligence engine and operator console built
 
 | Component | Platform | Live URL |
 | :--- | :--- | :--- |
-| **Operator Console (Dashboard)** | **Vercel** | **[https://offline-os-gray.vercel.app](https://offline-os-gray.vercel.app)** |
-| **Public Apply Portal** | **Vercel** | **[https://offline-os-gray.vercel.app/apply](https://offline-os-gray.vercel.app/apply)** |
+| **Operator Console (Dashboard)** | **Vercel** | **[https://offline-os-gray.vercel.app](https://offline-os-gray.vercel.app)** *(100% Live)* |
+| **Public Apply Portal** | **Vercel** | **[https://offline-os-gray.vercel.app/apply](https://offline-os-gray.vercel.app/apply)** *(100% Live)* |
+| **Python Pipeline API (Auxiliary)** | **Render** | **[https://offline-os.onrender.com](https://offline-os.onrender.com)** *(Auto-resets 1st of month)* |
 | **GitHub Repository** | **GitHub** | **[https://github.com/bhaktofmahakal/offline-os](https://github.com/bhaktofmahakal/offline-os)** |
 
+> [!NOTE]
+> **Production Infrastructure Notice:** The primary CRM application, Public Application Portal (`/apply`), Member Directory CRUD, real-time AI scoring, and database operations are **100% LIVE and active on Vercel Serverless + Supabase Cloud PostgreSQL**. The auxiliary background Python microservice on Render auto-resets its monthly compute quota on the 1st of the month.
 
 ---
 

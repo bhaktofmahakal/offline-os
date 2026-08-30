@@ -8,10 +8,13 @@
 I built **Offline OS**, a production-grade, AI-native relationship CRM and automation engine designed specifically for **Offline**, **Encore**, and **The Offline Network (TON)**. It transforms passive, static Airtable records into an intelligent, active operating system that automates applicant qualification, data hygiene, and high-value introduction matching.
 
 ### 🌐 Live Production Deployments:
-* **Operator Console (Dashboard)**: [https://offline-os-gray.vercel.app/](https://offline-os-gray.vercel.app/)
-* **Public Application Portal**: [https://offline-os-gray.vercel.app/apply](https://offline-os-gray.vercel.app/apply)
+* **Operator Console (Dashboard)**: [https://offline-os-gray.vercel.app/](https://offline-os-gray.vercel.app/) *(100% Live on Vercel)*
+* **Public Application Portal**: [https://offline-os-gray.vercel.app/apply](https://offline-os-gray.vercel.app/apply) *(100% Live on Vercel)*
+* **Python Pipeline API (Auxiliary)**: [https://offline-os.onrender.com/health](https://offline-os.onrender.com/health) *(Auto-resets on 1st of month)*
 * **GitHub Repository**: [https://github.com/bhaktofmahakal/offline-os](https://github.com/bhaktofmahakal/offline-os)
 * **n8n Workflow Definition**: [`n8n/offline-crm-pipeline.json`](n8n/offline-crm-pipeline.json) (Production-ready importable JSON)
+
+> **Infrastructure Notice:** The core CRM, Public Portal, Member CRUD, real-time AI scoring, and PostgreSQL database run 24/7 on **Vercel Serverless + Supabase Cloud**. The auxiliary Render background pipeline auto-resets its monthly compute quota on the 1st of the month.
 
 ---
 
@@ -76,7 +79,7 @@ The repository includes a production-ready, exportable n8n workflow definition i
                 │
                 ▼
 ┌────────────────────────────────┐
-│   3. HTTP Request Node         │ <── Calls Python Pipeline Microservice
+│   3. HTTP Request Node         │ <── Calls Python Pipeline API (https://offline-os.onrender.com)
 │   (POST /process-new-record)   │     Executes Dedupe -> AI Classify -> Rubric Fit -> Vector Embed
 └───────────────┬────────────────┘
                 │
@@ -115,7 +118,7 @@ The repository includes a production-ready, exportable n8n workflow definition i
                                                 │
                                                 ▼
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                          PIPELINE CORE (Serverless & Microservices)                    │
+│                                 PIPELINE CORE (Render)                                 │
 │                                                                                        │
 │  [1. Clean & Audit] ──> [2. Dedupe Engine] ──> [3. AI Classify] ──> [4. Fit Rubric]    │
 │    (pandas / regex)      (RapidFuzz + LLM)       (Pydantic JSON)      (Deterministic)  │
@@ -138,9 +141,6 @@ The repository includes a production-ready, exportable n8n workflow definition i
                 │   Approve/Dismiss & Exports) │ │   Slack Block-Kit Alerts)    │
                 └──────────────────────────────┘ └──────────────────────────────┘
 ```
-
-* **Relational Integrity**: Duplicates are cleanly linked via self-referencing foreign keys (`people.is_duplicate_of`), preventing accidental data loss while excluding duplicates from introduction pools.
-* **Production Reliability & Zero SPOF**: Rather than relying on single-container hosting that suffers from monthly quota caps or cold starts, the primary CRM engine is architected on **Vercel Serverless** + **Supabase Cloud PostgreSQL** ensuring 24/7 high-availability and sub-second response times.
 
 ---
 
