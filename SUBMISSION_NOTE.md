@@ -97,15 +97,27 @@ I built **Offline OS**, a production-ready, AI-native CRM intelligence engine an
 
 ---
 
-## 4. What I'd Build Next With Another Week
+## 4. What I'd Build Next With Another Week (Growth & Automation Roadmap)
 
-If given another week to expand this system into a multi-team production deployment, I would prioritize:
+If given another week to expand this system into an enterprise multi-team production deployment for Offline, I would prioritize:
 
-1. **Bi-Directional Airtable & CRM Live Sync Engine**:
-   * Implement real-time Webhook subscriptions and delta-syncing between Airtable, Google Sheets, and Supabase so additions or edits in Airtable instantly flow through the pipeline, and enriched tags/fit scores write back to custom Airtable fields.
-2. **Automated Double Opt-In Emailer**:
-   * Wire Resend or SendGrid to automatically dispatch the AI-generated intro drafts to both founders simultaneously upon operator approval.
-3. **Interactive Graph-Based Community Cluster Visualization**:
-   * Render an interactive Force-Directed 2D/3D graph of all members clustered by cosine similarity and sector overlap to visually discover untapped cross-cohort synergies.
-4. **Slack & Mobile Push Approval Triggers**:
-   * Dispatch instant Block-Kit messages to a `#member-approvals` Slack channel with interactive `[Approve Intro]`, `[Review Duplicate]`, and `[View Profile]` buttons so community operators can manage workflows directly from mobile.
+1. **Bi-Directional Airtable REST & Webhook Live Sync Engine**:
+   * Implement real-time Webhook subscriptions (`Airtable API v0 /webhooks`) and delta-syncing between Airtable and Supabase Postgres. 
+   * Team members can continue using their familiar Airtable base as an input view while Offline OS runs in the background, writing back AI Fit Scores, Sector Tags, and Suggested Introductions into custom Airtable columns in real-time.
+
+2. **Multi-Provider Waterfall Enrichment Pipeline**:
+   * **Apollo.io API**: Automatically backfill verified company headcount, funding stage (Pre-Seed/Seed/Series A), and employee count.
+   * **FindyMail API**: Real-time SMTP & MX deliverability checks to prevent bounced emails and identify dead addresses.
+   * **Apify LinkedIn Scraper**: Ingest founder career timelines, past exits, patents, and mutual connection graphs without manual copy-pasting.
+   * **TinyFish / Firecrawl Headless Web Agent**: For stealth founders with brief bios, spawn an autonomous research subagent to parse their GitHub repositories, personal essays, and press mentions into a structured 360° founder dossier.
+
+3. **Automated Double Opt-In Intro Dispatcher (Resend / Postmark)**:
+   * When an operator clicks **Approve Intro** in the console, the platform automatically generates and sends a personalized dual-opt-in email to both founders simultaneously.
+   * Tracks reply sentiment, opt-in conversion rates, and founder NPS feedback loops over time.
+
+4. **Real-Time Slack VIP Intake & Mobile Operator Bot (`#offline-vip-intake`)**:
+   * Dispatch instant Block-Kit messages to a `#offline-vip-intake` Slack channel whenever an applicant scores **> 85**.
+   * Includes interactive 1-click Slack buttons: `[Approve & Welcome]`, `[Suggest Intro]`, and `[Review Duplicate]` so community operators can triage and manage workflows directly from mobile.
+
+5. **Interactive 3D Graph-Based Community Cluster Visualization**:
+   * Render an interactive WebGL / Three.js force-directed 3D graph of all members clustered by 768-dimensional `pgvector` cosine similarity and sector tags to visually discover untapped cross-cohort synergies and detect under-connected founders.

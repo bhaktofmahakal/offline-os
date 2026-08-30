@@ -125,41 +125,65 @@ Open `http://localhost:3000` in your browser.
 
 ```
 offline-os/
-├── app/                        # Next.js App Router Operator Console
-│   ├── api/people/             # Server-side Supabase People API (zero client key leakage)
-│   ├── api/introductions/      # Server-side Introductions status PATCH & GET
-│   ├── globals.css             # DESIGN.md color tokens & DM Sans / IBM Plex Mono fonts
-│   ├── layout.tsx              # Root HTML wrapper & font loaders
-│   └── page.tsx                # Operator Console (Table, Duplicates Queue, Intros, Drawer)
-├── data/                       # Datasets & local SQLite API cache
-│   ├── generate_dataset.py     # Deterministic generator (55 records, 6 duplicates, 11 incomplete)
-│   ├── raw_people.json         # Raw uncleaned input
-│   ├── cleaned_people.json     # Cleaned & standardized records
-│   ├── deduped_people.json     # Duplicates flagged with candidate links
+├── app/                        # Next.js 14 App Router (Operator Console & Public Portal)
+│   ├── api/
+│   │   ├── export/             # Dedicated Server-side RFC-4180 CSV & JSON Export API
+│   │   ├── introductions/      # Introductions status PATCH & GET endpoints
+│   │   ├── people/             # Full CRUD endpoints for members (GET, PATCH, DELETE)
+│   │   └── cron/keepalive/     # Serverless health & ping endpoint
+│   ├── apply/                  # Public Applicant Portal with real-time AI evaluation
+│   ├── globals.css             # Theme design tokens & typography
+│   ├── layout.tsx              # Root layout & font configuration
+│   └── page.tsx                # Operator Console (Members, Duplicates, Intros, Drawer)
+├── data/                       # Datasets & pipeline input/output artifacts
+│   ├── generate_dataset.py     # Deterministic synthetic applicant generator
+│   ├── raw_people.csv          # Raw applicant CSV dataset
+│   ├── raw_people.json         # Raw JSON input
+│   ├── cleaned_people.json     # Standardized records
+│   ├── deduped_people.json     # Flagged duplicates with canonical links
 │   ├── enriched_people.json    # Pydantic structured classifications
-│   ├── fit_scored_people.json  # 0-100 rubric scores + Gemini explanations
-│   ├── introductions.json      # Cosine similarity matches + intro rationales
-│   └── gemini_cache.sqlite     # SQLite SHA-256 cache for zero redundant API calls
-├── n8n/                        # Automation & Webhooks
-│   ├── offline-crm-pipeline.json # Importable n8n workflow definition
-│   └── SETUP.md                # Step-by-step import, ngrok tunnel, and curl testing guide
-├── pipeline/                   # Core Python Processing Pipeline
-│   ├── api.py                  # FastAPI webhook server (POST /process-new-record)
+│   ├── fit_scored_people.json  # 0-100 rubric scores + explainable reasoning
+│   └── introductions.json      # Cosine similarity matches + draft icebreakers
+├── lib/                        # Supabase client utilities
+├── n8n/                        # n8n Automation Workflows
+│   └── offline-crm-pipeline.json # Full workflow definition (Webhook -> Dedupe -> Slack)
+├── pipeline/                   # 5-Stage Python AI Ingestion Pipeline
 │   ├── clean.py                # Data normalization & missing field audit
-│   ├── dedupe.py               # RapidFuzz scoring + Gemini 3.5 ambiguous pair adjudication
+│   ├── dedupe.py               # RapidFuzz + Gemini 2.5 Flash ambiguous pair adjudication
 │   ├── enrich_classify.py      # Structured JSON schema classification
-│   ├── fit_score.py            # 100-pt rubric fit scorer + Gemini explainability reasoning
-│   ├── gemini_client.py        # Shared client (SQLite cache + 4.2s throttle + backoff retry)
+│   ├── fit_score.py            # 100-pt rubric fit scorer + explainability reasoning
+│   ├── gemini_client.py        # SQLite caching + rate limiting + retry logic
 │   ├── intro_match.py          # 768-dim embeddings + cosine similarity + bilateral rationale
-│   ├── run_pipeline.py         # Master orchestrator
-│   └── verify.py               # Automated verification test suite (8 assertions)
+│   ├── run_pipeline.py         # Master pipeline orchestrator
+│   └── verify.py               # Automated verification test suite
 ├── supabase/                   # Database DDL & Schemas
 │   └── schema.sql              # PostgreSQL tables with pgvector index & foreign keys
-├── ARCHITECTURE.md             # System design, data flow diagrams, and tool justifications
-├── DESIGN.md                   # Brand tokens, color palette, typography, and density rules
-├── PRD.md                      # Product requirements document
-└── SUBMISSION_NOTE.md          # 4-section evaluation & future roadmap
+├── README.md                   # Setup guide & system overview
+└── SUBMISSION_NOTE.md          # Official 4-part submission & architecture note
 ```
+
+---
+
+## 🚀 Growth & Automation Roadmap (What We'd Build Next)
+
+1. **Bi-Directional Airtable REST & Webhook Sync**:
+   * Connect Offline's existing Airtable bases via Airtable Webhooks API (`/v0/bases/{baseId}/webhooks`). 
+   * Team members continue using Airtable while Offline OS runs in the background, writing back AI Fit Scores, Sector Tags, and Suggested Introductions into custom Airtable columns in real-time.
+
+2. **Multi-Provider Waterfall Enrichment Pipeline**:
+   * **Apollo.io API**: Automatically backfill company headcount, funding stage (Pre-Seed/Seed/Series A), and verified employee data.
+   * **FindyMail API**: Real-time SMTP & MX deliverability checks to prevent bounced intros.
+   * **Apify LinkedIn Scraper**: Ingest founder career timelines, past exits, patents, and mutual connection graphs without manual copy-pasting.
+   * **TinyFish / Firecrawl Agentic Research**: For stealth founders with brief bios, spawn a headless browser subagent to parse their GitHub repositories, personal essays, and press mentions into a structured 360° founder dossier.
+
+3. **Automated Double-Opt-In Intro Email Dispatch (Resend / Postmark)**:
+   * When an operator clicks **Approve Intro**, the platform automatically generates and sends a personalized dual-opt-in email to both founders, tracking reply sentiment and connection outcomes over time.
+
+4. **Real-Time Slack VIP Intake Bot (`#offline-vip-intake`)**:
+   * Dispatch instant Block-Kit messages to a `#offline-vip-intake` Slack channel whenever an applicant scores **> 85**, complete with 1-click Slack interactive `[Approve & Welcome]`, `[Suggest Intro]`, and `[Review Duplicate]` buttons for mobile operator triage.
+
+5. **Interactive 3D Graph-Based Community Cluster Visualization**:
+   * WebGL / Three.js force-directed 3D graph of all members clustered by 768-dimensional `pgvector` cosine similarity to discover untapped cross-cohort synergies and detect under-connected founders.
 
 ---
 
