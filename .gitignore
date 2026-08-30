@@ -33,5 +33,9 @@ scratch/
 skills-lock.json
 *.log
 
+# Private Internal Working Documents
+DEMO_VIDEO_SCRIPT_AND_ROADMAP.md
+docs/
+
 .DS_Store
 Thumbs.db
