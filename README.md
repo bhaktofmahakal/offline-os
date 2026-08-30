@@ -21,6 +21,23 @@ A production-grade, automated CRM intelligence engine and operator console built
 
 ---
 
+> [!IMPORTANT]
+> ### 💡 Prototype Infrastructure & Free-Tier Notice
+> 
+> This prototype is deployed entirely on **100% free-tier community infrastructure** (Vercel, Supabase Free Tier, Google AI Studio Free Tier, and Render Free Tier):
+> 
+> 1. **Core CRM & Database (100% Functional):**
+>    - The main **Operator Console**, loaded members directory (91 canonical profiles), real-time search, multi-axis filtering, side-by-side duplicate diffs, introduction matching pairs, in-place drawer editing/saving, and server-streamed CSV/JSON exports work seamlessly 24/7.
+> 
+> 2. **Real-Time AI Intake (`/apply`) & Render Pipeline Limits:**
+>    - The live AI intake endpoint (`/apply`) and background Python container rely on public free-tier quotas:
+>      - **Gemini Free Tier:** Has a strict 15–20 requests/minute rate-limit window.
+>      - **Render Container:** Free-tier compute hours auto-reset on the **1st of the month** (midnight UTC).
+>    - If the public `/apply` form hits a momentary free-tier rate limit or container pause before the 1st of the month, you can test batch data intake directly via the built-in **"Import Airtable Data"** modal in the top navigation or run the local Python pipeline (`python -m pipeline.run_pipeline`).
+> 
+> The entire underlying codebase, data contracts, and pipeline architecture are 100% production-ready, deterministic, and fully verified.
+
+
 ## ⚡ Quickstart (0 to 1 Setup)
 
 
