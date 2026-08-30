@@ -442,12 +442,13 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
     const resolvedDuplicates = people.filter(p => p.is_duplicate_of !== null && (p.review_status === 'merged' || mergedIds.has(p.id))).length;
     const canonical = total - people.filter(p => p.is_duplicate_of !== null).length;
     const incomplete = people.filter(p => p.is_incomplete).length;
+    const totalDuplicates = people.filter(p => p.is_duplicate_of !== null).length;
     const scores = people.map(p => p.fit_score).filter((s): s is number => s !== null);
     const avgScore = scores.length ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : '—';
     const pendingIntros = introductions.filter(i => i.status === 'pending').length;
     const approvedIntros = introductions.filter(i => i.status === 'approved').length;
 
-    return { total, duplicates, resolvedDuplicates, canonical, incomplete, avgScore, pendingIntros, approvedIntros };
+    return { total, duplicates, resolvedDuplicates, totalDuplicates, canonical, incomplete, avgScore, pendingIntros, approvedIntros };
   }, [people, introductions, mergedIds]);
 
   // Filtered People
@@ -1213,7 +1214,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                       : 'text-ink-muted hover:text-ink'
                   }`}
                 >
-                  All History ({duplicatePairs.length})
+                  All History ({metrics.totalDuplicates})
                 </button>
               </div>
             </div>

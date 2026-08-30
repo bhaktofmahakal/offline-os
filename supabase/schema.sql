@@ -34,7 +34,7 @@ create table if not exists public.people (
   -- AI provenance is kept separate from source evidence.
   ai_classification jsonb not null default '{}'::jsonb,
   ai_enrichment_status text not null default 'pending'
-    check (ai_enrichment_status in ('pending', 'completed', 'skipped', 'failed')),
+    check (ai_enrichment_status in ('pending', 'completed', 'skipped', 'failed', 'manual_entry')),
   ai_model text,
   ai_generated_at timestamptz,
 
@@ -47,7 +47,7 @@ create table if not exists public.people (
   is_incomplete boolean not null default false,
   missing_fields text[] not null default '{}'::text[],
   review_status text not null default 'new'
-    check (review_status in ('new', 'reviewed', 'needs_review', 'rejected')),
+    check (review_status in ('new', 'reviewed', 'needs_review', 'rejected', 'merged', 'approved', 'dismissed')),
 
   -- Gemini embedding used for introduction candidate retrieval.
   embedding vector(768),
