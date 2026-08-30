@@ -12,8 +12,9 @@ out/
 dist/
 build/
 .vercel/
+*.tsbuildinfo
 
-# Python
+# Python & Databases
 __pycache__/
 *.py[cod]
 *$py.class
@@ -24,17 +25,24 @@ data/gemini_cache.sqlite
 venv/
 env/
 
-# System & Agent Workspace
+# IDE & Tool Metadata
+.serena/
 .agents/
 .markdown-collab/
 .system_generated/
 .user_uploaded/
+.temp/
+supabase/.temp/
 scratch/
 skills-lock.json
 *.log
+test_*.csv
 
 # Private Internal Working Documents
 DEMO_VIDEO_SCRIPT_AND_ROADMAP.md
+ARCHITECTURE.md
+SETUP.md
+n8n/SETUP.md
 docs/
 
 .DS_Store
