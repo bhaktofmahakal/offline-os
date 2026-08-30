@@ -446,195 +446,49 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
     return `"${str}"`;
   };
 
-  // Helper function to trigger clean file downloads with guaranteed filename and extension in Chrome/Edge/Safari
-  const downloadFile = (content: string, filename: string, mimeType: string) => {
-    try {
-      const blob = new Blob([content], { type: mimeType });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = filename;
-      a.setAttribute('download', filename);
-      document.body.appendChild(a);
-      a.click();
-      // Keep object URL alive for 30s so Chrome download manager has ample time to resolve filename & extension
-      setTimeout(() => {
-        if (document.body.contains(a)) {
-          document.body.removeChild(a);
-        }
-        window.URL.revokeObjectURL(url);
-      }, 30000);
-    } catch {
-      // Direct Data URI fallback
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = `data:${mimeType},` + encodeURIComponent(content);
-      a.download = filename;
-      a.setAttribute('download', filename);
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        if (document.body.contains(a)) {
-          document.body.removeChild(a);
-        }
-      }, 5000);
-    }
-  };
-
-  // Export filtered people dataset to CSV
+  // 1. Export filtered people dataset to CSV via Server API
   const handleExportCSV = () => {
-    if (filteredPeople.length === 0) {
-      alert('No members matching current filters to export.');
-      return;
-    }
-    const headers = [
-      'ID',
-      'Name',
-      'Email',
-      'Normalized Email',
-      'Company',
-      'Role Title',
-      'Role Type',
-      'Seniority',
-      'Sector Tags',
-      'Community Fit Tags',
-      'Fit Score',
-      'Fit Reasoning',
-      'Status',
-      'Is Incomplete',
-      'Missing Fields',
-      'Bio Notes',
-      'Source'
-    ];
+    const params = new URLSearchParams();
+    params.set('type', 'members');
+    params.set('format', 'csv');
+    if (roleFilter !== 'ALL') params.set('role', roleFilter);
+    if (sectorFilter !== 'ALL') params.set('sector', sectorFilter);
+    if (statusFilter !== 'ALL') params.set('status', statusFilter);
+    if (searchQuery.trim()) params.set('search', searchQuery.trim());
 
-    const rows = filteredPeople.map(p => [
-      p.id,
-      escapeCSV(p.name),
-      escapeCSV(p.email),
-      escapeCSV(p.email_normalized || p.email),
-      escapeCSV(p.company),
-      escapeCSV(p.role_title),
-      escapeCSV(p.role_type),
-      escapeCSV(p.seniority),
-      escapeCSV(p.sector_tags),
-      escapeCSV(p.community_fit_tags),
-      p.fit_score !== null ? p.fit_score : '',
-      escapeCSV(p.fit_score_reasoning),
-      escapeCSV(p.is_duplicate_of !== null ? `Duplicate of #${p.is_duplicate_of}` : (p.is_incomplete ? 'Incomplete' : 'Canonical')),
-      p.is_incomplete ? 'TRUE' : 'FALSE',
-      escapeCSV(p.missing_fields),
-      escapeCSV(p.bio_notes),
-      escapeCSV(p.source)
-    ]);
-
-    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
-    downloadFile(csvContent, `offline_crm_members_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8');
+    window.location.href = `/api/export?${params.toString()}`;
   };
 
-  // Export filtered people dataset to JSON
+  // 2. Export filtered people dataset to JSON via Server API
   const handleExportJSON = () => {
-    if (filteredPeople.length === 0) {
-      alert('No members matching current filters to export.');
-      return;
-    }
-    const jsonContent = JSON.stringify(filteredPeople, null, 2);
-    downloadFile(jsonContent, `offline_crm_members_${new Date().toISOString().slice(0, 10)}.json`, 'application/json;charset=utf-8');
+    const params = new URLSearchParams();
+    params.set('type', 'members');
+    params.set('format', 'json');
+    if (roleFilter !== 'ALL') params.set('role', roleFilter);
+    if (sectorFilter !== 'ALL') params.set('sector', sectorFilter);
+    if (statusFilter !== 'ALL') params.set('status', statusFilter);
+    if (searchQuery.trim()) params.set('search', searchQuery.trim());
+
+    window.location.href = `/api/export?${params.toString()}`;
   };
 
-  // Export duplicate candidate pairs to CSV
+  // 3. Export duplicate candidate pairs to CSV via Server API
   const handleExportDuplicatesCSV = () => {
-    if (duplicatePairs.length === 0) {
-      alert('No duplicate pairs to export in the current view.');
-      return;
-    }
-    const headers = [
-      'Duplicate Record ID',
-      'Duplicate Name',
-      'Duplicate Email',
-      'Duplicate Company',
-      'Duplicate Role',
-      'Match Confidence',
-      'Canonical Record ID',
-      'Canonical Name',
-      'Canonical Email',
-      'Canonical Company',
-      'Canonical Role',
-      'Review Status',
-      'AI Adjudication Rationale',
-      'Duplicate Bio',
-      'Canonical Bio'
-    ];
+    const params = new URLSearchParams();
+    params.set('type', 'duplicates');
+    params.set('format', 'csv');
+    params.set('dupFilter', duplicateFilter);
 
-    const rows = duplicatePairs.map(({ duplicate, canonical }) => {
-      const isMerged = mergedIds.has(duplicate.id) || duplicate.review_status === 'merged';
-      return [
-        duplicate.id,
-        escapeCSV(duplicate.name),
-        escapeCSV(duplicate.email_normalized || duplicate.email),
-        escapeCSV(duplicate.company),
-        escapeCSV(duplicate.role_title),
-        `${Math.round((duplicate.duplicate_confidence || 1.0) * 100)}%`,
-        canonical ? canonical.id : (duplicate.is_duplicate_of || ''),
-        escapeCSV(canonical?.name || ''),
-        escapeCSV(canonical?.email_normalized || canonical?.email || ''),
-        escapeCSV(canonical?.company || ''),
-        escapeCSV(canonical?.role_title || ''),
-        escapeCSV(isMerged ? 'Merged into Canonical' : 'Pending Review'),
-        escapeCSV(duplicate.duplicate_confidence === 1.0 ? 'AI Deduplication Engine: Exact identity match with identical email and company affiliation.' : 'AI Deduplication Engine: Ambiguous profile match adjudicated with high confidence.'),
-        escapeCSV(duplicate.bio_notes),
-        escapeCSV(canonical?.bio_notes || '')
-      ];
-    });
-
-    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
-    downloadFile(csvContent, `offline_crm_duplicates_${duplicateFilter.toLowerCase()}_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8');
+    window.location.href = `/api/export?${params.toString()}`;
   };
 
-  // Export approved or filtered introductions to CSV
+  // 4. Export approved / filtered introductions to CSV via Server API
   const handleExportIntrosCSV = () => {
-    if (filteredIntros.length === 0) {
-      alert('No introductions matching current filters to export.');
-      return;
-    }
-    const headers = [
-      'Intro ID',
-      'Status',
-      'Match Score',
-      'Match Band',
-      'Member A Name',
-      'Member A Company',
-      'Member A Role',
-      'Member A Email',
-      'Member B Name',
-      'Member B Company',
-      'Member B Role',
-      'Member B Email',
-      'Shared Context',
-      'Suggested Icebreaker Draft',
-      'AI Synergy Rationale'
-    ];
+    const params = new URLSearchParams();
+    params.set('type', 'introductions');
+    params.set('format', 'csv');
 
-    const rows = filteredIntros.map(i => [
-      i.id,
-      escapeCSV(i.status),
-      `${Math.round(i.match_score * 100)}%`,
-      escapeCSV(i.match_band),
-      escapeCSV(i.person_a?.name),
-      escapeCSV(i.person_a?.company),
-      escapeCSV(i.person_a?.role_title),
-      escapeCSV(i.person_a?.email_normalized || i.person_a?.email),
-      escapeCSV(i.person_b?.name),
-      escapeCSV(i.person_b?.company),
-      escapeCSV(i.person_b?.role_title),
-      escapeCSV(i.person_b?.email_normalized || i.person_b?.email),
-      escapeCSV(i.shared_context),
-      escapeCSV(i.suggested_intro),
-      escapeCSV(i.reasoning)
-    ]);
-
-    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
-    downloadFile(csvContent, `offline_crm_intros_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8');
+    window.location.href = `/api/export?${params.toString()}`;
   };
 
   // Metrics Summary
