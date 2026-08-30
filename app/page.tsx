@@ -1644,21 +1644,21 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   #{selectedPerson.id}
                 </span>
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 flex-shrink-0">
                 {!isEditingMember && (
                   <>
                     <a
                       href={`/api/export?type=members&id=${selectedPerson.id}&format=csv`}
                       download={`offline_crm_lead_${selectedPerson.id}_${selectedPerson.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}.csv`}
-                      className="h-8 px-2.5 text-xs bg-surface border border-line hover:border-signal/50 text-ink font-medium rounded flex items-center gap-1.5 transition-colors shadow-xs"
+                      className="h-8 px-2.5 text-xs bg-surface border border-line hover:border-signal/50 text-ink font-medium rounded flex items-center gap-1 transition-colors shadow-xs whitespace-nowrap"
                       title="Export this individual lead profile to CSV"
                     >
                       <Download className="w-3.5 h-3.5 text-signal" />
-                      <span>Export CSV</span>
+                      <span>CSV</span>
                     </a>
                     <button
                       onClick={handleStartEditMember}
-                      className="h-8 px-2.5 text-xs bg-surface border border-line hover:border-signal/50 text-ink font-medium rounded flex items-center gap-1 transition-colors"
+                      className="h-8 px-2.5 text-xs bg-surface border border-line hover:border-signal/50 text-ink font-medium rounded flex items-center gap-1 transition-colors whitespace-nowrap"
                       title="Edit member details, role, tags, fit score"
                     >
                       <Edit2 className="w-3.5 h-3.5 text-signal" />
