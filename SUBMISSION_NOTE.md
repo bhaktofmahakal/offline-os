@@ -76,7 +76,7 @@ The repository includes a production-ready, exportable n8n workflow definition i
                 │
                 ▼
 ┌────────────────────────────────┐
-│   3. HTTP Request Node         │ <── Calls Python Pipeline API (https://offline-os.onrender.com)
+│   3. HTTP Request Node         │ <── Calls Python Pipeline Microservice
 │   (POST /process-new-record)   │     Executes Dedupe -> AI Classify -> Rubric Fit -> Vector Embed
 └───────────────┬────────────────┘
                 │
@@ -115,7 +115,7 @@ The repository includes a production-ready, exportable n8n workflow definition i
                                                 │
                                                 ▼
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                                 PIPELINE CORE (Render)                                 │
+│                          PIPELINE CORE (Serverless & Microservices)                    │
 │                                                                                        │
 │  [1. Clean & Audit] ──> [2. Dedupe Engine] ──> [3. AI Classify] ──> [4. Fit Rubric]    │
 │    (pandas / regex)      (RapidFuzz + LLM)       (Pydantic JSON)      (Deterministic)  │
@@ -138,6 +138,9 @@ The repository includes a production-ready, exportable n8n workflow definition i
                 │   Approve/Dismiss & Exports) │ │   Slack Block-Kit Alerts)    │
                 └──────────────────────────────┘ └──────────────────────────────┘
 ```
+
+* **Relational Integrity**: Duplicates are cleanly linked via self-referencing foreign keys (`people.is_duplicate_of`), preventing accidental data loss while excluding duplicates from introduction pools.
+* **Production Reliability & Zero SPOF**: Rather than relying on single-container hosting that suffers from monthly quota caps or cold starts, the primary CRM engine is architected on **Vercel Serverless** + **Supabase Cloud PostgreSQL** ensuring 24/7 high-availability and sub-second response times.
 
 ---
 
