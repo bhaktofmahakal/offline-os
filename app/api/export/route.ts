@@ -23,13 +23,14 @@ export async function GET(request: Request) {
     const sector = searchParams.get('sector') || 'ALL';
     const status = searchParams.get('status') || 'ALL';
     const search = (searchParams.get('search') || '').toLowerCase().trim();
+    const id = searchParams.get('id');
     const dupFilter = searchParams.get('dupFilter') || 'PENDING';
     const today = new Date().toISOString().slice(0, 10);
 
     // ─────────────────────────────────────────────────────────────
-    // 1. EXPORT TYPE: MEMBERS DIRECTORY
+    // 1. EXPORT TYPE: MEMBERS DIRECTORY / INDIVIDUAL LEAD
     // ─────────────────────────────────────────────────────────────
-    if (type === 'members') {
+    if (type === 'members' || type === 'member') {
       const { data: people, error } = await supabase
         .from('people')
         .select('*')
@@ -41,6 +42,11 @@ export async function GET(request: Request) {
       }
 
       let filtered = people || [];
+
+      // Single Lead Export by ID
+      if (id) {
+        filtered = filtered.filter((p) => String(p.id) === String(id));
+      }
 
       // Apply server-side filters if requested
       if (search) {
@@ -63,20 +69,29 @@ export async function GET(request: Request) {
 
       if (status === 'CANONICAL') {
         filtered = filtered.filter((p) => p.is_duplicate_of === null && !p.is_incomplete);
-      } else if (status === 'DUPLICATE') {
+      } else if (status === 'DUPLICATE' || status === 'DUPLICATES') {
         filtered = filtered.filter((p) => p.is_duplicate_of !== null);
       } else if (status === 'INCOMPLETE') {
         filtered = filtered.filter((p) => p.is_incomplete);
       }
 
-      const filename = `offline_crm_members_${today}`;
+      const singleName = filtered.length === 1 && filtered[0].name
+        ? filtered[0].name.toLowerCase().replace(/[^a-z0-9]/g, '_')
+        : null;
+
+      const filename = singleName
+        ? `offline_crm_lead_${filtered[0].id}_${singleName}_${today}`
+        : `offline_crm_members_${today}`;
 
       if (format === 'json') {
-        return new NextResponse(JSON.stringify(filtered, null, 2), {
+        const jsonContent = JSON.stringify(filtered, null, 2);
+        const jsonBuffer = Buffer.from(jsonContent, 'utf-8');
+        return new NextResponse(jsonBuffer, {
           status: 200,
           headers: {
             'Content-Type': 'application/json; charset=utf-8',
-            'Content-Disposition': `attachment; filename="${filename}.json"`,
+            'Content-Disposition': `attachment; filename="${filename}.json"; filename*=UTF-8''${encodeURIComponent(filename)}.json`,
+            'Content-Length': String(jsonBuffer.length),
             'Cache-Control': 'no-store, no-cache, must-revalidate',
           },
         });

@@ -1125,16 +1125,27 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                             )}
                           </td>
                           <td className="py-3 px-4 text-right">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedPerson(person);
-                                setIsEditingMember(false);
-                              }}
-                              className="text-xs text-ink-muted hover:text-ink font-medium inline-flex items-center gap-1 px-2 py-1 rounded hover:bg-surface-raised border border-transparent hover:border-line"
-                            >
-                              Details <ChevronRight className="w-3.5 h-3.5" />
-                            </button>
+                            <div className="inline-flex items-center gap-1.5 justify-end">
+                              <a
+                                href={`/api/export?type=members&id=${person.id}&format=csv`}
+                                download={`offline_crm_lead_${person.id}_${person.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}.csv`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="p-1.5 text-ink-muted hover:text-signal hover:bg-surface-raised rounded border border-transparent hover:border-line transition-colors"
+                                title={`Export ${person.name} profile to CSV`}
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                              </a>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedPerson(person);
+                                  setIsEditingMember(false);
+                                }}
+                                className="text-xs text-ink-muted hover:text-ink font-medium inline-flex items-center gap-1 px-2 py-1 rounded hover:bg-surface-raised border border-transparent hover:border-line"
+                              >
+                                Details <ChevronRight className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -1164,59 +1175,49 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                         setSelectedPerson(person);
                         setIsEditingMember(false);
                       }}
-                      className="bg-surface border border-line rounded-lg p-4 shadow-sm space-y-3 active:scale-[0.99] transition-transform"
+                      className="p-4 bg-surface border border-line rounded-lg shadow-xs space-y-3 cursor-pointer hover:border-line-strong transition-colors"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <div className="font-semibold text-sm text-ink">{person.name}</div>
+                          <div className="font-semibold text-ink text-sm flex items-center gap-1.5">
+                            <span>{person.name}</span>
+                            <span className="font-mono text-[10px] text-ink-muted">#{person.id}</span>
+                          </div>
                           <div className="text-xs text-ink-muted mt-0.5">
-                            {person.role_title ? `${person.role_title} at ` : ''}
-                            <strong className="text-ink">{person.company || 'Independent'}</strong>
+                            {person.role_title} • <strong className="text-ink">{person.company || 'Independent'}</strong>
                           </div>
                         </div>
-
                         {person.fit_score !== null && (
-                          <div
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveTooltipId(activeTooltipId === person.id ? null : person.id);
-                            }}
-                            className="min-h-[36px] min-w-[48px] flex items-center justify-center font-mono font-bold text-xs px-2 py-1 rounded border shadow-xs"
+                          <span
+                            className="font-mono text-xs font-semibold px-2 py-0.5 rounded border shrink-0"
                             style={{
-                              backgroundColor: person.fit_score >= 80 ? 'var(--color-signal-soft)' : 'var(--color-surface-muted)',
-                              borderColor: person.fit_score >= 80 ? 'var(--color-signal)' : 'var(--color-line-strong)',
-                              color: person.fit_score >= 80 ? 'var(--color-signal)' : 'var(--color-ink)',
+                              borderColor:
+                                person.fit_score >= 80
+                                  ? 'var(--color-signal)'
+                                  : person.fit_score >= 60
+                                  ? 'var(--color-info)'
+                                  : 'var(--color-line-strong)',
+                              color:
+                                person.fit_score >= 80
+                                  ? 'var(--color-signal)'
+                                  : person.fit_score >= 60
+                                  ? 'var(--color-info)'
+                                  : 'var(--color-ink-muted)',
                             }}
                           >
                             {person.fit_score}/100
-                          </div>
+                          </span>
                         )}
                       </div>
 
-                      {/* Tap-accessible Fit Score Reasoning Strip */}
-                      {activeTooltipId === person.id && person.fit_score_reasoning && (
-                        <div className="p-2.5 bg-surface-muted rounded text-[11px] text-ink-muted italic border border-line animate-in zoom-in-95 duration-150">
-                          &ldquo;{person.fit_score_reasoning}&rdquo;
-                        </div>
+                      {person.bio_notes && (
+                        <p className="text-xs text-ink-muted line-clamp-2 leading-relaxed">
+                          {person.bio_notes}
+                        </p>
                       )}
 
-                      {/* Badges & Tags */}
-                      <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-                        {person.role_type && (
-                          <span className="px-2 py-0.5 rounded bg-surface-raised border border-line text-ink-muted font-mono uppercase">
-                            {person.role_type}
-                          </span>
-                        )}
-                        {person.sector_tags && person.sector_tags.slice(0, 3).map((tag, tIdx) => (
-                          <span key={tIdx} className="px-2 py-0.5 rounded bg-surface-muted border border-line text-ink-muted font-mono">
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-
-                      {/* Status & Details Action Button */}
-                      <div className="flex items-center justify-between border-t border-line pt-2.5">
-                        <div>
+                      <div className="flex items-center justify-between pt-2 border-t border-line text-xs">
+                        <div className="flex items-center gap-1.5">
                           {isDup ? (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-warning-soft text-warning border border-warning/30">
                               <AlertTriangle className="w-3 h-3" /> Duplicate of #{person.is_duplicate_of}
@@ -1232,16 +1233,28 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                           )}
                         </div>
 
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedPerson(person);
-                            setIsEditingMember(false);
-                          }}
-                          className="min-h-[44px] px-3 text-xs text-signal font-medium inline-flex items-center gap-1 hover:underline"
-                        >
-                          View Details <ChevronRight className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <a
+                            href={`/api/export?type=members&id=${person.id}&format=csv`}
+                            download={`offline_crm_lead_${person.id}_${person.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}.csv`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="min-h-[44px] px-2 text-xs text-ink-muted hover:text-signal inline-flex items-center gap-1"
+                            title="Export CSV"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>CSV</span>
+                          </a>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedPerson(person);
+                              setIsEditingMember(false);
+                            }}
+                            className="min-h-[44px] px-3 text-xs text-signal font-medium inline-flex items-center gap-1 hover:underline"
+                          >
+                            View Details <ChevronRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );
@@ -1633,14 +1646,25 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
               </div>
               <div className="flex items-center gap-1.5">
                 {!isEditingMember && (
-                  <button
-                    onClick={handleStartEditMember}
-                    className="h-8 px-2.5 text-xs bg-surface border border-line hover:border-signal/50 text-ink font-medium rounded flex items-center gap-1 transition-colors"
-                    title="Edit member details, role, tags, fit score"
-                  >
-                    <Edit2 className="w-3.5 h-3.5 text-signal" />
-                    <span>Edit</span>
-                  </button>
+                  <>
+                    <a
+                      href={`/api/export?type=members&id=${selectedPerson.id}&format=csv`}
+                      download={`offline_crm_lead_${selectedPerson.id}_${selectedPerson.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}.csv`}
+                      className="h-8 px-2.5 text-xs bg-surface border border-line hover:border-signal/50 text-ink font-medium rounded flex items-center gap-1.5 transition-colors shadow-xs"
+                      title="Export this individual lead profile to CSV"
+                    >
+                      <Download className="w-3.5 h-3.5 text-signal" />
+                      <span>Export CSV</span>
+                    </a>
+                    <button
+                      onClick={handleStartEditMember}
+                      className="h-8 px-2.5 text-xs bg-surface border border-line hover:border-signal/50 text-ink font-medium rounded flex items-center gap-1 transition-colors"
+                      title="Edit member details, role, tags, fit score"
+                    >
+                      <Edit2 className="w-3.5 h-3.5 text-signal" />
+                      <span>Edit</span>
+                    </button>
+                  </>
                 )}
                 <button
                   onClick={() => {
