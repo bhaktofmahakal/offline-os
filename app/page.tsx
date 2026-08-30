@@ -37,7 +37,8 @@ import {
   Menu,
   Edit2,
   Trash2,
-  Save
+  Save,
+  Download
 } from 'lucide-react';
 
 interface Person {
@@ -435,6 +436,37 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
     setStatusFilter('ALL');
   };
 
+  // Export filtered people dataset to CSV
+  const handleExportCSV = () => {
+    if (filteredPeople.length === 0) {
+      alert('No members matching current filters to export.');
+      return;
+    }
+    const headers = ['ID', 'Name', 'Email', 'Company', 'Role Title', 'Role Type', 'Seniority', 'Sector Tags', 'Fit Score', 'Fit Reasoning', 'Status'];
+    const rows = filteredPeople.map(p => [
+      p.id,
+      `"${(p.name || '').replace(/"/g, '""')}"`,
+      `"${(p.email_normalized || p.email || '').replace(/"/g, '""')}"`,
+      `"${(p.company || '').replace(/"/g, '""')}"`,
+      `"${(p.role_title || '').replace(/"/g, '""')}"`,
+      `"${(p.role_type || '').replace(/"/g, '""')}"`,
+      `"${(p.seniority || '').replace(/"/g, '""')}"`,
+      `"${(p.sector_tags || []).join('; ').replace(/"/g, '""')}"`,
+      p.fit_score !== null ? p.fit_score : '',
+      `"${(p.fit_score_reasoning || '').replace(/"/g, '""')}"`,
+      p.is_duplicate_of !== null ? `Duplicate of #${p.is_duplicate_of}` : (p.is_incomplete ? 'Incomplete' : 'Canonical')
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `offline_crm_members_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Metrics Summary
   const metrics = useMemo(() => {
     const total = people.length;
@@ -715,8 +747,19 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
               title="Batch import Airtable CSV export or paste raw rows"
             >
               <UploadCloud className="w-3.5 h-3.5 text-signal" />
-              <span className="hidden sm:inline">Import Airtable / CSV</span>
-              <span className="sm:hidden">Import CSV</span>
+              <span className="hidden sm:inline">Import CSV</span>
+              <span className="sm:hidden">Import</span>
+            </button>
+
+            {/* Export Filtered CSV */}
+            <button
+              onClick={handleExportCSV}
+              className="min-h-[40px] px-3 text-xs bg-surface-raised border border-line hover:border-signal/50 text-ink font-medium rounded flex items-center gap-1.5 transition-colors shadow-sm"
+              title="Export current filtered view to CSV"
+            >
+              <Download className="w-3.5 h-3.5 text-ink-muted" />
+              <span className="hidden sm:inline">Export CSV</span>
+              <span className="sm:hidden">Export</span>
             </button>
 
             <Link
