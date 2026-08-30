@@ -124,12 +124,14 @@ export async function GET(request: Request) {
       ]);
 
       const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\r\n');
+      const csvBuffer = Buffer.from(csvContent, 'utf-8');
 
-      return new NextResponse(csvContent, {
+      return new NextResponse(csvBuffer, {
         status: 200,
         headers: {
           'Content-Type': 'text/csv; charset=utf-8',
-          'Content-Disposition': `attachment; filename="${filename}.csv"`,
+          'Content-Disposition': `attachment; filename="${filename}.csv"; filename*=UTF-8''${encodeURIComponent(filename)}.csv`,
+          'Content-Length': String(csvBuffer.length),
           'Cache-Control': 'no-store, no-cache, must-revalidate',
         },
       });
@@ -167,11 +169,14 @@ export async function GET(request: Request) {
       const filename = `offline_crm_duplicates_${dupFilter.toLowerCase()}_${today}`;
 
       if (format === 'json') {
-        return new NextResponse(JSON.stringify(pairs, null, 2), {
+        const jsonContent = JSON.stringify(pairs, null, 2);
+        const jsonBuffer = Buffer.from(jsonContent, 'utf-8');
+        return new NextResponse(jsonBuffer, {
           status: 200,
           headers: {
             'Content-Type': 'application/json; charset=utf-8',
-            'Content-Disposition': `attachment; filename="${filename}.json"`,
+            'Content-Disposition': `attachment; filename="${filename}.json"; filename*=UTF-8''${encodeURIComponent(filename)}.json`,
+            'Content-Length': String(jsonBuffer.length),
             'Cache-Control': 'no-store, no-cache, must-revalidate',
           },
         });
@@ -217,12 +222,14 @@ export async function GET(request: Request) {
       });
 
       const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\r\n');
+      const csvBuffer = Buffer.from(csvContent, 'utf-8');
 
-      return new NextResponse(csvContent, {
+      return new NextResponse(csvBuffer, {
         status: 200,
         headers: {
           'Content-Type': 'text/csv; charset=utf-8',
-          'Content-Disposition': `attachment; filename="${filename}.csv"`,
+          'Content-Disposition': `attachment; filename="${filename}.csv"; filename*=UTF-8''${encodeURIComponent(filename)}.csv`,
+          'Content-Length': String(csvBuffer.length),
           'Cache-Control': 'no-store, no-cache, must-revalidate',
         },
       });
@@ -258,11 +265,14 @@ export async function GET(request: Request) {
       const filename = `offline_crm_intros_${today}`;
 
       if (format === 'json') {
-        return new NextResponse(JSON.stringify(enrichedIntros, null, 2), {
+        const jsonContent = JSON.stringify(enrichedIntros, null, 2);
+        const jsonBuffer = Buffer.from(jsonContent, 'utf-8');
+        return new NextResponse(jsonBuffer, {
           status: 200,
           headers: {
             'Content-Type': 'application/json; charset=utf-8',
-            'Content-Disposition': `attachment; filename="${filename}.json"`,
+            'Content-Disposition': `attachment; filename="${filename}.json"; filename*=UTF-8''${encodeURIComponent(filename)}.json`,
+            'Content-Length': String(jsonBuffer.length),
             'Cache-Control': 'no-store, no-cache, must-revalidate',
           },
         });
@@ -305,12 +315,14 @@ export async function GET(request: Request) {
       ]);
 
       const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\r\n');
+      const csvBuffer = Buffer.from(csvContent, 'utf-8');
 
-      return new NextResponse(csvContent, {
+      return new NextResponse(csvBuffer, {
         status: 200,
         headers: {
           'Content-Type': 'text/csv; charset=utf-8',
-          'Content-Disposition': `attachment; filename="${filename}.csv"`,
+          'Content-Disposition': `attachment; filename="${filename}.csv"; filename*=UTF-8''${encodeURIComponent(filename)}.csv`,
+          'Content-Length': String(csvBuffer.length),
           'Cache-Control': 'no-store, no-cache, must-revalidate',
         },
       });
