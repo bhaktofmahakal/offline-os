@@ -10,33 +10,13 @@ A production-grade, automated CRM intelligence engine and operator console built
 | :--- | :--- | :--- |
 | **Operator Console (Dashboard)** | **Vercel** | **[https://offline-os-gray.vercel.app](https://offline-os-gray.vercel.app)** *(100% Live)* |
 | **Public Apply Portal** | **Vercel** | **[https://offline-os-gray.vercel.app/apply](https://offline-os-gray.vercel.app/apply)** *(100% Live)* |
-| **Python Pipeline API (Auxiliary)** | **Render** | **[https://offline-os.onrender.com](https://offline-os.onrender.com)** *(Auto-resets 1st of month)* | 
-
-<img width="1452" height="451" alt="image" src="https://github.com/user-attachments/assets/10989f6e-f831-4231-963d-07d24e9d91ca" />    BAD LUCK
-
+| **Python Pipeline API (Auxiliary)** | **Render** | **[https://offline-os.onrender.com](https://offline-os.onrender.com)** *(Auto-resets 1st of month)* |
 | **GitHub Repository** | **GitHub** | **[https://github.com/bhaktofmahakal/offline-os](https://github.com/bhaktofmahakal/offline-os)** |
 
 > [!NOTE]
 > **Production Infrastructure Notice:** The primary CRM application, Public Application Portal (`/apply`), Member Directory CRUD, real-time AI scoring, and database operations are **100% LIVE and active on Vercel Serverless + Supabase Cloud PostgreSQL**. The auxiliary background Python microservice on Render auto-resets its monthly compute quota on the 1st of the month.
 
 ---
-
-> [!IMPORTANT]
-> ### 💡 Prototype Infrastructure & Free-Tier Notice
-> 
-> This prototype is deployed entirely on **100% free-tier community infrastructure** (Vercel, Supabase Free Tier, Google AI Studio Free Tier, and Render Free Tier):
-> 
-> 1. **Core CRM & Database (100% Functional):**
->    - The main **Operator Console**, loaded members directory (91 canonical profiles), real-time search, multi-axis filtering, side-by-side duplicate diffs, introduction matching pairs, in-place drawer editing/saving, and server-streamed CSV/JSON exports work seamlessly 24/7.
-> 
-> 2. **Real-Time AI Intake (`/apply`) & Render Pipeline Limits:**
->    - The live AI intake endpoint (`/apply`) and background Python container rely on public free-tier quotas:
->      - **Gemini Free Tier:** Has a strict 15–20 requests/minute rate-limit window.
->      - **Render Container:** Free-tier compute hours auto-reset on the **1st of the month** (midnight UTC).
->    - If the public `/apply` form hits a momentary free-tier rate limit or container pause before the 1st of the month, you can test batch data intake directly via the built-in **"Import Airtable Data"** modal in the top navigation or run the local Python pipeline (`python -m pipeline.run_pipeline`).
-> 
-> The entire underlying codebase, data contracts, and pipeline architecture are 100% production-ready, deterministic, and fully verified.
-
 
 ## ⚡ Quickstart (0 to 1 Setup)
 
