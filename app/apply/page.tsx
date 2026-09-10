@@ -95,12 +95,17 @@ export default function ApplyPage() {
       {/* Header */}
       <header className="border-b border-[#E0DCD1] bg-[#FFFDF9] px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded bg-[#557A5D] text-white flex items-center justify-center font-serif font-bold text-base">
-            O
+          <div className="w-8 h-8 rounded bg-[#1E201E] text-white flex items-center justify-center font-mono font-bold text-base shadow-xs">
+            N
           </div>
           <div>
-            <h1 className="text-base font-semibold text-[#1E201E] tracking-tight">Offline Club</h1>
-            <p className="text-xs text-[#5A5E5A]">Membership Application Portal</p>
+            <h1 className="text-base font-semibold text-[#1E201E] tracking-tight flex items-center gap-2">
+              NetworkOS
+              <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-[#557A5D]/10 text-[#557A5D] border border-[#557A5D]/20">
+                PORTAL
+              </span>
+            </h1>
+            <p className="text-xs text-[#5A5E5A]">Intelligent Cohort & Syndicate Intake</p>
           </div>
         </div>
         <Link
@@ -118,12 +123,12 @@ export default function ApplyPage() {
           <div className="bg-[#FFFDF9] border border-[#E0DCD1] rounded-xl p-8 shadow-sm space-y-6">
             <div className="border-b border-[#E0DCD1] pb-5">
               <span className="text-[11px] font-mono uppercase tracking-wider text-[#A76245] font-semibold">
-                Cohort Application
+                Syndicate & Cohort Intake
               </span>
-              <h2 className="text-2xl font-serif font-normal text-[#1E201E] mt-1">Join the Offline Community</h2>
+              <h2 className="text-2xl font-serif font-normal text-[#1E201E] mt-1">Join the Network</h2>
               <p className="text-xs text-[#5A5E5A] mt-1.5 leading-relaxed">
-                We curate high-trust peer networks for exceptional founders, technical leaders, and operators.
-                Submit your profile below to undergo instant AI evaluation and synergy matching.
+                We curate high-trust peer networks for exceptional founders, investors, and operators.
+                Submit your profile below to trigger autonomous AI enrichment, fit scoring, and cross-network synergy discovery.
               </p>
             </div>
 
@@ -314,7 +319,7 @@ export default function ApplyPage() {
 
       {/* Footer */}
       <footer className="border-t border-[#E0DCD1] py-4 text-center text-xs font-mono text-[#5A5E5A]">
-        Offline OS • Real-Time AI Ingestion & Evaluation Engine
+        NetworkOS • Autonomous AI Ingestion & Synergy Engine
       </footer>
     </div>
   );

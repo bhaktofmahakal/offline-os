@@ -38,7 +38,10 @@ import {
   Edit2,
   Trash2,
   Save,
-  Download
+  Download,
+  Zap,
+  Send,
+  Globe
 } from 'lucide-react';
 
 interface Person {
@@ -122,6 +125,34 @@ export default function OfflineCRM() {
     total: 0,
     logs: [],
   });
+
+  // Workspace Environment Mode (Sandbox Benchmark vs Live Production)
+  const [workspaceMode, setWorkspaceMode] = useState<'sandbox' | 'live'>('sandbox');
+  const [isPurgingLive, setIsPurgingLive] = useState(false);
+  const [showPurgeModal, setShowPurgeModal] = useState(false);
+
+  // 360° AI Enrichment State
+  const [isEnrichingPerson, setIsEnrichingPerson] = useState(false);
+  const [dossierCache, setDossierCache] = useState<Record<number, any>>({});
+
+  // Warm Intro Dispatcher Modal State
+  const [selectedIntroForDispatch, setSelectedIntroForDispatch] = useState<Introduction | null>(null);
+  const [dispatchedIntroIds, setDispatchedIntroIds] = useState<Set<number>>(new Set());
+
+  // Airtable Direct Ingestion States
+  const [importTab, setImportTab] = useState<'airtable' | 'webhook' | 'csv'>('airtable');
+  const [airtableBaseId, setAirtableBaseId] = useState('');
+  const [airtableTableName, setAirtableTableName] = useState('Applicants');
+  const [autoEnrichAirtable, setAutoEnrichAirtable] = useState(true);
+  const [airtableBasesList, setAirtableBasesList] = useState<any[]>([]);
+  const [loadingBases, setLoadingBases] = useState(false);
+  const [copiedWebhookUrl, setCopiedWebhookUrl] = useState(false);
+  const [testingWebhook, setTestingWebhook] = useState(false);
+  const [airtableTablesList, setAirtableTablesList] = useState<any[]>([]);
+  const [loadingTables, setLoadingTables] = useState(false);
+  const [airtableWebhooksList, setAirtableWebhooksList] = useState<any[]>([]);
+  const [loadingWebhooks, setLoadingWebhooks] = useState(false);
+  const [creatingWebhook, setCreatingWebhook] = useState(false);
 
   const handleLoadSampleAirtableData = () => {
     const sample = `Name,Email,Company,Role,Bio
@@ -210,11 +241,23 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       }));
 
       try {
-        const res = await fetch('https://offline-os.onrender.com/process-new-record', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(row),
-        });
+        let res = null;
+        try {
+          res = await fetch('https://offline-os.onrender.com/process-new-record', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(row),
+          });
+        } catch (_) {}
+
+        if (!res || !res.ok) {
+          // Resilient fallback to local NetworkOS ingest API
+          res = await fetch('/api/v1/ingest', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...row, source: 'airtable_csv_import' }),
+          });
+        }
 
         if (!res.ok) {
           throw new Error(`Pipeline API returned status ${res.status}`);
@@ -222,10 +265,11 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
         const data = await res.json();
         let resultSummary = '';
-        if (data.is_duplicate) {
-          resultSummary = `⚠️ Flagged duplicate of #${data.duplicate_of} (${Math.round((data.confidence || 0.95) * 100)}% match)`;
+        if (data.is_duplicate || data.duplicate_detected) {
+          resultSummary = `⚠️ Flagged duplicate (${Math.round((data.confidence || 0.95) * 100)}% match)`;
         } else {
-          resultSummary = `✨ Saved! Fit: ${data.fit_score}/100 | ${data.role_type || 'member'} | ${data.sector_tags?.join(', ') || 'general'}`;
+          const rec = data.record || data;
+          resultSummary = `✨ Saved! Fit: ${rec.fit_score || 80}/100 | ${rec.role_type || 'member'} | ${(rec.sector_tags || []).join(', ') || 'general'}`;
         }
 
         setImportProgress(prev => ({
@@ -248,6 +292,234 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
     await fetchData();
     setImporting(false);
+  };
+
+  // Airtable Metadata, Schema & Webhook Handlers
+  const fetchAirtableTables = async (baseId: string) => {
+    if (!baseId) return;
+    setLoadingTables(true);
+    try {
+      const res = await fetch(`/api/airtable/tables?baseId=${encodeURIComponent(baseId)}`);
+      const data = await res.json();
+      if (data.tables && data.tables.length > 0) {
+        setAirtableTablesList(data.tables);
+        if (!airtableTableName || airtableTableName === 'Applicants') {
+          setAirtableTableName(data.tables[0].name);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load Airtable tables:', err);
+    } finally {
+      setLoadingTables(false);
+    }
+  };
+
+  const fetchAirtableWebhooks = async (baseId: string) => {
+    if (!baseId) return;
+    setLoadingWebhooks(true);
+    try {
+      const res = await fetch(`/api/airtable/webhooks?baseId=${encodeURIComponent(baseId)}`);
+      const data = await res.json();
+      if (data.webhooks) {
+        setAirtableWebhooksList(data.webhooks);
+      }
+    } catch (err) {
+      console.error('Failed to load Airtable webhooks:', err);
+    } finally {
+      setLoadingWebhooks(false);
+    }
+  };
+
+  const handleCreateWebhook = async () => {
+    if (!airtableBaseId.trim()) {
+      alert('Please select or specify an Airtable Base ID first.');
+      return;
+    }
+    setCreatingWebhook(true);
+    try {
+      const res = await fetch('/api/airtable/webhooks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ baseId: airtableBaseId.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to create webhook');
+      alert(`✅ Webhook registered successfully!\nID: ${data.webhook?.id}\nExpires in 7 days.`);
+      await fetchAirtableWebhooks(airtableBaseId.trim());
+    } catch (err: any) {
+      alert('Webhook Registration Error: ' + err.message);
+    } finally {
+      setCreatingWebhook(false);
+    }
+  };
+
+  const handleRefreshWebhook = async (webhookId: string) => {
+    try {
+      const res = await fetch('/api/airtable/webhooks', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ baseId: airtableBaseId.trim(), webhookId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to refresh webhook');
+      alert(data.message || 'Webhook successfully refreshed for another 7 days!');
+      await fetchAirtableWebhooks(airtableBaseId.trim());
+    } catch (err: any) {
+      alert('Error refreshing webhook: ' + err.message);
+    }
+  };
+
+  const handleDeleteWebhook = async (webhookId: string) => {
+    if (!confirm('Are you sure you want to unregister and delete this Airtable webhook?')) return;
+    try {
+      const res = await fetch(`/api/airtable/webhooks?baseId=${encodeURIComponent(airtableBaseId.trim())}&webhookId=${encodeURIComponent(webhookId)}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to delete webhook');
+      alert(data.message || 'Webhook deleted');
+      await fetchAirtableWebhooks(airtableBaseId.trim());
+    } catch (err: any) {
+      alert('Error deleting webhook: ' + err.message);
+    }
+  };
+
+  const fetchAirtableBases = async () => {
+    setLoadingBases(true);
+    try {
+      const res = await fetch('/api/airtable/bases');
+      const data = await res.json();
+      if (data.bases && data.bases.length > 0) {
+        setAirtableBasesList(data.bases);
+        const targetBaseId = airtableBaseId || data.bases[0].id;
+        if (!airtableBaseId) {
+          setAirtableBaseId(targetBaseId);
+        }
+        await Promise.all([
+          fetchAirtableTables(targetBaseId),
+          fetchAirtableWebhooks(targetBaseId),
+        ]);
+      }
+    } catch (err) {
+      console.error('Failed to load Airtable bases:', err);
+    } finally {
+      setLoadingBases(false);
+    }
+  };
+
+  const handleSyncAirtable = async () => {
+    if (!airtableBaseId.trim() || !airtableTableName.trim()) {
+      alert('Please provide both Airtable Base ID and Table Name');
+      return;
+    }
+
+    setImporting(true);
+    setImportProgress({
+      current: 0,
+      total: 100,
+      logs: [
+        `🚀 Connecting to Airtable Base [${airtableBaseId}] Table [${airtableTableName}]...`,
+        '🔑 Authenticating using official Airtable Personal Access Token (PAT)...',
+        '⏳ Fetching paginated records with cursor pagination...'
+      ],
+    });
+
+    try {
+      const res = await fetch('/api/airtable/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          baseId: airtableBaseId.trim(),
+          tableIdOrName: airtableTableName.trim(),
+          autoEnrich: autoEnrichAirtable,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Airtable sync failed');
+      }
+
+      const syncLogs = [
+        `✅ Airtable Sync Completed!`,
+        `📊 Total rows retrieved: ${data.total_fetched || 0}`,
+        `📥 Ingested into Supabase: ${data.new_ingested || 0} new member profiles`,
+        `🔍 Duplicates identified & deduplicated: ${data.duplicates_detected || 0}`,
+      ];
+
+      if (data.auto_enriched && data.auto_enriched > 0) {
+        syncLogs.push(`⚡ Autonomous 360° AI enrichment triggered for ${data.auto_enriched} records (via TinyFish CLI & Tavily)`);
+      }
+
+      syncLogs.push('🎉 Sync complete! Live dashboard refreshed.');
+
+      setImportProgress({
+        current: 100,
+        total: 100,
+        logs: syncLogs,
+      });
+
+      await fetchData();
+    } catch (err: any) {
+      setImportProgress(prev => ({
+        ...prev,
+        logs: [...prev.logs, `❌ Error during Airtable sync: ${err.message}`],
+      }));
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  // 360° AI Enrichment Handler
+  const handleRunEnrichment = async (personId: number) => {
+    setIsEnrichingPerson(true);
+    try {
+      const res = await fetch('/api/people/enrich', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: personId }),
+      });
+
+      if (!res.ok) throw new Error('Enrichment API failed');
+      const data = await res.json();
+
+      if (data.member) {
+        setPeople(prev => prev.map(p => (p.id === personId ? data.member : p)));
+        if (selectedPerson?.id === personId) {
+          setSelectedPerson(data.member);
+        }
+      }
+      if (data.dossier) {
+        setDossierCache(prev => ({ ...prev, [personId]: data.dossier }));
+      }
+    } catch (err: any) {
+      console.error('Enrichment error:', err);
+      alert('Enrichment error: ' + err.message);
+    } finally {
+      setIsEnrichingPerson(false);
+    }
+  };
+
+  // Live Workspace Purge Handler
+  const handlePurgeLive = async () => {
+    setIsPurgingLive(true);
+    try {
+      const res = await fetch('/api/workspace/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'purge_live' }),
+      });
+
+      if (!res.ok) throw new Error('Failed to purge live workspace');
+      const data = await res.json();
+      alert(data.message || 'Live records purged successfully.');
+      setShowPurgeModal(false);
+      await fetchData();
+    } catch (err: any) {
+      alert('Error: ' + err.message);
+    } finally {
+      setIsPurgingLive(false);
+    }
   };
 
   // Toggle Dark Mode
@@ -491,25 +763,40 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
     window.location.href = `/api/export?${params.toString()}`;
   };
 
+  // Active People based on Workspace Environment Mode
+  const activePeople = useMemo(() => {
+    if (workspaceMode === 'sandbox') return people;
+    return people.filter(p =>
+      p.source === 'webhook_ingest' ||
+      p.source === 'tally_webhook' ||
+      p.source === 'manual_operator_entry' ||
+      p.source === 'public_application_form' ||
+      p.source === 'n8n_webhook_ingest' ||
+      p.source === 'airtable_csv_import' ||
+      p.source === 'airtable_sync' ||
+      p.source === 'airtable_webhook'
+    );
+  }, [people, workspaceMode]);
+
   // Metrics Summary
   const metrics = useMemo(() => {
-    const total = people.length;
-    const duplicates = people.filter(p => p.is_duplicate_of !== null && p.review_status !== 'merged' && !mergedIds.has(p.id)).length;
-    const resolvedDuplicates = people.filter(p => p.is_duplicate_of !== null && (p.review_status === 'merged' || mergedIds.has(p.id))).length;
-    const canonical = total - people.filter(p => p.is_duplicate_of !== null).length;
-    const incomplete = people.filter(p => p.is_incomplete).length;
-    const totalDuplicates = people.filter(p => p.is_duplicate_of !== null).length;
-    const scores = people.map(p => p.fit_score).filter((s): s is number => s !== null);
+    const total = activePeople.length;
+    const duplicates = activePeople.filter(p => p.is_duplicate_of !== null && p.review_status !== 'merged' && !mergedIds.has(p.id)).length;
+    const resolvedDuplicates = activePeople.filter(p => p.is_duplicate_of !== null && (p.review_status === 'merged' || mergedIds.has(p.id))).length;
+    const canonical = total - activePeople.filter(p => p.is_duplicate_of !== null).length;
+    const incomplete = activePeople.filter(p => p.is_incomplete).length;
+    const totalDuplicates = activePeople.filter(p => p.is_duplicate_of !== null).length;
+    const scores = activePeople.map(p => p.fit_score).filter((s): s is number => s !== null);
     const avgScore = scores.length ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : '—';
     const pendingIntros = introductions.filter(i => i.status === 'pending').length;
     const approvedIntros = introductions.filter(i => i.status === 'approved').length;
 
     return { total, duplicates, resolvedDuplicates, totalDuplicates, canonical, incomplete, avgScore, pendingIntros, approvedIntros };
-  }, [people, introductions, mergedIds]);
+  }, [activePeople, introductions, mergedIds]);
 
   // Filtered People
   const filteredPeople = useMemo(() => {
-    return people.filter(p => {
+    return activePeople.filter(p => {
       // Search
       const query = searchQuery.toLowerCase().trim();
       const matchSearch =
@@ -538,12 +825,12 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
       return matchSearch && matchRole && matchSector && matchStatus;
     });
-  }, [people, searchQuery, roleFilter, sectorFilter, statusFilter]);
+  }, [activePeople, searchQuery, roleFilter, sectorFilter, statusFilter]);
 
   // Duplicate Pairs
   const duplicatePairs = useMemo(() => {
-    const peopleMap = new Map(people.map(p => [p.id, p]));
-    return people
+    const peopleMap = new Map(activePeople.map(p => [p.id, p]));
+    return activePeople
       .filter(p => {
         if (p.is_duplicate_of === null) return false;
         const isMerged = mergedIds.has(p.id) || p.review_status === 'merged';
@@ -555,7 +842,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
         const canonical = peopleMap.get(dup.is_duplicate_of!);
         return { duplicate: dup, canonical: canonical || null };
       });
-  }, [people, mergedIds, duplicateFilter]);
+  }, [activePeople, mergedIds, duplicateFilter]);
 
   // Filtered Introductions
   const filteredIntros = useMemo(() => {
@@ -591,7 +878,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
           <span>Members Directory</span>
         </div>
         <span className="text-xs font-mono tabular-nums px-1.5 py-0.5 rounded bg-surface border border-line text-ink-muted">
-          {people.length}
+          {activePeople.length}
         </span>
       </button>
 
@@ -654,12 +941,12 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
               <div className="h-14 border-b border-line flex items-center justify-between px-4">
                 <div className="flex items-center gap-3">
                   <div className="w-6 h-6 rounded bg-signal flex items-center justify-center text-surface text-xs font-mono font-bold">
-                    O
+                    N
                   </div>
                   <h1 className="text-sm font-semibold tracking-tight text-ink flex items-center gap-2">
-                    Offline OS
+                    NetworkOS
                     <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-signal-soft text-signal border border-signal/20">
-                      CRM
+                      INTELLIGENCE
                     </span>
                   </h1>
                 </div>
@@ -702,13 +989,13 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
           {/* Brand Header */}
           <div className="h-14 border-b border-line flex items-center px-5 gap-3">
             <div className="w-6 h-6 rounded bg-signal flex items-center justify-center text-surface text-xs font-mono font-bold">
-              O
+              N
             </div>
             <div>
               <h1 className="text-sm font-semibold tracking-tight text-ink flex items-center gap-2">
-                Offline OS
+                NetworkOS
                 <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-signal-soft text-signal border border-signal/20">
-                  CRM v1.0
+                  PRO v2.0
                 </span>
               </h1>
             </div>
@@ -764,15 +1051,48 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            {/* Workspace Environment Toggle */}
+            <div className="flex items-center bg-surface-raised border border-line rounded p-0.5 text-xs font-mono">
+              <button
+                onClick={() => setWorkspaceMode('sandbox')}
+                className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1.5 ${
+                  workspaceMode === 'sandbox'
+                    ? 'bg-signal text-surface font-semibold shadow-xs'
+                    : 'text-ink-muted hover:text-ink'
+                }`}
+                title="View Sandbox Benchmark Cohort (90+ curated members)"
+              >
+                <Database className="w-3 h-3" />
+                <span className="hidden lg:inline">Sandbox Demo</span>
+                <span className="lg:hidden">Sandbox</span>
+              </button>
+              <button
+                onClick={() => setWorkspaceMode('live')}
+                className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1.5 ${
+                  workspaceMode === 'live'
+                    ? 'bg-signal text-surface font-semibold shadow-xs'
+                    : 'text-ink-muted hover:text-ink'
+                }`}
+                title="View Live Ingested Records (Webhooks, CSVs, n8n)"
+              >
+                <Terminal className="w-3 h-3" />
+                <span className="hidden lg:inline">Live Workspace</span>
+                <span className="lg:hidden">Live</span>
+              </button>
+            </div>
+
             {/* Ingest Airtable / CSV */}
             <button
-              onClick={() => setIsImportModalOpen(true)}
+              onClick={() => {
+                setIsImportModalOpen(true);
+                fetchAirtableBases();
+              }}
               className="min-h-[40px] px-3 text-xs bg-surface-raised border border-line hover:border-signal/50 text-ink font-medium rounded flex items-center gap-1.5 transition-colors shadow-sm"
-              title="Batch import Airtable CSV export or paste raw rows"
+              title="Airtable Live Sync, Webhook Stream, or CSV Import"
             >
               <UploadCloud className="w-3.5 h-3.5 text-signal" />
-              <span className="hidden sm:inline">Import CSV</span>
-              <span className="sm:hidden">Import</span>
+              <span className="hidden sm:inline">Sync & Ingest</span>
+              <span className="sm:hidden">Ingest</span>
             </button>
 
             <Link
@@ -780,10 +1100,21 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
               target="_blank"
               className="min-h-[40px] px-3 text-xs bg-surface-raised border border-line text-ink hover:bg-surface-muted font-medium rounded flex items-center gap-1.5 transition-colors"
             >
-              <span className="hidden sm:inline">Public Apply</span>
-              <span className="sm:hidden">Apply</span>
+              <span className="hidden sm:inline">Public Intake</span>
+              <span className="sm:hidden">Intake</span>
               <ExternalLink className="w-3 h-3 text-ink-muted" />
             </Link>
+
+            {workspaceMode === 'live' && activePeople.length > 0 && (
+              <button
+                onClick={() => setShowPurgeModal(true)}
+                className="min-h-[40px] px-2.5 text-xs bg-danger-soft/30 text-danger border border-danger/40 hover:bg-danger-soft/60 font-medium rounded flex items-center gap-1 transition-colors"
+                title="Purge live records to start with a fresh blank canvas"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Purge Live</span>
+              </button>
+            )}
 
             <button
               onClick={fetchData}
@@ -914,12 +1245,12 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
               <div className="hidden md:flex items-center gap-3">
                 <div className="text-xs font-mono text-ink-muted tabular-nums">
-                  Showing {filteredPeople.length} of {people.length} members
+                  Showing {filteredPeople.length} of {activePeople.length} members
                 </div>
                 <div className="flex items-center gap-1.5 border-l border-line pl-3">
                   <a
                     href={`/api/export?type=members&format=csv&role=${encodeURIComponent(roleFilter)}&sector=${encodeURIComponent(sectorFilter)}&status=${encodeURIComponent(statusFilter)}&search=${encodeURIComponent(searchQuery)}`}
-                    download={`offline_crm_members_${new Date().toISOString().slice(0, 10)}.csv`}
+                    download={`network_os_members_${new Date().toISOString().slice(0, 10)}.csv`}
                     className="h-7 px-2 bg-surface border border-line hover:border-signal/50 text-ink rounded text-[11px] font-medium flex items-center gap-1 transition-colors"
                     title="Export filtered records to CSV"
                   >
@@ -928,7 +1259,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   </a>
                   <a
                     href={`/api/export?type=members&format=json&role=${encodeURIComponent(roleFilter)}&sector=${encodeURIComponent(sectorFilter)}&status=${encodeURIComponent(statusFilter)}&search=${encodeURIComponent(searchQuery)}`}
-                    download={`offline_crm_members_${new Date().toISOString().slice(0, 10)}.json`}
+                    download={`network_os_members_${new Date().toISOString().slice(0, 10)}.json`}
                     className="h-7 px-2 bg-surface border border-line hover:border-signal/50 text-ink rounded text-[11px] font-medium flex items-center gap-1 transition-colors"
                     title="Export filtered records to JSON"
                   >
@@ -950,14 +1281,14 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                     className="w-full min-h-[44px] px-3 bg-surface-raised border border-line rounded text-xs text-ink"
                   >
                     <option value="ALL">All Roles</option>
-                    <option value="FOUNDER">Founders</option>
-                    <option value="OPERATOR">Operators</option>
-                    <option value="INVESTOR">Investors</option>
-                    <option value="RESEARCHER">Researchers</option>
+                    <option value="FOUNDER">Founders & Co-Founders</option>
+                    <option value="OPERATOR">Operators & Executives</option>
+                    <option value="INVESTOR">Investors & Angels</option>
+                    <option value="RESEARCHER">Researchers & Scientists</option>
                   </select>
                 </div>
                 <div>
-                  <label className="text-[11px] font-mono text-ink-muted block mb-1">Sector Domain</label>
+                  <label className="text-[11px] font-mono text-ink-muted block mb-1">Sector Focus</label>
                   <select
                     value={sectorFilter}
                     onChange={e => setSectorFilter(e.target.value)}
@@ -973,7 +1304,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   </select>
                 </div>
                 <div>
-                  <label className="text-[11px] font-mono text-ink-muted block mb-1">Record Quality & Fit</label>
+                  <label className="text-[11px] font-mono text-ink-muted block mb-1">Quality / Triage Status</label>
                   <select
                     value={statusFilter}
                     onChange={e => setStatusFilter(e.target.value)}
@@ -989,14 +1320,14 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
               </div>
             )}
 
-            {/* 1. TABLE LAYOUT (Desktop & Tablet: md+) */}
+            {/* 1. DESKTOP DATA TABLE (md+) */}
             <div className="hidden md:block flex-1 overflow-auto">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead className="sticky top-0 bg-surface border-b border-line text-ink-muted font-mono uppercase text-[11px] z-10">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="sticky top-0 bg-surface-raised border-b border-line text-ink-muted font-mono text-[11px] uppercase tracking-wider z-10">
                   <tr>
                     <th className="py-2.5 px-4 font-semibold w-12">ID</th>
-                    <th className="py-2.5 px-4 font-semibold">Member & Company</th>
-                    <th className="py-2.5 px-4 font-semibold">Role / Seniority</th>
+                    <th className="py-2.5 px-4 font-semibold">Name & Company</th>
+                    <th className="py-2.5 px-4 font-semibold">Role & Seniority</th>
                     <th className="py-2.5 px-4 font-semibold">Sector Tags</th>
                     <th className="py-2.5 px-4 font-semibold">Fit Score</th>
                     <th className="py-2.5 px-4 font-semibold">Status / Flags</th>
@@ -1012,8 +1343,66 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                     </tr>
                   ) : filteredPeople.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-12 text-center text-ink-muted">
-                        No members match your current filter query.
+                      <td colSpan={7} className="py-10 px-6 text-center">
+                        {workspaceMode === 'live' && activePeople.length === 0 ? (
+                          <div className="max-w-xl mx-auto p-6 bg-surface-raised border border-line rounded-xl text-left space-y-4 shadow-sm">
+                            <div className="flex items-center gap-3 border-b border-line pb-3">
+                              <div className="w-9 h-9 rounded-lg bg-signal-soft text-signal flex items-center justify-center font-bold font-mono">
+                                N
+                              </div>
+                              <div>
+                                <h3 className="text-sm font-semibold text-ink">Your Live Network Workspace is Ready</h3>
+                                <p className="text-xs text-ink-muted">No live members ingested yet. Connect your intake channels or import your existing cohort.</p>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                              <button
+                                onClick={() => setIsImportModalOpen(true)}
+                                className="p-3 bg-surface border border-line hover:border-signal/50 rounded-lg text-left space-y-1 transition-colors group"
+                              >
+                                <div className="font-semibold text-ink group-hover:text-signal flex items-center gap-1.5">
+                                  <UploadCloud className="w-3.5 h-3.5 text-signal" />
+                                  <span>Import Airtable / CSV</span>
+                                </div>
+                                <p className="text-[11px] text-ink-muted">Upload a spreadsheet or paste raw rows to bulk populate.</p>
+                              </button>
+
+                              <Link
+                                href="/apply"
+                                target="_blank"
+                                className="p-3 bg-surface border border-line hover:border-signal/50 rounded-lg text-left space-y-1 transition-colors group block"
+                              >
+                                <div className="font-semibold text-ink group-hover:text-signal flex items-center gap-1.5">
+                                  <ExternalLink className="w-3.5 h-3.5 text-copper" />
+                                  <span>Share Public Intake</span>
+                                </div>
+                                <p className="text-[11px] text-ink-muted">Open the branded applicant portal at /apply.</p>
+                              </Link>
+
+                              <div className="p-3 bg-surface border border-line rounded-lg text-left space-y-1 col-span-1 sm:col-span-2">
+                                <div className="font-semibold text-ink flex items-center justify-between">
+                                  <span className="flex items-center gap-1.5">
+                                    <Terminal className="w-3.5 h-3.5 text-signal" />
+                                    <span>Webhook Endpoint for n8n & Tally:</span>
+                                  </span>
+                                  <button
+                                    onClick={() => copyToClipboard('/api/v1/ingest', -1)}
+                                    className="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-muted hover:bg-surface-raised border border-line text-ink"
+                                  >
+                                    {copiedIntroId === -1 ? 'Copied!' : 'Copy Path'}
+                                  </button>
+                                </div>
+                                <div className="font-mono text-[11px] text-signal bg-canvas p-1.5 rounded border border-line break-all">
+                                  POST /api/v1/ingest
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-ink-muted text-xs">
+                            No members match your current filter query.
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ) : (
@@ -1539,12 +1928,22 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                         </span>
                       </div>
 
-                      {/* Approval Buttons */}
+                      {/* Approval & Dispatch Buttons */}
                       <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                         {isApproved ? (
-                          <span className="min-h-[40px] px-3 py-1 text-xs rounded bg-signal text-surface font-semibold flex items-center gap-1 shadow-sm">
-                            <Check className="w-3.5 h-3.5" /> Approved
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="min-h-[38px] px-3 py-1 text-xs rounded bg-signal text-surface font-semibold flex items-center gap-1 shadow-xs">
+                              <Check className="w-3.5 h-3.5" /> Approved
+                            </span>
+                            <button
+                              onClick={() => setSelectedIntroForDispatch(intro)}
+                              className="min-h-[38px] px-3 py-1 text-xs rounded bg-surface border border-copper text-copper font-medium hover:bg-copper-soft/40 transition-colors flex items-center gap-1.5 shadow-xs"
+                              title="Open Warm Intro Dispatcher Modal"
+                            >
+                              <Send className="w-3.5 h-3.5 text-copper" />
+                              <span>Dispatch Email</span>
+                            </button>
+                          </div>
                         ) : isDismissed ? (
                           <span className="min-h-[40px] px-3 py-1 text-xs rounded bg-surface-muted text-ink-muted font-medium flex items-center gap-1">
                             Dismissed
@@ -1814,6 +2213,68 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                     </div>
                   )}
 
+                  {/* 360° Autonomous AI Intelligence Dossier */}
+                  <div className="p-3.5 bg-surface-raised border border-line rounded-lg space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 font-mono text-[11px] font-semibold text-signal uppercase">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>360° AI Intelligence Dossier</span>
+                      </div>
+                      <button
+                        onClick={() => handleRunEnrichment(selectedPerson.id)}
+                        disabled={isEnrichingPerson}
+                        className="px-2 py-1 bg-signal text-surface text-[10px] font-mono font-semibold rounded hover:bg-signal/90 flex items-center gap-1 disabled:opacity-50 transition-colors shadow-xs cursor-pointer"
+                      >
+                        <Zap className={`w-3 h-3 ${isEnrichingPerson ? 'animate-spin' : ''}`} />
+                        <span>{isEnrichingPerson ? 'Enriching...' : '⚡ Run 360° AI Enrichment'}</span>
+                      </button>
+                    </div>
+
+                    {dossierCache[selectedPerson.id] ? (
+                      <div className="space-y-2.5 pt-1 text-xs animate-in fade-in-50 duration-200">
+                        {/* Executive Summary */}
+                        <div className="p-2.5 bg-surface rounded border border-line text-[11px] text-ink leading-relaxed">
+                          <strong className="text-signal font-mono uppercase text-[10px] block mb-1">Executive Debrief</strong>
+                          {dossierCache[selectedPerson.id].executive_summary}
+                        </div>
+
+                        {/* Traction Signals */}
+                        {dossierCache[selectedPerson.id].traction_signals?.length > 0 && (
+                          <div>
+                            <span className="font-mono text-[10px] text-ink-muted uppercase block mb-1">Verified Traction Signals</span>
+                            <div className="space-y-1">
+                              {dossierCache[selectedPerson.id].traction_signals.map((sig: string, sIdx: number) => (
+                                <div key={sIdx} className="flex items-center gap-1.5 text-[11px] text-ink">
+                                  <CheckCircle2 className="w-3 h-3 text-signal flex-shrink-0" />
+                                  <span>{sig}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Tech Stack & Key Archetypes */}
+                        {dossierCache[selectedPerson.id].tech_stack?.length > 0 && (
+                          <div>
+                            <span className="font-mono text-[10px] text-ink-muted uppercase block mb-1">Detected Tech Stack</span>
+                            <div className="flex flex-wrap gap-1">
+                              {dossierCache[selectedPerson.id].tech_stack.map((tech: string, tIdx: number) => (
+                                <span key={tIdx} className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-signal-soft/40 text-signal border border-signal/20">
+                                  {tech}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-[11px] text-ink-muted italic flex items-center justify-between py-1">
+                        <span>Click to scrape GitHub, funding signals & synthesize dossier.</span>
+                        <span className="font-mono text-[10px] text-signal font-semibold">Tavily • Firecrawl • Gemini</span>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Bio Notes */}
                   <div className="space-y-1">
                     <span className="font-mono text-[11px] uppercase text-ink-muted">Bio & Operator Notes</span>
@@ -2013,7 +2474,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
         </div>
       )}
 
-      {/* 5. BATCH AIRTABLE / CSV IMPORT MODAL */}
+      {/* 5. MULTI-SOURCE INGESTION & AIRTABLE SYNC MODAL */}
       {isImportModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
           <div className="bg-surface border border-line rounded-xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-150">
@@ -2024,8 +2485,8 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   <UploadCloud className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm sm:text-base font-semibold text-ink">Import Airtable / CSV Dataset</h3>
-                  <p className="text-xs text-ink-muted">Upload exported CSV or paste rows to run real-time AI ingestion pipeline</p>
+                  <h3 className="text-sm sm:text-base font-semibold text-ink">Data Ingestion & Sync Hub</h3>
+                  <p className="text-xs text-ink-muted">Airtable live pull sync, real-time incoming webhook stream, or CSV spreadsheet import</p>
                 </div>
               </div>
               <button
@@ -2042,55 +2503,388 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
               </button>
             </div>
 
+            {/* Ingestion Source Tabs */}
+            {importProgress.logs.length === 0 && (
+              <div className="px-4 sm:px-6 pt-3 border-b border-line bg-surface-raised flex items-center gap-2 overflow-x-auto text-xs">
+                <button
+                  onClick={() => {
+                    setImportTab('airtable');
+                    fetchAirtableBases();
+                  }}
+                  className={`pb-2.5 px-3 font-medium flex items-center gap-1.5 border-b-2 transition-colors ${
+                    importTab === 'airtable'
+                      ? 'border-signal text-signal font-semibold'
+                      : 'border-transparent text-ink-muted hover:text-ink'
+                  }`}
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                  <span>Airtable Live Pull</span>
+                </button>
+                <button
+                  onClick={() => setImportTab('webhook')}
+                  className={`pb-2.5 px-3 font-medium flex items-center gap-1.5 border-b-2 transition-colors ${
+                    importTab === 'webhook'
+                      ? 'border-signal text-signal font-semibold'
+                      : 'border-transparent text-ink-muted hover:text-ink'
+                  }`}
+                >
+                  <Activity className="w-3.5 h-3.5" />
+                  <span>Real-Time Webhook</span>
+                </button>
+                <button
+                  onClick={() => setImportTab('csv')}
+                  className={`pb-2.5 px-3 font-medium flex items-center gap-1.5 border-b-2 transition-colors ${
+                    importTab === 'csv'
+                      ? 'border-signal text-signal font-semibold'
+                      : 'border-transparent text-ink-muted hover:text-ink'
+                  }`}
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  <span>CSV Spreadsheet</span>
+                </button>
+              </div>
+            )}
+
             {/* Modal Body */}
             <div className="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs">
               {importProgress.logs.length === 0 ? (
                 <>
-                  {/* File Dropzone Area */}
-                  <div className="border-2 border-dashed border-line rounded-lg p-5 text-center bg-surface-raised/40 hover:bg-surface-raised transition-colors space-y-2">
-                    <FileSpreadsheet className="w-7 h-7 text-ink-muted mx-auto" />
-                    <div>
-                      <span className="font-semibold text-ink">Upload CSV file</span> or drop file here
-                    </div>
-                    <p className="text-[11px] text-ink-faint">
-                      Accepts Airtable CSV exports with Name, Email, Company, Role, Bio columns
-                    </p>
-                    <input
-                      type="file"
-                      accept=".csv"
-                      onChange={handleFileUpload}
-                      className="block w-full text-xs text-ink file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-signal-soft file:text-signal hover:file:bg-signal-soft/80 cursor-pointer pt-2"
-                    />
-                  </div>
+                  {/* TAB 1: AIRTABLE DIRECT SYNC */}
+                  {importTab === 'airtable' && (
+                    <div className="space-y-4">
+                      <div className="p-3 bg-surface-raised border border-line rounded-lg flex items-start gap-2.5">
+                        <Info className="w-4 h-4 text-signal shrink-0 mt-0.5" />
+                        <div className="text-[11px] text-ink-muted leading-relaxed">
+                          Connected to Airtable Web API using your configured Personal Access Token (PAT).
+                          Synchronizes paginated records with cursor throttling, auto-deduplication, and dynamic column mapping.
+                        </div>
+                      </div>
 
-                  {/* Or Paste CSV Raw Text */}
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <label className="font-mono text-[11px] text-ink-muted uppercase">
-                        Or Paste Raw CSV Data ({parseCSVRows(importText).length} rows detected)
-                      </label>
+                      <div className="space-y-3">
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="font-mono text-[11px] text-ink-muted uppercase">
+                              Airtable Base
+                            </label>
+                            <button
+                              onClick={fetchAirtableBases}
+                              disabled={loadingBases}
+                              className="text-[11px] text-signal hover:underline flex items-center gap-1 font-mono"
+                            >
+                              <RefreshCw className={`w-3 h-3 ${loadingBases ? 'animate-spin' : ''}`} />
+                              <span>{loadingBases ? 'Loading...' : 'Refresh Bases'}</span>
+                            </button>
+                          </div>
+
+                          {airtableBasesList.length > 0 ? (
+                            <select
+                              value={airtableBaseId}
+                              onChange={e => {
+                                const newBaseId = e.target.value;
+                                setAirtableBaseId(newBaseId);
+                                fetchAirtableTables(newBaseId);
+                                fetchAirtableWebhooks(newBaseId);
+                              }}
+                              className="w-full h-9 px-2.5 bg-surface-raised border border-line rounded text-xs text-ink focus:outline-none focus:ring-1 focus:ring-signal"
+                            >
+                              {airtableBasesList.map(b => (
+                                <option key={b.id} value={b.id}>
+                                  {b.name} ({b.id})
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <input
+                              type="text"
+                              value={airtableBaseId}
+                              onChange={e => {
+                                const val = e.target.value;
+                                setAirtableBaseId(val);
+                                if (val.startsWith('app') && val.length > 10) {
+                                  fetchAirtableTables(val);
+                                  fetchAirtableWebhooks(val);
+                                }
+                              }}
+                              placeholder="appXXXXXXXXXXXXXX"
+                              className="w-full h-9 px-2.5 bg-surface-raised border border-line rounded text-xs text-ink font-mono focus:outline-none focus:ring-1 focus:ring-signal"
+                            />
+                          )}
+                        </div>
+
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="font-mono text-[11px] text-ink-muted uppercase">
+                              Target Table
+                            </label>
+                            {loadingTables && (
+                              <span className="text-[10px] text-ink-muted font-mono animate-pulse">
+                                Fetching tables...
+                              </span>
+                            )}
+                          </div>
+
+                          {airtableTablesList.length > 0 ? (
+                            <select
+                              value={airtableTableName}
+                              onChange={e => setAirtableTableName(e.target.value)}
+                              className="w-full h-9 px-2.5 bg-surface-raised border border-line rounded text-xs text-ink focus:outline-none focus:ring-1 focus:ring-signal"
+                            >
+                              {airtableTablesList.map(t => (
+                                <option key={t.id} value={t.name}>
+                                  {t.name} ({t.id}) — {t.fields?.length || 0} fields
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <input
+                              type="text"
+                              value={airtableTableName}
+                              onChange={e => setAirtableTableName(e.target.value)}
+                              placeholder="e.g. Applicants or tblXXXXXXXXXXXXXX"
+                              className="w-full h-9 px-2.5 bg-surface-raised border border-line rounded text-xs text-ink font-mono focus:outline-none focus:ring-1 focus:ring-signal"
+                            />
+                          )}
+                          <p className="text-[10px] text-ink-muted mt-1 font-mono">
+                            Auto-maps columns: Name, Email, Company, Role, Bio, LinkedIn, Website, Twitter.
+                          </p>
+                        </div>
+
+                        {/* Official Webhooks Lifecycle Management */}
+                        <div className="p-3 bg-surface-raised border border-line rounded-lg space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5 font-semibold text-ink text-xs">
+                              <Zap className="w-3.5 h-3.5 text-signal" />
+                              <span>Official Airtable Webhooks (7-Day Lifecycle)</span>
+                            </div>
+                            <button
+                              onClick={() => fetchAirtableWebhooks(airtableBaseId)}
+                              disabled={loadingWebhooks || !airtableBaseId}
+                              className="text-[10px] text-signal hover:underline flex items-center gap-1 font-mono"
+                            >
+                              <RefreshCw className={`w-3 h-3 ${loadingWebhooks ? 'animate-spin' : ''}`} />
+                              <span>Refresh</span>
+                            </button>
+                          </div>
+                          <p className="text-[11px] text-ink-muted leading-relaxed">
+                            Official Airtable Webhooks push notifications directly into NetworkOS. As per Airtable API policy, tokens expire in 7 days and can be refreshed anytime.
+                          </p>
+
+                          <div className="pt-1">
+                            {loadingWebhooks ? (
+                              <div className="text-[11px] text-ink-muted font-mono animate-pulse">Checking registered webhooks...</div>
+                            ) : airtableWebhooksList.length > 0 ? (
+                              <div className="space-y-2">
+                                {airtableWebhooksList.map((wh: any) => (
+                                  <div key={wh.id} className="p-2.5 bg-surface border border-line rounded text-xs flex flex-wrap items-center justify-between gap-2">
+                                    <div>
+                                      <div className="font-mono font-semibold text-ink text-[11px] flex items-center gap-1.5">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-signal"></span>
+                                        <span>{wh.id}</span>
+                                      </div>
+                                      <div className="text-[10px] text-ink-muted font-mono">
+                                        Expires: {wh.expirationTime ? new Date(wh.expirationTime).toLocaleString() : 'Never'}
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                      <button
+                                        onClick={() => handleRefreshWebhook(wh.id)}
+                                        className="h-7 px-2 text-[10px] font-medium bg-surface-raised border border-line hover:border-signal/50 text-ink rounded transition-colors"
+                                        title="Extend webhook expiration by another 7 days"
+                                      >
+                                        Refresh (+7d)
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteWebhook(wh.id)}
+                                        className="h-7 px-2 text-[10px] font-medium bg-danger-soft/20 text-danger border border-danger/30 hover:bg-danger-soft/40 rounded transition-colors"
+                                        title="Unregister this webhook"
+                                      >
+                                        Delete
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-between pt-1">
+                                <span className="text-[11px] text-ink-muted">No webhooks registered on this base yet.</span>
+                                <button
+                                  onClick={handleCreateWebhook}
+                                  disabled={creatingWebhook || !airtableBaseId}
+                                  className="h-7 px-3 text-[11px] font-semibold bg-signal text-surface hover:bg-signal/90 rounded transition-colors disabled:opacity-50 flex items-center gap-1 shadow-xs"
+                                >
+                                  <Zap className="w-3 h-3" />
+                                  <span>{creatingWebhook ? 'Registering...' : 'Register Webhook'}</span>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-line">
+                          <label className="flex items-center gap-2 cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={autoEnrichAirtable}
+                              onChange={e => setAutoEnrichAirtable(e.target.checked)}
+                              className="rounded border-line text-signal focus:ring-signal"
+                            />
+                            <div>
+                              <span className="font-medium text-ink">Autonomous 360° AI Enrichment</span>
+                              <p className="text-[11px] text-ink-muted">
+                                Automatically query live web intelligence via TinyFish CLI & Tavily for deep thesis & executive summaries.
+                              </p>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TAB 2: REAL-TIME WEBHOOK */}
+                  {importTab === 'webhook' && (
+                    <div className="space-y-4">
+                      <div className="p-3 bg-surface-raised border border-line rounded-lg space-y-1">
+                        <div className="text-xs font-semibold text-ink flex items-center gap-1.5">
+                          <Zap className="w-3.5 h-3.5 text-signal" />
+                          <span>Instant Push Webhook (Zero Latency)</span>
+                        </div>
+                        <p className="text-[11px] text-ink-muted leading-relaxed">
+                          Airtable Automations, Tally, Typeform, or n8n can stream submissions instantly into your live workspace.
+                        </p>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="font-mono text-[11px] text-ink-muted uppercase block">
+                          Ingest Webhook URL
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            readOnly
+                            value={typeof window !== 'undefined' ? `${window.location.origin}/api/v1/ingest` : '/api/v1/ingest'}
+                            className="flex-1 h-9 px-2.5 bg-surface-raised border border-line rounded text-xs font-mono text-ink select-all focus:outline-none"
+                          />
+                          <button
+                            onClick={() => {
+                              const url = `${window.location.origin}/api/v1/ingest`;
+                              navigator.clipboard.writeText(url);
+                              setCopiedWebhookUrl(true);
+                              setTimeout(() => setCopiedWebhookUrl(false), 2000);
+                            }}
+                            className="h-9 px-3 bg-surface border border-line rounded text-xs hover:bg-surface-muted transition-colors flex items-center gap-1.5"
+                          >
+                            {copiedWebhookUrl ? (
+                              <>
+                                <Check className="w-3.5 h-3.5 text-signal" />
+                                <span className="font-semibold text-signal">Copied!</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3.5 h-3.5" />
+                                <span>Copy URL</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 text-[11px] text-ink-muted border border-line p-3 rounded-lg bg-surface-raised">
+                        <div className="font-semibold text-ink text-xs mb-1">Quick 3-Step Airtable Automation Setup:</div>
+                        <ol className="list-decimal list-inside space-y-1 leading-relaxed">
+                          <li>In Airtable, open <strong className="text-ink">Automations</strong> &gt; <strong className="text-ink">When record created</strong>.</li>
+                          <li>Add action: <strong className="text-ink">Send a webhook</strong> or <strong className="text-ink">Run a script</strong>.</li>
+                          <li>Method: <strong className="text-ink">POST</strong> to the URL above with headers <strong className="text-ink font-mono">Content-Type: application/json</strong>.</li>
+                        </ol>
+
+                        <div className="mt-2 pt-2 border-t border-line font-mono text-[10px] text-ink-muted">
+                          Payload structure: &#123; &quot;name&quot;: &quot;Name&quot;, &quot;email&quot;: &quot;Email&quot;, &quot;company&quot;: &quot;Company&quot;, &quot;role_title&quot;: &quot;Role&quot;, &quot;bio_notes&quot;: &quot;Bio&quot; &#125;
+                        </div>
+                      </div>
+
                       <button
-                        onClick={handleLoadSampleAirtableData}
-                        className="text-xs text-signal hover:underline font-mono font-medium"
+                        onClick={async () => {
+                          setTestingWebhook(true);
+                          try {
+                            const res = await fetch('/api/v1/ingest', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                name: 'Sarah Chen (Webhook Test)',
+                                email: 'sarah.chen@prismalabs.test',
+                                company: 'Prisma Labs',
+                                role_title: 'Founding Engineer',
+                                bio_notes: 'Building high-throughput computer vision edge inferencing for robotics. Webhook automation test.',
+                                source: 'airtable_webhook',
+                              }),
+                            });
+                            const result = await res.json();
+                            alert(`Webhook test succeeded! Ingested: ${result.record?.name || 'Success'}`);
+                            await fetchData();
+                          } catch (err: any) {
+                            alert('Test webhook failed: ' + err.message);
+                          } finally {
+                            setTestingWebhook(false);
+                          }
+                        }}
+                        disabled={testingWebhook}
+                        className="w-full h-9 bg-surface border border-line rounded hover:bg-surface-muted font-medium text-xs text-ink transition-colors flex items-center justify-center gap-1.5"
                       >
-                        + Load Sample Batch (3 Founders)
+                        <Send className="w-3.5 h-3.5 text-copper" />
+                        <span>{testingWebhook ? 'Firing Test Webhook...' : 'Fire Test Payload to Endpoint'}</span>
                       </button>
                     </div>
-                    <textarea
-                      value={importText}
-                      onChange={e => setImportText(e.target.value)}
-                      placeholder={`Name,Email,Company,Role,Bio\nDr. Aris Thorne,aris.thorne@deepgen.ai,DeepGen,Founder,Building foundation models for genomics...`}
-                      rows={6}
-                      className="w-full p-3 font-mono text-xs bg-surface-raised border border-line rounded-lg focus:outline-none focus:ring-1 focus:ring-signal focus:border-signal text-ink placeholder:text-ink-faint leading-relaxed"
-                    />
-                  </div>
+                  )}
+
+                  {/* TAB 3: CSV SPREADSHEET */}
+                  {importTab === 'csv' && (
+                    <div className="space-y-4">
+                      {/* File Dropzone Area */}
+                      <div className="border-2 border-dashed border-line rounded-lg p-5 text-center bg-surface-raised/40 hover:bg-surface-raised transition-colors space-y-2">
+                        <FileSpreadsheet className="w-7 h-7 text-ink-muted mx-auto" />
+                        <div>
+                          <span className="font-semibold text-ink">Upload CSV file</span> or drop file here
+                        </div>
+                        <p className="text-[11px] text-ink-faint">
+                          Accepts Airtable CSV exports with Name, Email, Company, Role, Bio columns
+                        </p>
+                        <input
+                          type="file"
+                          accept=".csv"
+                          onChange={handleFileUpload}
+                          className="block w-full text-xs text-ink file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-signal-soft file:text-signal hover:file:bg-signal-soft/80 cursor-pointer pt-2"
+                        />
+                      </div>
+
+                      {/* Or Paste CSV Raw Text */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <label className="font-mono text-[11px] text-ink-muted uppercase">
+                            Or Paste Raw CSV Data ({parseCSVRows(importText).length} rows detected)
+                          </label>
+                          <button
+                            onClick={handleLoadSampleAirtableData}
+                            className="text-xs text-signal hover:underline font-mono font-medium"
+                          >
+                            + Load Sample Batch (3 Founders)
+                          </button>
+                        </div>
+                        <textarea
+                          value={importText}
+                          onChange={e => setImportText(e.target.value)}
+                          placeholder={`Name,Email,Company,Role,Bio\nDr. Aris Thorne,aris.thorne@deepgen.ai,DeepGen,Founder,Building foundation models for genomics...`}
+                          rows={5}
+                          className="w-full p-3 font-mono text-xs bg-surface-raised border border-line rounded-lg focus:outline-none focus:ring-1 focus:ring-signal focus:border-signal text-ink placeholder:text-ink-faint leading-relaxed"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </>
               ) : (
                 /* Progress View */
                 <div className="space-y-4">
                   <div>
                     <div className="flex justify-between text-xs font-mono mb-1.5">
-                      <span>Progress: {importProgress.current} of {importProgress.total} records</span>
+                      <span>Progress: {importProgress.current} of {importProgress.total}</span>
                       <span className="font-semibold text-signal">
                         {Math.round((importProgress.current / (importProgress.total || 1)) * 100)}%
                       </span>
@@ -2107,7 +2901,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   <div className="bg-zinc-950 text-zinc-100 rounded-lg border border-zinc-800 p-4 font-mono text-xs space-y-2 max-h-72 overflow-y-auto shadow-inner">
                     <div className="text-zinc-500 text-[11px] pb-1 border-b border-zinc-800 flex items-center justify-between">
                       <span>CONSOLE LOG STREAM</span>
-                      <span>Offline AI Processing Stream</span>
+                      <span>NetworkOS Ingestion Engine</span>
                     </div>
                     {importProgress.logs.map((log, lIdx) => (
                       <div key={lIdx} className="leading-relaxed flex items-start gap-2">
@@ -2126,8 +2920,12 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                 {importing ? (
                   <span className="flex items-center gap-1.5 text-signal">
                     <span className="w-2 h-2 rounded-full bg-signal animate-ping"></span>
-                    Running AI Classification & Semantic Matchmaking...
+                    Running pipeline & classification...
                   </span>
+                ) : importTab === 'airtable' ? (
+                  <span>Ready to pull records from Airtable Base</span>
+                ) : importTab === 'webhook' ? (
+                  <span>Stream is live on /api/v1/ingest</span>
                 ) : (
                   `${parseCSVRows(importText).length} valid rows ready for ingestion`
                 )}
@@ -2144,16 +2942,179 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                 >
                   {importProgress.logs.length > 0 && !importing ? 'Close & View Dashboard' : 'Cancel'}
                 </button>
-                {(!importing && importProgress.logs.length === 0) && (
-                  <button
-                    onClick={handleExecuteBatchImport}
-                    disabled={!importText.trim()}
-                    className="min-h-[44px] px-5 py-2 text-xs bg-signal text-surface font-semibold hover:bg-signal/90 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-40 shadow-sm"
-                  >
-                    <Play className="w-3.5 h-3.5" />
-                    <span>Run AI Ingestion Pipeline</span>
-                  </button>
+
+                {!importing && importProgress.logs.length === 0 && (
+                  <>
+                    {importTab === 'airtable' && (
+                      <button
+                        onClick={handleSyncAirtable}
+                        disabled={!airtableBaseId.trim() || !airtableTableName.trim()}
+                        className="min-h-[44px] px-5 py-2 text-xs bg-signal text-surface font-semibold hover:bg-signal/90 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-40 shadow-sm"
+                      >
+                        <Zap className="w-3.5 h-3.5" />
+                        <span>Sync from Airtable Now</span>
+                      </button>
+                    )}
+
+                    {importTab === 'csv' && (
+                      <button
+                        onClick={handleExecuteBatchImport}
+                        disabled={!importText.trim()}
+                        className="min-h-[44px] px-5 py-2 text-xs bg-signal text-surface font-semibold hover:bg-signal/90 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-40 shadow-sm"
+                      >
+                        <Play className="w-3.5 h-3.5" />
+                        <span>Run CSV Ingestion Pipeline</span>
+                      </button>
+                    )}
+                  </>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. PURGE LIVE WORKSPACE CONFIRMATION MODAL */}
+      {showPurgeModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-surface border border-line rounded-xl w-full max-w-md p-5 sm:p-6 space-y-4 shadow-2xl animate-in zoom-in-95 duration-150">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-danger-soft text-danger flex items-center justify-center">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-ink">Purge Live Workspace?</h3>
+                <p className="text-xs text-ink-muted">Reset your live network to a completely clean slate.</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-ink-muted leading-relaxed bg-surface-muted p-3 rounded border border-line">
+              This will permanently delete all incoming webhook submissions, manual applicant entries, and live form applicants from your Supabase database. The Benchmark Sandbox cohort will remain untouched.
+            </p>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                onClick={() => setShowPurgeModal(false)}
+                disabled={isPurgingLive}
+                className="min-h-[40px] px-4 text-xs font-medium text-ink-muted hover:text-ink border border-line rounded hover:bg-surface-muted transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePurgeLive}
+                disabled={isPurgingLive}
+                className="min-h-[40px] px-4 text-xs font-semibold bg-danger text-white rounded hover:bg-danger/90 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{isPurgingLive ? 'Purging...' : 'Confirm Purge (Clean Slate)'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 6. WARM INTRO DISPATCHER MODAL */}
+      {selectedIntroForDispatch && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-surface border border-line rounded-xl w-full max-w-xl p-5 sm:p-6 space-y-4 shadow-2xl animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-line pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-copper-soft text-copper flex items-center justify-center">
+                  <Send className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-semibold text-ink">Autonomous Warm Intro Dispatcher</h3>
+                  <p className="text-xs text-ink-muted">Personalized double opt-in email draft</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedIntroForDispatch(null)}
+                className="p-1 rounded hover:bg-surface-muted text-ink-muted hover:text-ink"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Recipient Details */}
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="p-2.5 bg-surface-raised border border-line rounded">
+                <div className="font-mono text-[10px] text-ink-muted uppercase">Founder A</div>
+                <div className="font-semibold text-ink">{selectedIntroForDispatch.person_a.name}</div>
+                <div className="text-[11px] text-ink-muted truncate">{selectedIntroForDispatch.person_a.email || 'No email on record'}</div>
+              </div>
+              <div className="p-2.5 bg-surface-raised border border-line rounded">
+                <div className="font-mono text-[10px] text-ink-muted uppercase">Founder B</div>
+                <div className="font-semibold text-ink">{selectedIntroForDispatch.person_b.name}</div>
+                <div className="text-[11px] text-ink-muted truncate">{selectedIntroForDispatch.person_b.email || 'No email on record'}</div>
+              </div>
+            </div>
+
+            {/* Email Draft Preview */}
+            <div className="space-y-2 text-xs">
+              <div>
+                <label className="font-mono text-[11px] text-ink-muted block mb-1">Subject Line</label>
+                <input
+                  type="text"
+                  readOnly
+                  value={`Intro: ${selectedIntroForDispatch.person_a.name} (${selectedIntroForDispatch.person_a.company || 'Founder'}) <> ${selectedIntroForDispatch.person_b.name} (${selectedIntroForDispatch.person_b.company || 'Founder'})`}
+                  className="w-full h-8 px-2.5 bg-surface-raised border border-line rounded text-ink font-mono text-[11px] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="font-mono text-[11px] text-ink-muted block mb-1">Email Body</label>
+                <textarea
+                  rows={6}
+                  readOnly
+                  value={`Hi ${selectedIntroForDispatch.person_a.name} & ${selectedIntroForDispatch.person_b.name},\n\nConnecting you both based on strong synergies in ${selectedIntroForDispatch.shared_context}.\n\n${selectedIntroForDispatch.suggested_intro}\n\nI will let you two take it from here!\n\nBest,\nNetworkOS Team`}
+                  className="w-full p-2.5 bg-surface-raised border border-line rounded text-ink font-mono text-[11px] leading-relaxed focus:outline-none resize-none"
+                />
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-between pt-2 border-t border-line">
+              <div className="text-[11px] font-mono text-ink-muted">
+                {dispatchedIntroIds.has(selectedIntroForDispatch.id) ? (
+                  <span className="text-signal flex items-center gap-1 font-semibold">
+                    <CheckCircle className="w-3.5 h-3.5" /> Marked as Dispatched
+                  </span>
+                ) : (
+                  'Ready to dispatch'
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const text = `Subject: Intro: ${selectedIntroForDispatch.person_a.name} <> ${selectedIntroForDispatch.person_b.name}\n\nHi ${selectedIntroForDispatch.person_a.name} & ${selectedIntroForDispatch.person_b.name},\n\n${selectedIntroForDispatch.suggested_intro}\n\nBest,\nNetworkOS Team`;
+                    copyToClipboard(text, selectedIntroForDispatch.id);
+                  }}
+                  className="min-h-[38px] px-3 text-xs bg-surface border border-line rounded text-ink hover:bg-surface-muted transition-colors flex items-center gap-1.5"
+                >
+                  {copiedIntroId === selectedIntroForDispatch.id ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-signal" />
+                      <span>Copied Draft</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy Email</span>
+                    </>
+                  )}
+                </button>
+
+                <a
+                  href={`mailto:${selectedIntroForDispatch.person_a.email || ''},${selectedIntroForDispatch.person_b.email || ''}?subject=${encodeURIComponent(`Intro: ${selectedIntroForDispatch.person_a.name} <> ${selectedIntroForDispatch.person_b.name}`)}&body=${encodeURIComponent(`Hi ${selectedIntroForDispatch.person_a.name} & ${selectedIntroForDispatch.person_b.name},\n\n${selectedIntroForDispatch.suggested_intro}\n\nBest,\nNetworkOS Team`)}`}
+                  onClick={() => {
+                    setDispatchedIntroIds(prev => new Set(prev).add(selectedIntroForDispatch.id));
+                  }}
+                  className="min-h-[38px] px-4 text-xs font-semibold bg-signal text-surface rounded hover:bg-signal/90 transition-colors shadow-sm flex items-center gap-1.5"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Open in Mail Client</span>
+                </a>
               </div>
             </div>
           </div>

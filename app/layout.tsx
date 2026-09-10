@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Offline CRM — Operator Console',
-  description: 'Private relationship workspace and applicant review system for founders and operators.',
+  title: 'NetworkOS — Autonomous Community Intelligence',
+  description: 'Autonomous intelligence operating system for private networks, angel syndicates, and venture cohorts.',
 };
 
 export default function RootLayout({
