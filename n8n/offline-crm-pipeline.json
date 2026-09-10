@@ -1,5 +1,5 @@
 {
-  "name": "Offline CRM - New Applicant Ingest & AI Enrichment",
+  "name": "NetworkOS - VIP Intake Bot & Autonomous Triage",
   "nodes": [
     {
       "parameters": {
@@ -12,36 +12,112 @@
       "name": "Webhook: New Applicant",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [240, 300],
+      "position": [200, 340],
       "webhookId": "offline-crm-new-applicant"
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "https://offline-os.onrender.com/process-new-record",
+        "url": "https://offline-os-gray.vercel.app/api/v1/ingest",
         "sendBody": true,
         "specifyBody": "json",
-
         "jsonBody": "={{ JSON.stringify($json.body || $json) }}",
+        "options": {
+          "timeout": 45000
+        }
+      },
+      "id": "http-networkos-engine",
+      "name": "HTTP: NetworkOS Ingestion Engine",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 340],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Triage Classifier: Categorize applicant into VIP, Duplicate, or Standard\nconst res = $input.first().json;\n\nconst isDuplicate = Boolean(res.is_duplicate || res.duplicate_detected);\nconst rec = res.record || res;\nconst fitScore = typeof rec.fit_score === 'number' ? rec.fit_score : (typeof res.fit_score === 'number' ? res.fit_score : 0);\n\nlet category = 'standard';\nif (isDuplicate) {\n  category = 'duplicate';\n} else if (fitScore >= 85) {\n  category = 'vip';\n}\n\nreturn {\n  json: {\n    category,\n    is_duplicate: isDuplicate,\n    fit_score: fitScore,\n    record: rec,\n    raw_response: res\n  }\n};"
+      },
+      "id": "code-triage-classifier",
+      "name": "Code: Triage Classifier",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 340]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.category }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "vip"
+            },
+            {
+              "value2": "duplicate"
+            }
+          ]
+        },
+        "fallbackOutput": 2
+      },
+      "id": "switch-triage-router",
+      "name": "Switch: Triage Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [920, 340]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://offline-os-gray.vercel.app/api/tavily/research",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  input: `Executive background, ventures, investments, and market dossier on ${$json.record.name} (${$json.record.role_title || 'Founder'} at ${$json.record.company || 'Tech'}). Bio: ${$json.record.bio_notes || 'Leader'}`,\n  model: 'mini'\n}) }}",
         "options": {
           "timeout": 30000
         }
       },
-      "id": "http-pipeline-api-node",
-      "name": "HTTP: Process via Python Pipeline",
+      "id": "http-tavily-vip-research",
+      "name": "HTTP: Autonomous Tavily Research",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [480, 300]
+      "position": [1180, 160],
+      "continueOnFail": true
     },
     {
       "parameters": {
-        "jsCode": "// Format Slack Block-Kit Message\nconst res = $input.first().json;\n\nlet messageText = '';\nlet blocks = [];\n\nif (res.is_duplicate) {\n  messageText = `⚠️ Duplicate Detected: ${res.name} is a duplicate of ${res.duplicate_of} (${Math.round((res.confidence || 0) * 100)}% match)`;\n  blocks = [\n    {\n      type: 'header',\n      text: { type: 'plain_text', text: '⚠️ Duplicate Applicant Flagged', emoji: true }\n    },\n    {\n      type: 'section',\n      text: {\n        type: 'mrkdwn',\n        text: `*Name:* ${res.name}\\n*Duplicate Of:* \\`${res.duplicate_of}\\`\\n*Confidence:* ${Math.round((res.confidence || 0) * 100)}%\\n*Reasoning:* ${res.reasoning || 'N/A'}`\n      }\n    }\n  ];\n} else {\n  const fitScore = res.fit_score !== null ? `${res.fit_score}/100` : 'N/A';\n  const tags = (res.sector_tags || []).map(t => `#${t}`).join(' ');\n  const intros = (res.top_introductions || []).map(i => `• *${i.matched_person_name}* (${i.matched_person_company || 'Stealth'}) - ${i.shared_context} [${i.match_band.toUpperCase()}]`).join('\\n') || 'None suggested';\n\n  messageText = `✨ New Member Ingested: ${res.name} (${res.role_title} @ ${res.company || 'Stealth'}) | Fit Score: ${fitScore}`;\n  blocks = [\n    {\n      type: 'header',\n      text: { type: 'plain_text', text: '✨ New Offline Member Processed', emoji: true }\n    },\n    {\n      type: 'section',\n      fields: [\n        { type: 'mrkdwn', text: `*Name:*\\n${res.name}` },\n        { type: 'mrkdwn', text: `*Role & Company:*\\n${res.role_title || 'N/A'} at ${res.company || 'Stealth'}` },\n        { type: 'mrkdwn', text: `*Role Type / Seniority:*\\n${res.role_type || 'N/A'} (${res.seniority || 'N/A'})` },\n        { type: 'mrkdwn', text: `*Fit Score:*\\n🎯 *${fitScore}*` }\n      ]\n    },\n    {\n      type: 'section',\n      text: {\n        type: 'mrkdwn',\n        text: `*Sectors:* ${tags || 'General'}\\n*Fit Reasoning:* _${res.fit_score_reasoning || 'N/A'}_`\n      }\n    },\n    {\n      type: 'section',\n      text: {\n        type: 'mrkdwn',\n        text: `*Top Intro Recommendations:*\\n${intros}`\n      }\n    }\n  ];\n}\n\nreturn {\n  json: {\n    slack_payload: {\n      text: messageText,\n      blocks: blocks\n    },\n    pipeline_result: res\n  }\n};"
+        "jsCode": "// Build Slack Block-Kit Card for VIP Applicant (>85)\nconst triage = $('Code: Triage Classifier').first().json;\nconst rec = triage.record;\nconst fitScore = triage.fit_score;\nconst memberId = rec.id || 'new';\nconst tags = (rec.sector_tags || []).map(t => `#${t}`).join(' ') || '#tech';\nconst consoleUrl = 'https://offline-os-gray.vercel.app';\n\nconst blocks = [\n  {\n    type: 'header',\n    text: {\n      type: 'plain_text',\n      text: '🌟 VIP APPLICANT DETECTED (>85/100)',\n      emoji: true\n    }\n  },\n  {\n    type: 'section',\n    fields: [\n      { type: 'mrkdwn', text: `*Name:*\\n${rec.name}` },\n      { type: 'mrkdwn', text: `*Company:*\\n${rec.company || 'Stealth'}` },\n      { type: 'mrkdwn', text: `*Role:*\\n${rec.role_title || 'Founder'}` },\n      { type: 'mrkdwn', text: `*Fit Score:*\\n🎯 *${fitScore}/100*` }\n    ]\n  },\n  {\n    type: 'section',\n    text: {\n      type: 'mrkdwn',\n      text: `*Sector Tags:* ${tags}\\n*AI Evaluation Thesis:*\\n> _\"${rec.fit_score_reasoning || 'High potential founder with strong domain authority.'}\"_`\n    }\n  },\n  {\n    type: 'section',\n    text: {\n      type: 'mrkdwn',\n      text: `*Bio & Operator Notes:*\\n${rec.bio_notes || 'No bio provided.'}`\n    }\n  },\n  {\n    type: 'divider'\n  },\n  {\n    type: 'actions',\n    block_id: 'vip_intake_actions',\n    elements: [\n      {\n        type: 'button',\n        text: { type: 'plain_text', text: '🟢 Approve & Welcome', emoji: true },\n        style: 'primary',\n        action_id: 'approve_welcome',\n        value: String(memberId),\n        url: `${consoleUrl}?tab=people&id=${memberId}`\n      },\n      {\n        type: 'button',\n        text: { type: 'plain_text', text: '🤝 Suggest Intro', emoji: true },\n        action_id: 'suggest_intro',\n        value: String(memberId),\n        url: `${consoleUrl}?tab=intros&memberId=${memberId}`\n      },\n      {\n        type: 'button',\n        text: { type: 'plain_text', text: '🔬 Deep Research Memo', emoji: true },\n        action_id: 'view_research',\n        value: String(memberId),\n        url: `${consoleUrl}?tab=intelligence&query=${encodeURIComponent(rec.name)}`\n      }\n    ]\n  }\n];\n\nreturn {\n  json: {\n    channel: '#offline-vip-intake',\n    text: `🌟 VIP Applicant: ${rec.name} (${rec.role_title} @ ${rec.company}) | Score: ${fitScore}/100`,\n    blocks: blocks\n  }\n};"
       },
-      "id": "code-slack-formatter-node",
-      "name": "Code: Format Slack Notification",
+      "id": "code-vip-slack-formatter",
+      "name": "Code: VIP Slack Block-Kit Formatter",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [720, 300]
+      "position": [1420, 160]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hooks.slack.com/services/REPLACE_WITH_YOUR_VIP_SLACK_WEBHOOK",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "http-send-vip-slack",
+      "name": "HTTP: Send VIP Slack Webhook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1660, 160],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build Slack Block-Kit Card for Duplicate Applicant\nconst triage = $('Code: Triage Classifier').first().json;\nconst res = triage.raw_response;\nconst consoleUrl = 'https://offline-os-gray.vercel.app';\nconst conf = Math.round((res.confidence || 0.95) * 100);\n\nconst blocks = [\n  {\n    type: 'header',\n    text: {\n      type: 'plain_text',\n      text: '⚠️ DUPLICATE APPLICANT DETECTED',\n      emoji: true\n    }\n  },\n  {\n    type: 'section',\n    fields: [\n      { type: 'mrkdwn', text: `*Applicant Name:*\\n${res.name || 'Unknown'}` },\n      { type: 'mrkdwn', text: `*Duplicate Of:*\\nRecord #${res.duplicate_of || 'Canonical'}` },\n      { type: 'mrkdwn', text: `*Match Confidence:*\\n🚨 *${conf}% Match*` },\n      { type: 'mrkdwn', text: `*Resolution Status:*\\nPending Operator Review` }\n    ]\n  },\n  {\n    type: 'section',\n    text: {\n      type: 'mrkdwn',\n      text: `*AI Deduplication Reasoning:*\\n> _\"${res.reasoning || 'Fuzzy matching flagged strong similarity with existing canonical record.'}\"_`\n    }\n  },\n  {\n    type: 'actions',\n    block_id: 'duplicate_actions',\n    elements: [\n      {\n        type: 'button',\n        text: { type: 'plain_text', text: '⚠️ Review in Duplicates Queue', emoji: true },\n        style: 'danger',\n        action_id: 'review_duplicate',\n        url: `${consoleUrl}?tab=duplicates`\n      }\n    ]\n  }\n];\n\nreturn {\n  json: {\n    channel: '#offline-duplicates',\n    text: `⚠️ Duplicate Flagged: ${res.name} matched Record #${res.duplicate_of} (${conf}%)`,\n    blocks: blocks\n  }\n};"
+      },
+      "id": "code-duplicate-slack-formatter",
+      "name": "Code: Duplicate Slack Block-Kit Formatter",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1180, 340]
     },
     {
       "parameters": {
@@ -49,22 +125,30 @@
         "url": "https://hooks.slack.com/services/REPLACE_WITH_YOUR_SLACK_WEBHOOK",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json.slack_payload) }}",
-        "options": {
-          "allowUnauthorizedCerts": true
-        }
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
       },
-      "id": "http-slack-notification-node",
-      "name": "HTTP: Send Slack Webhook",
+      "id": "http-send-duplicate-slack",
+      "name": "HTTP: Send Duplicate Slack Webhook",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [960, 200],
+      "position": [1420, 340],
       "continueOnFail": true
     },
     {
       "parameters": {
+        "jsCode": "// Standard Member Notification\nconst triage = $('Code: Triage Classifier').first().json;\nconst rec = triage.record;\nconst fitScore = triage.fit_score;\n\nreturn {\n  json: {\n    channel: '#offline-intake',\n    text: `✨ New Member Ingested: ${rec.name} (${rec.role_title || 'Member'} @ ${rec.company || 'Independent'}) | Score: ${fitScore}/100`\n  }\n};"
+      },
+      "id": "code-standard-formatter",
+      "name": "Code: Standard Intake Formatter",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1180, 520]
+    },
+    {
+      "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify($json.pipeline_result) }}",
+        "responseBody": "={{ JSON.stringify($('Code: Triage Classifier').first().json.raw_response) }}",
         "options": {
           "responseCode": 200
         }
@@ -73,7 +157,7 @@
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [960, 400]
+      "position": [1900, 340]
     }
   ],
   "connections": {
@@ -81,32 +165,118 @@
       "main": [
         [
           {
-            "node": "HTTP: Process via Python Pipeline",
+            "node": "HTTP: NetworkOS Ingestion Engine",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP: Process via Python Pipeline": {
+    "HTTP: NetworkOS Ingestion Engine": {
       "main": [
         [
           {
-            "node": "Code: Format Slack Notification",
+            "node": "Code: Triage Classifier",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Code: Format Slack Notification": {
+    "Code: Triage Classifier": {
       "main": [
         [
           {
-            "node": "HTTP: Send Slack Webhook",
+            "node": "Switch: Triage Router",
             "type": "main",
             "index": 0
-          },
+          }
+        ]
+      ]
+    },
+    "Switch: Triage Router": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Autonomous Tavily Research",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Duplicate Slack Block-Kit Formatter",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Standard Intake Formatter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Autonomous Tavily Research": {
+      "main": [
+        [
+          {
+            "node": "Code: VIP Slack Block-Kit Formatter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: VIP Slack Block-Kit Formatter": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Send VIP Slack Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Send VIP Slack Webhook": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Duplicate Slack Block-Kit Formatter": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Send Duplicate Slack Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Send Duplicate Slack Webhook": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Standard Intake Formatter": {
+      "main": [
+        [
           {
             "node": "Respond to Webhook",
             "type": "main",
