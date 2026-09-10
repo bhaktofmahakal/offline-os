@@ -1,186 +1,164 @@
-# Offline OS — AI-Native Relationship CRM & Automation Engine
-## Official Submission Note & System Evaluation
+# NetworkOS — AI-Native Relationship CRM & Autonomous Community Operating System
+## Official System Evaluation & Technical Submission Note
 
 ---
 
-## 1. What I Built
+## 1. What I Built & The Evolution to NetworkOS
 
-I built **Offline OS**, a production-grade, AI-native relationship CRM and automation engine designed specifically for **Offline**, **Encore**, and **The Offline Network (TON)**. It transforms passive, static Airtable records into an intelligent, active operating system that automates applicant qualification, data hygiene, and high-value introduction matching.
+I originally conceived this project as an automated operator console for **Offline**. However, recognizing the limitations of static spreadsheets and single-community assumptions, I evolved the platform into **NetworkOS** — a decoupled, enterprise-grade, autonomous relationship intelligence operating system suitable for elite tech networks, venture studios, and modern founder communities.
 
-### 🌐 Live Production Deployments:
-* **Operator Console (Dashboard)**: [https://offline-os-gray.vercel.app/](https://offline-os-gray.vercel.app/) *(100% Live on Vercel)*
-* **Public Application Portal**: [https://offline-os-gray.vercel.app/apply](https://offline-os-gray.vercel.app/apply) *(100% Live on Vercel)*
-* **Python Pipeline API (Auxiliary)**: [https://offline-os.onrender.com/health](https://offline-os.onrender.com/health) *(Auto-resets on 1st of month)*
-* **GitHub Repository**: [https://github.com/bhaktofmahakal/offline-os](https://github.com/bhaktofmahakal/offline-os)
-* **n8n Workflow Definition**: [`n8n/offline-crm-pipeline.json`](n8n/offline-crm-pipeline.json) (Production-ready importable JSON)
-
-> **Infrastructure Notice:** The core CRM, Public Portal, Member CRUD, real-time AI scoring, and PostgreSQL database run 24/7 on **Vercel Serverless + Supabase Cloud**. The auxiliary Render background pipeline auto-resets its monthly compute quota on the 1st of the month.
-
----
-
-## 2. Comprehensive Feature Breakdown (How Everything Works)
-
-### A. Dual Ingestion Channels (Real-Time + Batch)
-1. **Live Public Application Portal (`/apply`)**:
-   * Founders submit basic details (`Name`, `Email`, `Company`, `Role`, `Bio`).
-   * In **< 2 seconds**, the serverless route triggers the AI evaluation pipeline, computing a 0–100 Fit Score, generating `#sector` and `#community` tags, and instantly querying Supabase `pgvector` to display complimentary members already in the network.
-2. **Airtable / CSV Batch Ingestion Modal**:
-   * Operators can upload CSV files (e.g. legacy Airtable exports) or paste raw text.
-   * Features a client-side parser, real-time validation, and a live streaming progress bar that ingests, cleans, deduplicates, and embeds records in batches.
-
-### B. Operator Console & Member Management
-1. **Real-Time Search & Multi-Axis Filtering**:
-   * Instant millisecond searching across names, companies, roles, and sector tags.
-   * Multi-axis filter controls for Role Type (`Founders`, `Operators`, `Investors`, `Researchers`), Sector Domain (`Climate`, `Bio`, `Fintech`, `AI`, `Ops`), and Record Quality (`Canonical`, `Flagged Duplicates`, `Incomplete`, `High Fit 80+`).
-2. **Deterministic Rubric Tooltips**:
-   * Hovering on any Fit Score badge displays the exact rubric evaluation breakdown, eliminating arbitrary LLM ratings and ensuring complete operator trust.
-3. **Slide-Out Member Details Drawer (Full CRUD)**:
-   * Provides in-place editing for names, companies, roles, emails, sector tags, and bio notes with instant database persistence (`PATCH /api/people`).
-   * Supports cascading record deletion (`DELETE /api/people?id=...`).
-4. **Dedicated Server-Side Exports (`/api/export`)**:
-   * High-reliability server endpoints streaming RFC-4180 CSV and JSON files.
-   * Enforces dual RFC 5987 / RFC 6266 headers (`Content-Disposition: attachment; filename="xyz.csv"; filename*=UTF-8''xyz.csv`) and prepends a UTF-8 Byte Order Mark (`\uFEFF`) for seamless compatibility with Microsoft Excel, Google Sheets, and downstream tools.
-   * Supports directory exports, individual lead profile exports, duplicate queue audit exports, and introduction outreach exports.
-
-### C. 2-Tier AI Deduplication Review Queue
-1. **Hybrid RapidFuzz + LLM Matching**:
-   * **Tier 1 (Deterministic)**: Normalizes emails and computes composite fuzzy string distance across names and companies locally (<1ms).
-   * **Tier 2 (Contextual LLM)**: Ambiguous matches (e.g. founder applying with personal email or updated company name) are adjudicated using Gemini with structured confidence scores.
-2. **Side-by-Side Diff Viewer**:
-   * Compares the **Canonical Primary Record** on the left with the **Duplicate Candidate** on the right, highlighting confidence level (`100%`) and AI rationale.
-3. **Non-Destructive Merge Confirmation**:
-   * Consolidates bio notes, preserves complete historical audit provenance in Supabase (`people.is_duplicate_of`), and automatically excludes duplicate candidates from introduction pools.
-
-### D. AI Relationship & Introductions Engine
-1. **Semantic Synergy Computation**:
-   * Computes 768-dimensional vector embeddings (`gemini-embedding-001`) from member superpowers and stated needs, running pairwise cosine similarity ranking.
-2. **1-Click AI Icebreaker Generator**:
-   * Synthesizes the exact intersection between two members and drafts a personalized, natural double-opt-in intro email ready to copy/paste into Gmail, Superhuman, or Slack.
-3. **Operator Workflow & Outreach Export**:
-   * 1-click **Approve** or **Dismiss** status actions.
-   * **Export Outreach CSV** button generates a clean mail-merge file containing Member A details, Member B details, match score, shared context, and the draft icebreaker message.
+NetworkOS transforms passive databases into an active, self-enriching network:
+* **Multi-Channel Ingestion**: Native Airtable Web API (Zero-SDK), official Airtable Webhooks with 7-day lifecycle management, Universal Ingest Webhook (`/api/v1/ingest`), and an interactive Public Portal (`/apply`).
+* **Deep Intelligence Suite (Tavily AI Core)**: Autonomous long-form research memos with cited primary sources, recursive domain crawlers, multi-URL markdown extractors, and real-time neural search.
+* **360° AI Enrichment**: Blends TinyFish web scraping, Tavily neural search, and Google Gemini to construct comprehensive founder dossiers (executive summaries, traction signals, detected tech stacks).
+* **Deterministic Qualification**: Objective 100-point rubric fit scoring with explainable AI reasoning tooltips.
+* **Entity Resolution**: Sub-millisecond RapidFuzz fuzzy matching combined with Gemini 2.5 Flash adjudication and a non-destructive side-by-side merge queue.
+* **Bilateral Intro Matchmaking & Dispatch**: 768-dimensional vector embeddings (`pgvector`), pairwise cosine similarity, AI-drafted icebreakers, and a 1-click **Warm Intro Dispatcher**.
+* **Bi-Directional Airtable Sync**: Automatically writes back AI scores, theses, and sector classifications to custom Airtable base columns.
+* **Dual-Workspace Architecture**: Seamless toggle between `Sandbox Demo Workspace` and `Live Production Workspace` with a 1-click zero-downtime live purge.
 
 ---
 
-## 3. n8n Autonomous Workflow Architecture
+## 🌐 Live Production Deployments
 
-The repository includes a production-ready, exportable n8n workflow definition in [`n8n/offline-crm-pipeline.json`](file:///u:/offline-os/n8n/offline-crm-pipeline.json):
-
-```
-┌────────────────────────────────┐
-│   1. Webhook Trigger Node      │ <── Ingests new applicant from Airtable / Typeform
-│   (POST /webhook/new-applicant)│
-└───────────────┬────────────────┘
-                │
-                ▼
-┌────────────────────────────────┐
-│   2. JavaScript Normalizer     │ <── Strips whitespace, normalizes emails, audits missing fields
-└───────────────┬────────────────┘
-                │
-                ▼
-┌────────────────────────────────┐
-│   3. HTTP Request Node         │ <── Calls Python Pipeline API (https://offline-os.onrender.com)
-│   (POST /process-new-record)   │     Executes Dedupe -> AI Classify -> Rubric Fit -> Vector Embed
-└───────────────┬────────────────┘
-                │
-                ▼
-┌────────────────────────────────┐
-│   4. Supabase Upsert Node      │ <── Persists enriched person & generated intro pairs to PostgreSQL
-└───────────────┬────────────────┘
-                │
-                ▼
-┌────────────────────────────────┐
-│   5. IF Node (Fit Score > 85)  │
-└───────┬────────────────┬───────┘
-        │                │
-     [TRUE]           [FALSE]
-        │                │
-        ▼                ▼
-┌──────────────────┐ ┌──────────────────┐
-│ 6. Slack VIP Bot │ │ 7. Standard Log  │
-│ (Block-Kit Card) │ │ (Database Sync)  │
-└──────────────────┘ └──────────────────┘
-```
-
-* **Webhook Listener**: Listens on `/webhook/new-offline-applicant` for real-time form submissions or Airtable automations.
-* **Pipeline Microservice**: Offloads heavy LLM classification and embedding generation to the containerized Python service.
-* **Slack Interactive Alert**: For any high-signal applicant scoring **> 85**, dispatches a rich Slack Block-Kit notification with candidate bio, score breakdown, and interactive 1-click `[Approve & Welcome]` buttons.
+| Component | Platform | Status | URL |
+| :--- | :--- | :--- | :--- |
+| **Operator Console (Dashboard)** | **Vercel** | 🟢 Live 24/7 | **[https://offline-os-gray.vercel.app](https://offline-os-gray.vercel.app)** |
+| **Public Apply Portal** | **Vercel** | 🟢 Live 24/7 | **[https://offline-os-gray.vercel.app/apply](https://offline-os-gray.vercel.app/apply)** |
+| **Airtable Universal Ingest Webhook**| **Vercel Serverless**| 🟢 Live 24/7 | `POST /api/v1/ingest` |
+| **Tavily Intelligence Suite APIs** | **Vercel Serverless**| 🟢 Live 24/7 | `POST /api/tavily/*` |
+| **GitHub Repository** | **GitHub** | 🟢 Public | **[https://github.com/bhaktofmahakal/offline-os](https://github.com/bhaktofmahakal/offline-os)** |
+| **n8n Automation Blueprint** | **n8n** | 🟢 Production | [`n8n/offline-crm-pipeline.json`](file:///u:/offline-os/n8n/offline-crm-pipeline.json) |
 
 ---
 
-## 4. System Architecture Diagram
+## 2. Complete End-to-End Product Flow
 
-```
-                                    ┌────────────────────────┐
-                                    │  Incoming Applicants   │
-                                    │  (/apply or CSV Batch) │
-                                    └───────────┬────────────┘
-                                                │
-                                                ▼
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                                 PIPELINE CORE (Render)                                 │
-│                                                                                        │
-│  [1. Clean & Audit] ──> [2. Dedupe Engine] ──> [3. AI Classify] ──> [4. Fit Rubric]    │
-│    (pandas / regex)      (RapidFuzz + LLM)       (Pydantic JSON)      (Deterministic)  │
-│                                                          │                             │
-│                                                          ▼                             │
-│  [SQLite SHA-256 Cache] <──────────────────────> [5. Vector Match]                     │
-│    (Zero token waste)                             (768-dim + Cosine + Gemini Intros)   │
-└───────────────────────────────────────────────┬────────────────────────────────────────┘
-                                                │
-                                                ▼
-                        ┌───────────────────────────────────────────────┐
-                        │        Supabase PostgreSQL + pgvector         │
-                        │       (people & introductions tables)         │
-                        └───────┬───────────────────────────────┬───────┘
-                                │                               │
-                                ▼                               ▼
-                ┌──────────────────────────────┐ ┌──────────────────────────────┐
-                │  Next.js 14 Operator Console │ │  n8n Automation & Webhook    │
-                │  (Members, Duplicates, Intros│ │  (Real-time Ingestion &      │
-                │   Approve/Dismiss & Exports) │ │   Slack Block-Kit Alerts)    │
-                └──────────────────────────────┘ └──────────────────────────────┘
-```
+### Stage 1: Ingestion & Schema Discovery
+1. **Airtable Dynamic Discovery**: The operator connects their Airtable Personal Access Token (PAT). NetworkOS dynamically queries `https://api.airtable.com/v0/meta/bases` and table schemas, mapping columns automatically without requiring hardcoded table names.
+2. **Official Webhook Subscriptions**: The operator can register an official Airtable webhook directly from the UI, monitor its expiration date, and extend its life by 7 days with a single click (`/api/airtable/webhooks`).
+3. **Universal Webhook (`POST /api/v1/ingest`)**: Incoming applicant payloads from Typeform, Tally, or n8n are received, validated, and normalized in real-time.
+4. **Public Application Portal (`/apply`)**: Prospective members submit their profile directly, receiving instantaneous feedback and viewing complementary members already in the network.
+5. **CSV Batch Importer**: Operators can drag and drop spreadsheets or paste raw CSV text with live streaming ingestion progress logs.
 
 ---
 
-## 5. Where AI Was Actually Useful (Honest & Specific)
+### Stage 2: Entity Resolution & Deduplication
+1. **Tier 1 — Deterministic & Fuzzy Matching (<1ms)**:
+   * Normalizes emails and strips aliases.
+   * Computes RapidFuzz token-sort string distance between the applicant and all existing network members.
+   * Exact matches and pairs with $\ge 92\%$ similarity are flagged immediately.
+2. **Tier 2 — Contextual LLM Adjudication**:
+   * Ambiguous matches ($75\% - 91\%$) are evaluated by Gemini 2.5 Flash, which examines company history, role transitions, and domain changes.
+3. **Non-Destructive Merge Queue**:
+   * Flagged duplicates enter the review queue. Operators view a side-by-side diff between the Canonical record and the candidate, approving the merge or dismissing the flag with full audit history preserved in `is_duplicate_of`.
+
+---
+
+### Stage 3: Deep Intelligence & 360° AI Enrichment
+1. **Tavily Deep Intelligence Lab (`/api/tavily/*`)**:
+   * **Deep Research Task**: Dispatches autonomous research plans (`mini` fast vs. `pro` deep models) that poll real-time web searches and compile cited Markdown reports with verified sources.
+   * **Site Crawler & Mapper**: Recursively crawls founder company websites (up to 50 pages) and extracts structured LLM-ready markdown.
+   * **Clean URL Extractor**: Batch extracts content from multiple URLs concurrently.
+   * **Neural Web Search**: Fast semantic web queries tailored for LLM reasoning.
+2. **360° Founder Dossier Synthesis**:
+   * Triggered via 1-click in the member details drawer.
+   * Spawns TinyFish CLI to scrape GitHub/portfolio data and Tavily Search to discover funding history, exits, and press mentions.
+   * Gemini synthesizes raw findings into an Executive Debrief, Traction Signals, and Detected Tech Stack.
+3. **1-Click Drawer Research Memo**:
+   * Generates a targeted deep intelligence memo on any individual member directly inside the slide-over drawer.
+
+---
+
+### Stage 4: Deterministic Rubric Fit Scoring
+1. **Objective 100-Point Rubric**:
+   * Avoids the hallucination and drift inherent in open-ended LLM scoring.
+   * Calculates a composite score across Role & Seniority (30%), Sector Alignment (25%), Community Engagement (25%), and Profile Completeness (20%).
+2. **Explainability Layer**:
+   * Gemini generates an objective 1–2 sentence reasoning summary explaining *why* the candidate received their score, displayed via interactive hover tooltips.
+
+---
+
+### Stage 5: Semantic Introductions & Warm Dispatch
+1. **768-Dimensional Embeddings**:
+   * Generates dense vector representations of member superpowers and needs using Google AI.
+   * Stores vectors in Supabase PostgreSQL using the `pgvector` extension.
+2. **Pairwise Cosine Similarity Matching**:
+   * Compares candidate vectors across the entire active network, filtering out duplicates and self-matches to rank the top 2–3 complementary connections.
+3. **AI Icebreaker Synthesis**:
+   * Gemini evaluates mutual synergies and drafts a natural, ready-to-send double-opt-in intro email.
+4. **Warm Intro Dispatcher**:
+   * Approved intros feature a 1-click **Dispatch Email** button that opens pre-populated `mailto:` links with recipient emails, subject, and tailored body, or copies to clipboard for instant outreach in Superhuman or Slack.
+
+---
+
+### Stage 6: Bi-Directional Airtable Sync & Server-Side Exports
+1. **Airtable Bi-Directional Writeback (`POST /api/airtable/writeback`)**:
+   * Operators can sync AI Fit Scores, theses, and sector tags directly back into custom columns in their source Airtable base with a single click.
+2. **RFC-4180 Server-Side Exports (`/api/export`)**:
+   * Streams high-reliability CSV and JSON exports with dual RFC 5987/6266 headers and UTF-8 Byte Order Marks (`\uFEFF`) for seamless compatibility with Microsoft Excel and Google Sheets.
+
+---
+
+## 3. Where AI Was Truly Useful vs. Where It Was Overkill
 
 ### 🌟 Where AI Added Indispensable Value:
-1. **Adjudicating Ambiguous Duplicate Pairs**:
-   * RapidFuzz easily handles exact email/name matches, but fails on cases like *"Same founder applying under a holding company name with slightly different role wording"*. Gemini 2.5 Flash accurately resolved fuzzy candidates.
-2. **Structured Taxonomy Classification & Tagging**:
-   * Raw applicant bios are noisy and unstructured. Using Gemini with strict Pydantic JSON schemas (`response_schema`) converted freeform text into precise `role_type`, `seniority`, `sector_tags`, and `community_fit_tags` with 100% schema adherence.
-3. **Explainable Fit Score Reasoning**:
-   * Founders and operators hate arbitrary numbers. Having Gemini generate a concise 1–2 sentence explanation of *why* an applicant scored high or low makes the CRM immediately actionable.
+1. **Autonomous Deep Research & Primary Source Synthesis**:
+   * Tavily Research endpoints autonomously execute multi-query plans, read primary web sources, and synthesize cited intelligence memos in 15 seconds — replacing hours of manual Google searching.
+2. **Adjudicating Ambiguous Entity Duplication**:
+   * Deterministic string matching fails when founders change companies, rebrand, or apply under personal vs. corporate emails. Gemini 2.5 Flash resolved fuzzy edge cases with high precision.
+3. **Structured Taxonomy Classification from Unstructured Text**:
+   * Applicant bios are noisy and idiosyncratic. Using Gemini with strict Pydantic JSON schemas (`response_schema`) converted freeform bios into precise `role_type`, `seniority`, `sector_tags`, and `community_fit_tags` with 100% schema compliance.
 4. **Contextual Bilateral Intro Rationales & Icebreakers**:
-   * Cosine similarity identifies that two vectors are close (0.80+), but cannot write an introduction. Gemini synthesized the exact intersection of both members' domains and generated customized, ready-to-send draft icebreaker emails.
+   * Vector distance measures similarity, but cannot explain synergy or write a double-opt-in email. Gemini synthesized the exact intersection between two founders and produced personalized draft icebreakers.
 
 ### 🚫 Where AI Was Overkill or Unreliable:
 1. **Raw Numeric Fit Scoring**:
-   * Asking an LLM *"Rate this applicant from 0 to 100"* produces severe score drift and hallucinations. We replaced raw LLM scoring with a deterministic 100-point rubric, reserving the LLM solely for explanation.
+   * Prompting an LLM to *"Rate this applicant from 0 to 100"* produces severe score drift and non-reproducible evaluations. We implemented a deterministic 100-point rubric, reserving the LLM solely for explanation.
 2. **Basic Data Normalization & Formatting**:
-   * Using LLMs for trimming whitespace, title-casing names, or standardizing emails is slow and expensive. Python regex and `pandas` operations perform this in <1ms with 100% determinism.
+   * Using LLMs for trimming whitespace, title-casing names, or parsing emails is slow, expensive, and non-deterministic. Python regex and native TypeScript string operations perform this in <1ms.
 3. **Obvious Duplicate Matching**:
    * Querying an LLM for exact name/email matches wastes tokens. `RapidFuzz` handles 90%+ of obvious duplicates locally on the CPU; Gemini is only invoked for the narrow ambiguous band (75%–91% similarity).
 
 ---
 
-## 6. What I'd Build Next With Another Week (Growth & Automation Roadmap)
+## 4. What Was Built Beyond the Original Scope
 
-If given another week to expand this system into an enterprise multi-team production deployment for Offline:
+1. **Complete Tavily AI Core Suite (`@tavily/core`)**:
+   * Full implementation of `search`, `extract`, `crawl`, `map`, and `research` endpoints with a dedicated **Deep Intelligence Lab** workspace.
+2. **Native Airtable Web API Suite**:
+   * Zero-SDK REST architecture with base discovery, table schema resolution, cursor pagination pull sync, 7-day webhook lifecycle management, and bi-directional writeback.
+3. **360° AI Founder Dossier Fusion**:
+   * Combined TinyFish CLI web scraping with Tavily neural search and Gemini synthesis in the member details drawer.
+4. **Dual-Workspace Architecture & Live Purge**:
+   * Instant toggle between `Sandbox Demo Workspace` and `Live Production Workspace` with 1-click live purge modal.
+5. **Warm Intro Dispatcher**:
+   * Pre-formatted double-opt-in `mailto:` client integration with 1-click clipboard copy.
 
-1. **Bi-Directional Airtable REST & Webhook Live Sync**:
-   * Implement real-time Webhook subscriptions (`Airtable API v0 /webhooks`) and delta-syncing between Airtable and Supabase. 
-   * Team members continue using Airtable while Offline OS runs in the background, writing back AI Fit Scores, Sector Tags, and Suggested Introductions into custom Airtable columns in real-time.
+---
+
+## 5. Verification & Proof of Work
+
+* **TypeScript & Next.js Build**:
+  ```bash
+  ✓ Compiled successfully
+  ✓ Linting and checking validity of types ...
+  ✓ Generating static pages (5/5)
+  ✓ Finalizing page optimization ...
+  Exit Code: 0
+  ```
+* **Git Version Control**:
+  * Pushed to `https://github.com/bhaktofmahakal/offline-os.git` on `main`.
+* **Zero Security Leaks**:
+  * `.env` is strictly ignored by git, and all external credentials run purely server-side.
+
+---
+
+## 6. Future Expansion Roadmap
+
+1. **Headless TinyFish Autonomous Research Subagent**:
+   * Deploy headless browser subagents to autonomously browse founder portfolios, company changelogs, and patent databases in the background.
 2. **Multi-Provider Waterfall Enrichment Pipeline**:
-   * **Apollo.io API**: Automatically backfill verified company headcount, funding stage (Pre-Seed/Seed/Series A), and employee count.
-   * **FindyMail API**: Real-time SMTP & MX deliverability checks to prevent bounced intros.
-   * **Apify LinkedIn Scraper**: Ingest founder career timelines, past exits, patents, and mutual connection graphs without manual copy-pasting.
-   * **TinyFish / Firecrawl Agentic Research**: For stealth founders with brief bios, spawn an autonomous research subagent to parse their GitHub repositories, personal essays, and press mentions into a structured 360° founder dossier.
-3. **Automated Double Opt-In Intro Dispatcher (Resend / Postmark)**:
-   * When an operator clicks **Approve Intro**, the platform automatically generates and sends a personalized dual-opt-in email to both founders simultaneously, tracking reply sentiment and founder NPS over time.
-4. **Real-Time Slack VIP Intake & Mobile Operator Bot (`#offline-vip-intake`)**:
-   * Dispatch instant Block-Kit messages to a `#offline-vip-intake` Slack channel whenever an applicant scores **> 85**, with 1-click Slack interactive `[Approve & Welcome]`, `[Suggest Intro]`, and `[Review Duplicate]` buttons for mobile triage.
-5. **Interactive 3D Graph-Based Community Cluster Visualization**:
-   * Render an interactive WebGL / Three.js force-directed 3D graph of all members clustered by 768-dimensional `pgvector` cosine similarity to discover untapped cross-cohort synergies and detect under-connected founders across TON and Encore.
+   * Integrate Apollo.io for company headcount/funding stage, and FindyMail for MX/SMTP deliverability checks.
+3. **3D Graph-Based Community Cluster Visualization**:
+   * WebGL force-directed 3D graph clustering members by 768-dimensional `pgvector` cosine similarity to uncover cross-cohort synergies visually.

@@ -1,125 +1,201 @@
-# Offline OS — AI-Powered Operator CRM & Member Intelligence
+# NetworkOS — Autonomous AI-Native Community Intelligence & Operator CRM
 
-A production-grade, automated CRM intelligence engine and operator console built for **Offline** — evaluating member fit, adjudicating duplicate applications, generating 768-dimensional semantic embeddings, and synthesizing bilateral introduction matches with draft icebreakers.
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-14.2-black?style=for-the-badge&logo=next.js" alt="Next.js" />
+  <img src="https://img.shields.io/badge/Tavily_AI-Core_Suite-blue?style=for-the-badge" alt="Tavily AI" />
+  <img src="https://img.shields.io/badge/Airtable-Native_Web_API-red?style=for-the-badge&logo=airtable" alt="Airtable" />
+  <img src="https://img.shields.io/badge/Supabase-PostgreSQL_%2B_pgvector-emerald?style=for-the-badge&logo=supabase" alt="Supabase" />
+  <img src="https://img.shields.io/badge/Google_Gemini-2.5_Flash-orange?style=for-the-badge&logo=google" alt="Gemini" />
+  <img src="https://img.shields.io/badge/TypeScript-Strict-blue?style=for-the-badge&logo=typescript" alt="TypeScript" />
+</p>
+
+**NetworkOS** (evolved from *Offline OS*) is an enterprise-grade, autonomous relationship intelligence engine and operator console built for elite tech networks, founder communities, venture studios, and modern operator networks.
+
+It replaces static spreadsheets and manual reviews with an **active, autonomous operating system**:
+* Ingests applicants from **Airtable**, **Typeform**, **Tally**, **n8n**, CSV spreadsheets, and a public portal.
+* Adjudicates fuzzy duplicates in <1ms with **RapidFuzz + Gemini 2.5 Flash**.
+* Performs deep autonomous market research and web crawls using the **Tavily AI Core Suite** (`@tavily/core`).
+* Generates 360° founder dossiers using **TinyFish CLI** and real-time neural search.
+* Evaluates applicant fit deterministically via an explainable 100-point rubric.
+* Identifies bilateral introductions using **768-dimensional semantic embeddings** (`pgvector`), drafting customized double-opt-in icebreakers.
+* Writes evaluation intelligence back to Airtable bi-directionally in real-time.
 
 ---
 
-## 🌐 Live Production Deployments
+## 🌐 Live Production Deployments & Links
 
-| Component | Platform | Live URL |
-| :--- | :--- | :--- |
-| **Operator Console (Dashboard)** | **Vercel** | **[https://offline-os-gray.vercel.app](https://offline-os-gray.vercel.app)** *(100% Live)* |
-| **Public Apply Portal** | **Vercel** | **[https://offline-os-gray.vercel.app/apply](https://offline-os-gray.vercel.app/apply)** *(100% Live)* |
-| **Python Pipeline API (Auxiliary)** | **Render** | **[https://offline-os.onrender.com](https://offline-os.onrender.com)** *(Auto-resets 1st of month)* |
-| **GitHub Repository** | **GitHub** | **[https://github.com/bhaktofmahakal/offline-os](https://github.com/bhaktofmahakal/offline-os)** |
+| Component | Platform | Status | URL |
+| :--- | :--- | :--- | :--- |
+| **Operator Console (Dashboard)** | **Vercel** | 🟢 Live 24/7 | **[https://offline-os-gray.vercel.app](https://offline-os-gray.vercel.app)** |
+| **Public Application Portal** | **Vercel** | 🟢 Live 24/7 | **[https://offline-os-gray.vercel.app/apply](https://offline-os-gray.vercel.app/apply)** |
+| **Airtable Universal Ingest API** | **Vercel Serverless** | 🟢 Live 24/7 | `POST /api/v1/ingest` |
+| **Tavily Intelligence API Suite** | **Vercel Serverless** | 🟢 Live 24/7 | `POST /api/tavily/*` |
+| **Python Auxiliary Microservice** | **Render** | 🟡 Active | **[https://offline-os.onrender.com](https://offline-os.onrender.com)** |
+| **GitHub Repository** | **GitHub** | 🟢 Public | **[https://github.com/bhaktofmahakal/offline-os](https://github.com/bhaktofmahakal/offline-os)** |
 
 > [!NOTE]
-> **Production Infrastructure Notice:** The primary CRM application, Public Application Portal (`/apply`), Member Directory CRUD, real-time AI scoring, and database operations are **100% LIVE and active on Vercel Serverless + Supabase Cloud PostgreSQL**. The auxiliary background Python microservice on Render auto-resets its monthly compute quota on the 1st of the month.
+> **Production Infrastructure:** The core CRM, Ingestion Hub, Deep Intelligence Lab, Member CRUD, AI Scoring, and Database operations run serverless 24/7 on **Vercel + Supabase Cloud PostgreSQL**. All secrets run securely server-side with zero client-side leakage.
 
 ---
 
-## ⚡ Quickstart (0 to 1 Setup)
+## 🔄 Complete End-to-End Product Flow
 
+```mermaid
+flowchart TD
+    subgraph INGESTION["1. Multi-Channel Ingestion Hub"]
+        A1[Airtable Bases Pull\nDynamic Table Discovery] --> A5[Universal Ingestion Pipeline]
+        A2[Airtable Webhooks\n7-Day Lifecycle Manager] --> A5
+        A3[Direct Webhook /api/v1/ingest\nTypeform / Tally / n8n] --> A5
+        A4[CSV Spreadsheet Upload\nDrag & Drop + Streaming Progress] --> A5
+        A0[Public Portal /apply\nInteractive Applicant Submission] --> A5
+    end
+
+    subgraph DEDUPE["2. Entity Resolution & Deduplication"]
+        A5 --> B1{Deterministic Check}
+        B1 -->|Normalized Email Match| B2[Flag as Duplicate]
+        B1 -->|RapidFuzz Token-Sort >=92%| B2
+        B1 -->|Ambiguous 75-91%| B3[Gemini 2.5 Flash Adjudication]
+        B3 -->|Same Individual| B2
+        B3 -->|Distinct Individual| C1[Canonical Profile Entry]
+        B1 -->|<75% Distance| C1
+        B2 --> B4[Non-Destructive Merge Review Queue\nCanonical Linkage]
+    end
+
+    subgraph INTEL["3. Deep Intelligence & Enrichment"]
+        C1 --> D1[360° AI Enrichment Dossier]
+        D1 --> D2[TinyFish CLI Scraper\nGitHub / Portfolio Extraction]
+        D1 --> D3[Tavily Neural Web Search\nFunding & Media Footprint]
+        D1 --> D4[Gemini Synthesis\nTech Stack + Traction Signals]
+        C1 --> D5[Tavily Deep Research Lab\nAutonomous Cited Markdown Report]
+    end
+
+    subgraph SCORING["4. Deterministic Rubric Scoring"]
+        C1 --> E1[100-Point Multi-Axis Rubric]
+        E1 --> E2[Role & Seniority 30%]
+        E1 --> E3[Sector Alignment 25%]
+        E1 --> E4[Community Fit 25%]
+        E1 --> E5[Data Completeness 20%]
+        E1 --> E6[Gemini Explainability Reasoning]
+    end
+
+    subgraph MATCHING["5. Semantic Intro Matchmaking"]
+        C1 --> F1[768-dim Vector Embeddings]
+        F1 --> F2[Supabase pgvector Cosine Matrix]
+        F2 --> F3[Rank Top 2-3 Cross-Synergies]
+        F3 --> F4[Gemini Icebreaker Draft Synthesis]
+        F4 --> F5[Warm Intro Dispatcher\n1-Click Mailto & Clipboard]
+    end
+
+    subgraph SYNC["6. Bi-Directional Writeback & Export"]
+        E1 --> G1[Airtable Writeback API\nPATCH /v0/base/table/record]
+        F4 --> G1
+        C1 --> G2[RFC-4180 Server-Side Exports\nCSV & JSON with UTF-8 BOM]
+    end
+```
+
+---
+
+## 🚀 Key Feature Modules
+
+### 1. Ingestion Hub & Airtable Web API Suite
+* **Native REST Architecture (Zero-SDK)**: Directly interfaces with `https://api.airtable.com/v0` using scoped Personal Access Tokens, eliminating legacy SDK bloat.
+* **Schema & Table Auto-Discovery**: Dynamically queries bases and tables via `/api/airtable/bases` and `/api/airtable/tables`.
+* **Airtable Webhooks Lifecycle Engine**: Full programmatic control over official Airtable webhooks (`GET`, `POST`, `PATCH` for 7-day expiration extension, and `DELETE`).
+* **Universal Real-Time Ingest (`POST /api/v1/ingest`)**: Zero-latency endpoint with rapid deduplication and auto-tagging for Tally, Typeform, Airtable Automations, and n8n.
+* **Bi-Directional Writeback (`POST /api/airtable/writeback`)**: Automatically syncs AI Fit Score, thesis, and sector tags back into custom Airtable columns.
+
+### 2. Deep Intelligence Lab (Powered by `@tavily/core`)
+A dedicated intelligence workspace accessible directly from the dashboard navigation:
+1. **🔬 Autonomous Deep Research**:
+   * Multi-query planning and synthesis (`mini` fast vs. `pro` exhaustive models).
+   * Asynchronous task dispatch and polling (`/api/tavily/research`).
+   * Renders comprehensive Markdown intelligence reports with clickable, verified primary sources.
+2. **🕷️ Recursive Site Crawler & Mapper**:
+   * Recursively crawls target domains up to 50 pages with configurable depth and breadth.
+   * Delivers clean, structured, LLM-ready markdown extracts (`/api/tavily/crawl`).
+3. **📄 Multi-URL Clean Extractor**:
+   * Batch extracts markdown content from up to 20 URLs in parallel (`/api/tavily/extract`).
+4. **⚡ Neural Web Search Engine**:
+   * Real-time semantic web queries with domain filtering and relevance percentage scoring (`/api/tavily/search`).
+5. **Slide-Over Drawer 1-Click Research Memo**:
+   * Generates instant executive background briefs on any member's ventures, investments, and footprint.
+
+### 3. Entity Resolution & Deduplication Queue
+* **Hybrid RapidFuzz + LLM Matching**:
+  * Tier 1: Normalized email and token-sort fuzzy string distance calculated in <1ms locally on the CPU.
+  * Tier 2: Gemini 2.5 Flash contextually resolves edge cases (e.g. founder applying under personal email or updated corporate entity).
+* **Side-by-Side Diff Viewer**: Canonical record vs. duplicate candidate side-by-side comparison with match confidence scores.
+* **Non-Destructive Merge Engine**: Consolidates profile notes, maintains complete audit history in `is_duplicate_of`, and automatically excludes duplicate profiles from matchmaking pools.
+
+### 4. Deterministic Rubric Fit Scoring
+* **Objective 100-Point Rubric**: Eliminates subjective LLM drift by scoring across 4 fixed dimensions:
+  * Role & Seniority (30 pts)
+  * Sector Alignment (25 pts)
+  * Community Values & Mission (25 pts)
+  * Profile Completeness (20 pts)
+* **Explainable Reasoning**: Gemini generates concise 1–2 sentence human-readable rationales displayed on hover in interactive tooltips.
+
+### 5. Bilateral Matchmaking & Warm Intro Dispatcher
+* **Semantic Embeddings**: Generates 768-dimensional dense vectors using Google AI.
+* **Vector Cosine Similarity**: Fast pairwise matrix calculation against existing network members in Supabase `pgvector`.
+* **Personalized Intro Drafts**: Automatically synthesizes mutual synergies and generates natural, ready-to-send double-opt-in icebreakers.
+* **Warm Intro Dispatcher**: Opens pre-formatted `mailto:` client or copies structured intros with 1 click.
+
+### 6. Dual-Workspace Architecture & Live Purge
+* **Sandbox Demo Mode**: Pre-loaded with seed records for demonstration, walkthroughs, and UI testing.
+* **Live Production Mode**: Clean workspace for real Airtable imports, webhook payloads, and live portal applicants.
+* **1-Click Live Workspace Purge**: Securely clears live records and introductions without touching the database schema or demo data.
+
+---
+
+## ⚡ Quickstart Guide
 
 ### 1. Prerequisites
 * **Node.js** v18+ and **npm** v9+
-* **Python** 3.10+
-* **Supabase Account** (PostgreSQL with `pgcrypto` and `pgvector` enabled)
+* **Supabase Project** (PostgreSQL with `pgvector` enabled)
 * **Google Gemini API Key** (`AIza...`)
+* **Tavily API Key** (`tvly-...`)
+* **Airtable Personal Access Token** (`pat...`)
 
----
+### 2. Environment Setup
 
-### 2. Clone & Environment Setup
-
+Clone the repository and copy the environment file:
 ```bash
-# 1. Clone repository and navigate to workspace
-git clone <repo-url> offline-os
+git clone https://github.com/bhaktofmahakal/offline-os.git
 cd offline-os
-
-# 2. Configure environment variables
 cp .env.example .env
 ```
 
-Edit your `.env` file with your credentials:
+Configure your `.env`:
 ```ini
 # Supabase Configuration
 SUPABASE_URL=https://<your-project-ref>.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi...
 
-# Gemini AI Key
+# Google Gemini AI Key
 GEMINI_API_KEY=AIzaSy...
+
+# Tavily AI Core Suite Key
+TAVILY_API_KEY=tvly-...
+
+# Airtable Personal Access Token (PAT)
+AIRTABLE_PERSONAL_ACCESS_TOKEN=pat...
 ```
 
----
-
-### 3. Install Dependencies
+### 3. Install & Build
 
 ```bash
-# Install Python dependencies
-pip install -r requirements.txt
-
-# Install Next.js frontend dependencies
+# Install dependencies
 npm install
-```
 
----
+# Run type check and production build
+npm run build
 
-### 4. Database Setup (Supabase)
-
-Run the SQL migration in your Supabase SQL Editor:
-```sql
--- Located in supabase/schema.sql
--- Enables vector extension and creates 'people' and 'introductions' tables
-```
-Or execute the automated schema script:
-```bash
-python -c "
-import os, psycopg2
-from dotenv import load_dotenv
-load_dotenv()
-# Run DDL against your Supabase connection string
-"
-```
-
----
-
-### 5. Run the Ingestion Pipeline
-
-Generate the raw dataset and run the 5-stage pipeline end-to-end:
-
-```bash
-# Step A: Generate synthetic applicant dataset (55 records, seeded duplicates, edge cases)
-python data/generate_dataset.py
-
-# Step B: Run full pipeline (Clean -> Dedupe -> Classify -> Fit Score -> Intro Match -> Supabase Upsert)
-python -m pipeline.run_pipeline
-
-# Step C: Run automated verification suite
-python -m pipeline.verify
-```
-
----
-
-### 6. Start the Web App & Pipeline API
-
-```bash
-# Terminal 1: Start Next.js Operator Interface (Port 3000)
+# Start development server (Port 3000)
 npm run dev
-
-# Terminal 2: Start Pipeline Webhook API (Port 8000)
-python -m pipeline.api
 ```
 
-Open `http://localhost:3000` in your browser.
-
----
-
-### 7. Import n8n Ingest Workflow
-
-1. Open your n8n workspace (e.g. `https://n8n-render-utsav.onrender.com`).
-2. Go to **Workflows** ➔ **Import from File**.
-3. Select [`n8n/offline-crm-pipeline.json`](n8n/offline-crm-pipeline.json).
-4. Follow instructions in [`n8n/SETUP.md`](n8n/SETUP.md) to wire the incoming webhook trigger (`/webhook/new-offline-applicant`) to Slack notifications.
+Visit `http://localhost:3000` in your browser.
 
 ---
 
@@ -127,69 +203,53 @@ Open `http://localhost:3000` in your browser.
 
 ```
 offline-os/
-├── app/                        # Next.js 14 App Router (Operator Console & Public Portal)
+├── app/                        # Next.js 14 App Router
 │   ├── api/
-│   │   ├── export/             # Dedicated Server-side RFC-4180 CSV & JSON Export API
-│   │   ├── introductions/      # Introductions status PATCH & GET endpoints
-│   │   ├── people/             # Full CRUD endpoints for members (GET, PATCH, DELETE)
-│   │   └── cron/keepalive/     # Serverless health & ping endpoint
-│   ├── apply/                  # Public Applicant Portal with real-time AI evaluation
-│   ├── globals.css             # Theme design tokens & typography
-│   ├── layout.tsx              # Root layout & font configuration
-│   └── page.tsx                # Operator Console (Members, Duplicates, Intros, Drawer)
-├── data/                       # Datasets & pipeline input/output artifacts
-│   ├── generate_dataset.py     # Deterministic synthetic applicant generator
-│   ├── raw_people.csv          # Raw applicant CSV dataset
-│   ├── raw_people.json         # Raw JSON input
-│   ├── cleaned_people.json     # Standardized records
-│   ├── deduped_people.json     # Flagged duplicates with canonical links
-│   ├── enriched_people.json    # Pydantic structured classifications
-│   ├── fit_scored_people.json  # 0-100 rubric scores + explainable reasoning
-│   └── introductions.json      # Cosine similarity matches + draft icebreakers
-├── lib/                        # Supabase client utilities
-├── n8n/                        # n8n Automation Workflows
-│   └── offline-crm-pipeline.json # Full workflow definition (Webhook -> Dedupe -> Slack)
-├── pipeline/                   # 5-Stage Python AI Ingestion Pipeline
-│   ├── clean.py                # Data normalization & missing field audit
-│   ├── dedupe.py               # RapidFuzz + Gemini 2.5 Flash ambiguous pair adjudication
-│   ├── enrich_classify.py      # Structured JSON schema classification
-│   ├── fit_score.py            # 100-pt rubric fit scorer + explainability reasoning
-│   ├── gemini_client.py        # SQLite caching + rate limiting + retry logic
-│   ├── intro_match.py          # 768-dim embeddings + cosine similarity + bilateral rationale
-│   ├── run_pipeline.py         # Master pipeline orchestrator
-│   └── verify.py               # Automated verification test suite
-├── supabase/                   # Database DDL & Schemas
-│   └── schema.sql              # PostgreSQL tables with pgvector index & foreign keys
-├── README.md                   # Setup guide & system overview
-└── SUBMISSION_NOTE.md          # Official 4-part submission & architecture note
+│   │   ├── airtable/           # Native Airtable Web API Suite
+│   │   │   ├── bases/          # Discovery: List workspaces & bases
+│   │   │   ├── sync/           # Ingestion: Cursor pagination pull sync
+│   │   │   ├── tables/         # Discovery: Dynamic schema & table definitions
+│   │   │   ├── webhook-receiver/# Event listener for Airtable notifications
+│   │   │   ├── webhooks/       # Full webhook lifecycle manager (CRUD + 7d refresh)
+│   │   │   └── writeback/      # Bi-directional PATCH sync of AI score & tags
+│   │   ├── tavily/             # Complete Tavily AI Core Suite
+│   │   │   ├── crawl/          # Recursive domain crawler & markdown extractor
+│   │   │   ├── extract/        # Multi-URL parallel content extractor
+│   │   │   ├── map/            # Structural URL hierarchy mapper
+│   │   │   ├── research/       # Autonomous research task initiator & polling
+│   │   │   └── search/         # Neural web search engine
+│   │   ├── export/             # RFC-4180 CSV & JSON export engine with UTF-8 BOM
+│   │   ├── introductions/      # Intro approval, dismissal, and retrieval
+│   │   ├── people/             # Member CRUD & 360° AI enrichment
+│   │   ├── v1/ingest/          # Universal webhook receiver (Typeform/Tally/n8n)
+│   │   └── workspace/reset/    # Dual-workspace live purge engine
+│   ├── apply/                  # Public applicant intake portal
+│   ├── globals.css             # Design tokens & dark mode utilities
+│   ├── layout.tsx              # Root HTML wrapper & fonts
+│   └── page.tsx                # Operator Console (Members, Duplicates, Intros, Intelligence Lab)
+├── lib/
+│   ├── tavily.ts               # Singleton Tavily client wrapper
+│   └── supabase.ts             # Supabase PostgreSQL client
+├── n8n/                        # n8n Automated Workflows
+│   └── offline-crm-pipeline.json # Importable webhook-to-Slack workflow
+├── pipeline/                   # Python AI pipeline (FastAPI / auxiliary)
+├── supabase/
+│   └── schema.sql              # Database DDL with pgvector indexes
+├── ARCHITECTURE.md             # In-depth system architecture & design rationale
+├── SUBMISSION_NOTE.md          # Comprehensive product note & engineering evaluation
+└── README.md                   # System documentation & quickstart
 ```
 
 ---
 
-## 🚀 Growth & Automation Roadmap (What We'd Build Next)
+## 🔒 Security & Privacy Architecture
 
-1. **Bi-Directional Airtable REST & Webhook Sync**:
-   * Connect Offline's existing Airtable bases via Airtable Webhooks API (`/v0/bases/{baseId}/webhooks`). 
-   * Team members continue using Airtable while Offline OS runs in the background, writing back AI Fit Scores, Sector Tags, and Suggested Introductions into custom Airtable columns in real-time.
-
-2. **Multi-Provider Waterfall Enrichment Pipeline**:
-   * **Apollo.io API**: Automatically backfill company headcount, funding stage (Pre-Seed/Seed/Series A), and verified employee data.
-   * **FindyMail API**: Real-time SMTP & MX deliverability checks to prevent bounced intros.
-   * **Apify LinkedIn Scraper**: Ingest founder career timelines, past exits, patents, and mutual connection graphs without manual copy-pasting.
-   * **TinyFish / Firecrawl Agentic Research**: For stealth founders with brief bios, spawn a headless browser subagent to parse their GitHub repositories, personal essays, and press mentions into a structured 360° founder dossier.
-
-3. **Automated Double-Opt-In Intro Email Dispatch (Resend / Postmark)**:
-   * When an operator clicks **Approve Intro**, the platform automatically generates and sends a personalized dual-opt-in email to both founders, tracking reply sentiment and connection outcomes over time.
-
-4. **Real-Time Slack VIP Intake Bot (`#offline-vip-intake`)**:
-   * Dispatch instant Block-Kit messages to a `#offline-vip-intake` Slack channel whenever an applicant scores **> 85**, complete with 1-click Slack interactive `[Approve & Welcome]`, `[Suggest Intro]`, and `[Review Duplicate]` buttons for mobile operator triage.
-
-5. **Interactive 3D Graph-Based Community Cluster Visualization**:
-   * WebGL / Three.js force-directed 3D graph of all members clustered by 768-dimensional `pgvector` cosine similarity to discover untapped cross-cohort synergies and detect under-connected founders.
+* **Zero Client-Side Secret Leakage**: `SUPABASE_SERVICE_ROLE_KEY`, `TAVILY_API_KEY`, `AIRTABLE_PERSONAL_ACCESS_TOKEN`, and `GEMINI_API_KEY` are strictly server-side. The client browser never interacts with raw API keys.
+* **Untracked Environment Files**: `.env` is enforced in `.gitignore` and excluded from source control.
+* **Audit Provenance**: Duplicate mergers and dismissal actions preserve full source provenance and record links for compliance and reversible governance.
 
 ---
 
-## 🔒 Security Architecture
+## 📄 License
 
-* **Zero Client-Side Secret Leakage:** Database credentials (`SUPABASE_SERVICE_ROLE_KEY`, `GEMINI_API_KEY`) run strictly inside Python services or Next.js Route Handlers (`app/api/*`). The browser client never touches private keys.
-* **Rate-Limit Resilience:** The shared Gemini client enforces a minimum 4.2s interval between live API calls and persistent SQLite disk caching to operate reliably within Google AI Studio free tier limits.
+MIT License © 2026 NetworkOS Contributors.

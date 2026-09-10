@@ -40,7 +40,6 @@ test_*.csv
 
 # Private Internal Working Documents
 DEMO_VIDEO_SCRIPT_AND_ROADMAP.md
-ARCHITECTURE.md
 SETUP.md
 n8n/SETUP.md
 docs/
