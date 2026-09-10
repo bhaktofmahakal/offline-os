@@ -2511,24 +2511,25 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
         {/* 2D. DEEP INTELLIGENCE LAB */}
         {activeTab === 'intelligence' && (
-          <div className="space-y-6 animate-in fade-in-50 duration-200">
-            {/* Header & Capabilities Banner */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-line pb-5">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="w-2 h-2 rounded-full bg-signal animate-pulse" />
-                  <span className="text-[11px] font-mono font-bold tracking-wider uppercase text-signal">
-                    Autonomous Intelligence Engine
-                  </span>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-signal/15 text-signal border border-signal/30 font-semibold">
-                    LIVE
-                  </span>
+          <div className="flex-1 overflow-y-auto bg-canvas p-6 sm:p-8 lg:p-10 animate-in fade-in-50 duration-200">
+            <div className="max-w-6xl mx-auto space-y-8">
+              {/* Header & Capabilities Banner */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-line pb-6">
+                <div>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="w-2 h-2 rounded-full bg-signal animate-pulse" />
+                    <span className="text-[11px] font-mono font-bold tracking-wider uppercase text-signal">
+                      Autonomous Intelligence Engine
+                    </span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-signal-soft text-signal border border-signal/30 font-semibold">
+                      LIVE
+                    </span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-ink tracking-tight">Deep Intelligence Lab</h2>
+                  <p className="text-xs sm:text-sm text-ink-muted mt-1 max-w-2xl leading-relaxed">
+                    Deploy autonomous web research tasks, recursive domain crawlers, multi-URL content extractors, and real-time neural search directly into your community intelligence pipeline.
+                  </p>
                 </div>
-                <h2 className="text-xl font-bold text-ink tracking-tight">Deep Intelligence Lab</h2>
-                <p className="text-xs text-ink-muted mt-1 max-w-2xl">
-                  Deploy autonomous web research tasks, recursive domain crawlers, multi-URL content extractors, and real-time neural search directly into your community intelligence pipeline.
-                </p>
-              </div>
 
               {/* Sub-tab Navigation */}
               <div className="flex items-center gap-1.5 p-1 bg-surface border border-line rounded-lg overflow-x-auto">
@@ -3009,6 +3010,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                 )}
               </div>
             )}
+            </div>
           </div>
         )}
       </main>
