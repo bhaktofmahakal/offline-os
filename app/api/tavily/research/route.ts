@@ -94,22 +94,30 @@ export async function GET(request: Request) {
         }
       }
 
-      // Also persist to intelligence_records audit table
+      // Also persist to intelligence_records audit table (prevent duplicate inserts on polling)
       try {
-        await supabase.from('intelligence_records').insert([
-          {
-            record_type: 'deep_research',
-            title: `Deep Research: ${requestId}`,
-            query_or_url: requestId,
-            parameters: { personId: personId || null, sourcesCount: (resData.sources || []).length },
-            results_count: (resData.sources || []).length,
-            content: resData.content,
-            payload: { sources: resData.sources || [], subtopics: resData.subtopics || [] },
-            status: 'completed',
-            created_at: nowIso,
-            updated_at: nowIso,
-          },
-        ]);
+        const { data: existing } = await supabase
+          .from('intelligence_records')
+          .select('id')
+          .eq('query_or_url', requestId)
+          .maybeSingle();
+
+        if (!existing) {
+          await supabase.from('intelligence_records').insert([
+            {
+              record_type: 'deep_research',
+              title: `Deep Research: ${requestId}`,
+              query_or_url: requestId,
+              parameters: { personId: personId || null, sourcesCount: (resData.sources || []).length },
+              results_count: (resData.sources || []).length,
+              content: resData.content,
+              payload: { sources: resData.sources || [], subtopics: resData.subtopics || [] },
+              status: 'completed',
+              created_at: nowIso,
+              updated_at: nowIso,
+            },
+          ]);
+        }
       } catch (logErr) {
         // avoid failing response if duplicate
       }
