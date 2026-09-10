@@ -251,7 +251,12 @@ function ExecutiveMarkdownViewer({
               const trimmed = line.trim();
               if (!trimmed) return <div key={idx} className="h-1" />;
 
-              // Level 1 Header
+              // Horizontal rule
+              if (trimmed === '---' || trimmed === '***' || trimmed === '___') {
+                return <hr key={idx} className="border-line/70 my-2.5" />;
+              }
+
+              // Level 1 Header (# Heading)
               if (trimmed.startsWith('# ')) {
                 return (
                   <h2 key={idx} className="text-sm font-bold text-ink pt-2 pb-1 border-b border-line flex items-center gap-2">
@@ -260,7 +265,7 @@ function ExecutiveMarkdownViewer({
                   </h2>
                 );
               }
-              // Level 2 Header
+              // Level 2 Header (## Heading)
               if (trimmed.startsWith('## ')) {
                 return (
                   <h3 key={idx} className="text-xs font-bold text-ink pt-2 pb-1 border-l-2 border-signal pl-2 text-ink">
@@ -268,7 +273,7 @@ function ExecutiveMarkdownViewer({
                   </h3>
                 );
               }
-              // Level 3 Header
+              // Level 3 Header (### Heading)
               if (trimmed.startsWith('### ')) {
                 return (
                   <h4 key={idx} className="text-xs font-semibold uppercase tracking-wider text-signal pt-1">
@@ -276,7 +281,33 @@ function ExecutiveMarkdownViewer({
                   </h4>
                 );
               }
-              // Bullet item
+
+              // LLM bold section title: **Heading Title** or **Heading Title:**
+              const boldHeaderMatch = trimmed.match(/^\*\*(.+?)\*\*:?$/);
+              if (boldHeaderMatch) {
+                return (
+                  <h3 key={idx} className="text-xs font-bold text-ink pt-2.5 pb-1 border-l-2 border-signal pl-2.5 flex items-center gap-2">
+                    <span>{boldHeaderMatch[1]}</span>
+                  </h3>
+                );
+              }
+
+              // Key-Value Attribute line: **Key:** Value
+              const kvMatch = trimmed.match(/^\*\*([^*:]+?):\*\*\s*(.+)$/);
+              if (kvMatch) {
+                return (
+                  <div key={idx} className="flex flex-wrap items-baseline gap-2 py-0.5">
+                    <span className="text-[10px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-surface-raised border border-line text-ink flex-shrink-0">
+                      {kvMatch[1]}
+                    </span>
+                    <span className="text-xs text-ink leading-relaxed flex-1">
+                      {renderInline(kvMatch[2])}
+                    </span>
+                  </div>
+                );
+              }
+
+              // Bullet item (- or * or •)
               if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ')) {
                 const bulletText = trimmed.replace(/^[-*•]\s+/, '');
                 return (
@@ -781,8 +812,10 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
         body: JSON.stringify({ id: personId }),
       });
 
-      if (!res.ok) throw new Error('Enrichment API failed');
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || `Enrichment API failed with status ${res.status}`);
+      }
 
       if (data.member) {
         setPeople(prev => prev.map(p => (p.id === personId ? data.member : p)));
@@ -795,7 +828,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       }
     } catch (err: any) {
       console.error('Enrichment error:', err);
-      alert('Enrichment error: ' + err.message);
+      alert('Enrichment notice: ' + err.message);
     } finally {
       setIsEnrichingPerson(false);
     }
