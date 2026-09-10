@@ -48,6 +48,27 @@ export async function POST(request: Request) {
       console.warn('[TINYFISH NOTICE] Live search bypassed or timed out:', tfErr);
     }
 
+    // 2b. Tavily AI Search for Verified Funding, News & Tech Stack
+    try {
+      if (process.env.TAVILY_API_KEY) {
+        const { getTavilyClient } = await import('@/lib/tavily');
+        const tavilyClient = getTavilyClient();
+        const tvlyQuery = `${person.company || person.name} funding launch tech stack`.trim();
+        const tvlyRes = await tavilyClient.search(tvlyQuery, {
+          searchDepth: 'advanced',
+          maxResults: 2,
+        });
+        if (tvlyRes.results && tvlyRes.results.length > 0) {
+          const tavilySnippets = tvlyRes.results
+            .map((r: any) => `- [Tavily Verified] ${r.title}: ${r.content}`)
+            .join('\n');
+          liveWebEvidence += (liveWebEvidence ? '\n' : '') + tavilySnippets;
+        }
+      }
+    } catch (tvlyErr) {
+      console.warn('[TAVILY NOTICE] Live search bypassed:', tvlyErr);
+    }
+
     // 3. Generate 360° Dossier using Google GenAI REST API
     const apiKey = (process.env.GEMINI_API_KEY || '').trim();
     let dossier = {

@@ -86,7 +86,7 @@ export default function OfflineCRM() {
   const [people, setPeople] = useState<Person[]>([]);
   const [introductions, setIntroductions] = useState<Introduction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'people' | 'duplicates' | 'intros'>('people');
+  const [activeTab, setActiveTab] = useState<'people' | 'duplicates' | 'intros' | 'intelligence'>('people');
   const [searchQuery, setSearchQuery] = useState('');
 
   const [roleFilter, setRoleFilter] = useState('ALL');
@@ -153,6 +153,39 @@ export default function OfflineCRM() {
   const [airtableWebhooksList, setAirtableWebhooksList] = useState<any[]>([]);
   const [loadingWebhooks, setLoadingWebhooks] = useState(false);
   const [creatingWebhook, setCreatingWebhook] = useState(false);
+  
+  // Tavily Deep Intelligence Lab States
+  const [intelligenceSubTab, setIntelligenceSubTab] = useState<'research' | 'crawl' | 'extract' | 'search'>('research');
+  const [researchPrompt, setResearchPrompt] = useState('Competitor analysis and market landscape for AI coding agents in 2026');
+  const [researchModel, setResearchModel] = useState<'mini' | 'pro'>('mini');
+  const [researchStatus, setResearchStatus] = useState<'idle' | 'pending' | 'in_progress' | 'completed' | 'failed'>('idle');
+  const [researchReport, setResearchReport] = useState<string | null>(null);
+  const [researchSources, setResearchSources] = useState<Array<{ title: string; url: string }>>([]);
+  const [researchRequestId, setResearchRequestId] = useState<string | null>(null);
+  const [isResearching, setIsResearching] = useState(false);
+
+  // Crawl State
+  const [crawlInputUrl, setCrawlInputUrl] = useState('https://news.ycombinator.com');
+  const [crawlLimit, setCrawlLimit] = useState(10);
+  const [crawlExtractDepth, setCrawlExtractDepth] = useState<'basic' | 'advanced'>('advanced');
+  const [isCrawling, setIsCrawling] = useState(false);
+  const [crawlResults, setCrawlResults] = useState<Array<{ url: string; rawContent: string }>>([]);
+
+  // Extract State
+  const [extractUrlsInput, setExtractUrlsInput] = useState('https://example.com');
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [extractResults, setExtractResults] = useState<Array<{ url: string; rawContent: string }>>([]);
+
+  // Search State
+  const [tavilySearchInput, setTavilySearchInput] = useState('Generative AI robotics venture funding 2026');
+  const [tavilySearchDepth, setTavilySearchDepth] = useState<'basic' | 'advanced'>('advanced');
+  const [tavilySearchDomain, setTavilySearchDomain] = useState('');
+  const [isTavilySearching, setIsTavilySearching] = useState(false);
+  const [tavilySearchResults, setTavilySearchResults] = useState<any[]>([]);
+
+  // Drawer research state
+  const [drawerResearching, setDrawerResearching] = useState(false);
+  const [drawerResearchReport, setDrawerResearchReport] = useState<Record<number, { content: string; sources: any[] }>>({});
 
   const handleLoadSampleAirtableData = () => {
     const sample = `Name,Email,Company,Role,Bio
@@ -519,6 +552,178 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       alert('Error: ' + err.message);
     } finally {
       setIsPurgingLive(false);
+    }
+  };
+
+  // Tavily AI Core Suite Handlers
+  const handleRunTavilyResearch = async (overridePrompt?: string) => {
+    const promptToRun = overridePrompt || researchPrompt;
+    if (!promptToRun.trim()) {
+      alert('Please enter a research topic or question');
+      return;
+    }
+    setIsResearching(true);
+    setResearchStatus('pending');
+    setResearchReport(null);
+    setResearchSources([]);
+    try {
+      const res = await fetch('/api/tavily/research', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: promptToRun.trim(), model: researchModel }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.requestId) {
+        throw new Error(data.error || 'Failed to initiate deep research');
+      }
+      setResearchRequestId(data.requestId);
+      setResearchStatus('in_progress');
+
+      // Poll every 3 seconds
+      const pollInterval = setInterval(async () => {
+        try {
+          const pollRes = await fetch(`/api/tavily/research?requestId=${encodeURIComponent(data.requestId)}`);
+          const pollData = await pollRes.json();
+          if (pollData.status === 'completed') {
+            clearInterval(pollInterval);
+            setResearchStatus('completed');
+            setResearchReport(pollData.content || pollData.report || 'Research report compiled.');
+            setResearchSources(pollData.sources || []);
+            setIsResearching(false);
+          } else if (pollData.status === 'failed') {
+            clearInterval(pollInterval);
+            setResearchStatus('failed');
+            setIsResearching(false);
+            alert('Research task encountered an issue: ' + (pollData.error || 'Unknown error'));
+          }
+        } catch (pollErr) {
+          console.error('Research polling error:', pollErr);
+        }
+      }, 3000);
+    } catch (err: any) {
+      console.error('Research error:', err);
+      setResearchStatus('failed');
+      setIsResearching(false);
+      alert('Error initiating research: ' + err.message);
+    }
+  };
+
+  const handleRunTavilyCrawl = async () => {
+    if (!crawlInputUrl.trim()) {
+      alert('Please enter a website URL to crawl');
+      return;
+    }
+    setIsCrawling(true);
+    try {
+      const res = await fetch('/api/tavily/crawl', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: crawlInputUrl.trim(),
+          limit: crawlLimit,
+          extractDepth: crawlExtractDepth,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to crawl website');
+      setCrawlResults(data.results || []);
+    } catch (err: any) {
+      console.error('Crawl error:', err);
+      alert('Error crawling URL: ' + err.message);
+    } finally {
+      setIsCrawling(false);
+    }
+  };
+
+  const handleRunTavilyExtract = async () => {
+    if (!extractUrlsInput.trim()) {
+      alert('Please enter at least one URL to extract');
+      return;
+    }
+    const urls = extractUrlsInput.split('\n').map(u => u.trim()).filter(Boolean);
+    setIsExtracting(true);
+    try {
+      const res = await fetch('/api/tavily/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ urls }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to extract URLs');
+      setExtractResults(data.results || []);
+    } catch (err: any) {
+      console.error('Extract error:', err);
+      alert('Error extracting: ' + err.message);
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
+  const handleRunTavilySearch = async () => {
+    if (!tavilySearchInput.trim()) {
+      alert('Please enter a search query');
+      return;
+    }
+    setIsTavilySearching(true);
+    try {
+      const res = await fetch('/api/tavily/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: tavilySearchInput.trim(),
+          searchDepth: tavilySearchDepth,
+          includeDomains: tavilySearchDomain ? tavilySearchDomain.split(',').map(d => d.trim()).filter(Boolean) : undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to run Tavily search');
+      setTavilySearchResults(data.results || []);
+    } catch (err: any) {
+      console.error('Search error:', err);
+      alert('Error searching: ' + err.message);
+    } finally {
+      setIsTavilySearching(false);
+    }
+  };
+
+  const handleDrawerResearch = async (person: Person) => {
+    setDrawerResearching(true);
+    const query = `Comprehensive background, recent ventures, investments, market reputation, and executive dossier on ${person.name} (${person.role_title || 'Operator'} at ${person.company || 'Tech/Startup ecosystem'}). Bio: ${person.bio_notes || 'Leader'}`;
+    try {
+      const res = await fetch('/api/tavily/research', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: query, model: 'mini' }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.requestId) throw new Error(data.error || 'Failed to trigger drawer memo');
+
+      // Poll until complete
+      const interval = setInterval(async () => {
+        try {
+          const pollRes = await fetch(`/api/tavily/research?requestId=${encodeURIComponent(data.requestId)}`);
+          const pollData = await pollRes.json();
+          if (pollData.status === 'completed') {
+            clearInterval(interval);
+            setDrawerResearchReport(prev => ({
+              ...prev,
+              [person.id]: {
+                content: pollData.content || pollData.report || 'Research completed.',
+                sources: pollData.sources || [],
+              },
+            }));
+            setDrawerResearching(false);
+          } else if (pollData.status === 'failed') {
+            clearInterval(interval);
+            setDrawerResearching(false);
+          }
+        } catch {
+          // ignore
+        }
+      }, 3000);
+    } catch (err: any) {
+      alert('Deep research error: ' + err.message);
+      setDrawerResearching(false);
     }
   };
 
@@ -921,6 +1126,26 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
         </div>
         <span className="text-xs font-mono tabular-nums px-1.5 py-0.5 rounded bg-surface border border-line text-ink-muted">
           {introductions.length}
+        </span>
+      </button>
+
+      <button
+        onClick={() => {
+          setActiveTab('intelligence');
+          setIsMobileMenuOpen(false);
+        }}
+        className={`w-full min-h-[44px] flex items-center justify-between px-3 py-2 text-sm rounded transition-colors ${
+          activeTab === 'intelligence'
+            ? 'bg-signal-soft text-ink font-semibold border-l-2 border-signal'
+            : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
+        }`}
+      >
+        <div className="flex items-center gap-2.5">
+          <Globe className="w-4 h-4 text-signal" />
+          <span>Intelligence Lab</span>
+        </div>
+        <span className="text-[10px] uppercase tracking-wider font-mono font-bold px-1.5 py-0.5 rounded bg-signal/15 text-signal border border-signal/30">
+          TAVILY AI
         </span>
       </button>
     </div>
@@ -2020,6 +2245,509 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
             </div>
           </div>
         )}
+
+        {/* 2D. TAVILY DEEP INTELLIGENCE LAB */}
+        {activeTab === 'intelligence' && (
+          <div className="space-y-6 animate-in fade-in-50 duration-200">
+            {/* Header & Capabilities Banner */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-line pb-5">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="w-2 h-2 rounded-full bg-signal animate-pulse" />
+                  <span className="text-[11px] font-mono font-bold tracking-wider uppercase text-signal">
+                    Autonomous Intelligence Engine
+                  </span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-signal/15 text-signal border border-signal/30 font-semibold">
+                    @tavily/core v0.7+
+                  </span>
+                </div>
+                <h2 className="text-xl font-bold text-ink tracking-tight">Deep Intelligence Lab</h2>
+                <p className="text-xs text-ink-muted mt-1 max-w-2xl">
+                  Deploy autonomous web research tasks, recursive domain crawlers, multi-URL content extractors, and real-time neural search directly into your community intelligence pipeline.
+                </p>
+              </div>
+
+              {/* Sub-tab Navigation */}
+              <div className="flex items-center gap-1.5 p-1 bg-surface border border-line rounded-lg overflow-x-auto">
+                <button
+                  onClick={() => setIntelligenceSubTab('research')}
+                  className={`px-3 py-1.5 text-xs rounded font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap ${
+                    intelligenceSubTab === 'research'
+                      ? 'bg-signal text-surface font-semibold shadow-xs'
+                      : 'text-ink-muted hover:text-ink'
+                  }`}
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Deep Research</span>
+                </button>
+                <button
+                  onClick={() => setIntelligenceSubTab('crawl')}
+                  className={`px-3 py-1.5 text-xs rounded font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap ${
+                    intelligenceSubTab === 'crawl'
+                      ? 'bg-signal text-surface font-semibold shadow-xs'
+                      : 'text-ink-muted hover:text-ink'
+                  }`}
+                >
+                  <Globe className="w-3.5 h-3.5" />
+                  <span>Site Crawler</span>
+                </button>
+                <button
+                  onClick={() => setIntelligenceSubTab('extract')}
+                  className={`px-3 py-1.5 text-xs rounded font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap ${
+                    intelligenceSubTab === 'extract'
+                      ? 'bg-signal text-surface font-semibold shadow-xs'
+                      : 'text-ink-muted hover:text-ink'
+                  }`}
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>URL Extractor</span>
+                </button>
+                <button
+                  onClick={() => setIntelligenceSubTab('search')}
+                  className={`px-3 py-1.5 text-xs rounded font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap ${
+                    intelligenceSubTab === 'search'
+                      ? 'bg-signal text-surface font-semibold shadow-xs'
+                      : 'text-ink-muted hover:text-ink'
+                  }`}
+                >
+                  <Search className="w-3.5 h-3.5" />
+                  <span>Neural Search</span>
+                </button>
+              </div>
+            </div>
+
+            {/* SUBTAB 1: AUTONOMOUS DEEP RESEARCH */}
+            {intelligenceSubTab === 'research' && (
+              <div className="space-y-5 animate-in fade-in-50 duration-150">
+                {/* Research Input Card */}
+                <div className="bg-surface border border-line rounded-lg p-5 shadow-xs space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <h3 className="text-sm font-semibold text-ink flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-signal" />
+                        <span>Autonomous Deep Research Memo Generator</span>
+                      </h3>
+                      <p className="text-xs text-ink-muted mt-0.5">
+                        Tavily creates a multi-step query plan, executes comprehensive web searches, and compiles an exhaustive cited intelligence memo.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono text-ink-muted">Model:</span>
+                      <div className="flex items-center bg-surface-raised border border-line rounded p-0.5 text-xs">
+                        <button
+                          onClick={() => setResearchModel('mini')}
+                          className={`px-2.5 py-0.5 rounded font-mono transition-colors ${
+                            researchModel === 'mini' ? 'bg-signal text-surface font-semibold' : 'text-ink-muted hover:text-ink'
+                          }`}
+                        >
+                          mini (fast)
+                        </button>
+                        <button
+                          onClick={() => setResearchModel('pro')}
+                          className={`px-2.5 py-0.5 rounded font-mono transition-colors ${
+                            researchModel === 'pro' ? 'bg-signal text-surface font-semibold' : 'text-ink-muted hover:text-ink'
+                          }`}
+                        >
+                          pro (deep)
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <textarea
+                      rows={3}
+                      value={researchPrompt}
+                      onChange={e => setResearchPrompt(e.target.value)}
+                      placeholder="Enter a research question, target domain, company competitive analysis, or thesis..."
+                      className="w-full p-3 text-sm bg-surface-raised border border-line rounded-lg text-ink focus:outline-none focus:ring-1 focus:ring-signal leading-relaxed font-sans"
+                    />
+
+                    {/* Quick suggestion chips */}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[11px] font-mono text-ink-faint">Suggestions:</span>
+                      {[
+                        'AI Coding Agents & Autonomous Software in 2026',
+                        'Top AI Founders & Builders in Bangalore India',
+                        'Creatr DeepBuild Competitive Strategy & Enterprise Landscape',
+                        'Decoupling B2B CRM Architecture with Autonomous Scraping',
+                      ].map((chip, cIdx) => (
+                        <button
+                          key={cIdx}
+                          onClick={() => setResearchPrompt(chip)}
+                          className="px-2 py-0.5 rounded text-[11px] bg-surface-raised border border-line hover:border-signal/50 text-ink-muted hover:text-ink transition-colors"
+                        >
+                          {chip}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-line">
+                    <div className="text-xs font-mono text-ink-muted">
+                      Status: <strong className="text-ink uppercase">{researchStatus}</strong>
+                      {researchRequestId && (
+                        <span className="ml-2 text-ink-faint">({researchRequestId})</span>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={() => handleRunTavilyResearch()}
+                      disabled={isResearching}
+                      className="px-4 py-2 bg-signal text-surface rounded-lg text-xs font-semibold hover:bg-signal/90 flex items-center gap-2 shadow-sm disabled:opacity-50 transition-all cursor-pointer"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${isResearching ? 'animate-spin' : ''}`} />
+                      <span>{isResearching ? 'Synthesizing Intelligence...' : '🚀 Execute Deep Research'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Polling / Loading Indicator */}
+                {isResearching && (
+                  <div className="bg-signal-soft/20 border border-signal/30 rounded-lg p-5 text-center space-y-3 animate-in fade-in-50">
+                    <div className="w-8 h-8 rounded-full border-2 border-signal border-t-transparent animate-spin mx-auto" />
+                    <div>
+                      <div className="text-sm font-semibold text-ink">
+                        Autonomous Research in Progress...
+                      </div>
+                      <p className="text-xs text-ink-muted mt-1 max-w-md mx-auto">
+                        Tavily agent is executing real-time web searches, traversing primary sources, extracting full text, and synthesizing an executive report. (Typically takes 10-25 seconds).
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Research Output Memo */}
+                {researchReport && (
+                  <div className="bg-surface border border-line rounded-lg p-6 shadow-sm space-y-5 animate-in fade-in-50">
+                    <div className="flex items-center justify-between border-b border-line pb-4">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-signal text-surface font-semibold">
+                          SYNTHESIZED REPORT
+                        </span>
+                        <span className="text-xs font-mono text-ink-muted">
+                          {new Date().toLocaleTimeString()}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => copyToClipboard(researchReport, 99999)}
+                        className="px-3 py-1 text-xs bg-surface-raised border border-line hover:border-signal/50 text-ink rounded flex items-center gap-1.5 transition-colors"
+                      >
+                        {copiedIntroId === 99999 ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-signal" />
+                            <span>Copied Report</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5 text-ink-muted" />
+                            <span>Copy Markdown</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Cited Sources List */}
+                    {researchSources && researchSources.length > 0 && (
+                      <div className="p-3 bg-surface-raised border border-line rounded-lg space-y-2">
+                        <span className="text-[11px] font-mono uppercase text-signal font-semibold block">
+                          Verified Primary Sources Cited ({researchSources.length})
+                        </span>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                          {researchSources.map((src, sIdx) => (
+                            <a
+                              key={sIdx}
+                              href={src.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-2 bg-surface border border-line hover:border-signal/50 rounded flex items-center justify-between gap-2 text-ink hover:text-signal transition-colors group truncate"
+                            >
+                              <span className="truncate font-medium">{src.title || src.url}</span>
+                              <ExternalLink className="w-3 h-3 text-ink-muted group-hover:text-signal flex-shrink-0" />
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Markdown Body */}
+                    <div className="prose dark:prose-invert max-w-none text-xs text-ink leading-relaxed font-sans whitespace-pre-wrap p-4 bg-surface-raised rounded-lg border border-line font-mono overflow-x-auto">
+                      {researchReport}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* SUBTAB 2: RECURSIVE SITE CRAWLER & MAPPER */}
+            {intelligenceSubTab === 'crawl' && (
+              <div className="space-y-5 animate-in fade-in-50 duration-150">
+                <div className="bg-surface border border-line rounded-lg p-5 shadow-xs space-y-4">
+                  <div>
+                    <h3 className="text-sm font-semibold text-ink flex items-center gap-2">
+                      <Globe className="w-4 h-4 text-signal" />
+                      <span>Recursive Site Crawler & Schema Mapper</span>
+                    </h3>
+                    <p className="text-xs text-ink-muted mt-0.5">
+                      Crawl any website recursively, discover sub-paths, and extract full-fidelity LLM-ready markdown.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="md:col-span-2">
+                      <label className="text-[11px] font-mono text-ink-muted block mb-1">Target Website URL</label>
+                      <input
+                        type="url"
+                        value={crawlInputUrl}
+                        onChange={e => setCrawlInputUrl(e.target.value)}
+                        placeholder="https://example.com"
+                        className="w-full h-9 px-3 text-xs bg-surface-raised border border-line rounded text-ink font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-mono text-ink-muted block mb-1">Page Limit (Max: 50)</label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={50}
+                        value={crawlLimit}
+                        onChange={e => setCrawlLimit(Number(e.target.value))}
+                        className="w-full h-9 px-3 text-xs bg-surface-raised border border-line rounded text-ink font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-line">
+                    <div className="flex items-center gap-2 text-xs font-mono text-ink-muted">
+                      <span>Extract Depth:</span>
+                      <button
+                        onClick={() => setCrawlExtractDepth('basic')}
+                        className={`px-2 py-0.5 rounded text-[11px] ${crawlExtractDepth === 'basic' ? 'bg-signal text-surface' : 'bg-surface-raised text-ink-muted'}`}
+                      >
+                        basic
+                      </button>
+                      <button
+                        onClick={() => setCrawlExtractDepth('advanced')}
+                        className={`px-2 py-0.5 rounded text-[11px] ${crawlExtractDepth === 'advanced' ? 'bg-signal text-surface' : 'bg-surface-raised text-ink-muted'}`}
+                      >
+                        advanced (markdown)
+                      </button>
+                    </div>
+
+                    <button
+                      onClick={handleRunTavilyCrawl}
+                      disabled={isCrawling}
+                      className="px-4 py-2 bg-signal text-surface rounded-lg text-xs font-semibold hover:bg-signal/90 flex items-center gap-2 shadow-sm disabled:opacity-50 transition-all cursor-pointer"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${isCrawling ? 'animate-spin' : ''}`} />
+                      <span>{isCrawling ? 'Crawling Domain...' : '🕷️ Execute Domain Crawl'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Crawl Results */}
+                {crawlResults.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="text-xs font-mono text-ink-muted">
+                      Crawled <strong className="text-ink">{crawlResults.length}</strong> pages successfully:
+                    </div>
+                    <div className="space-y-3">
+                      {crawlResults.map((item, idx) => (
+                        <div key={idx} className="bg-surface border border-line rounded-lg p-4 space-y-2">
+                          <div className="flex items-center justify-between gap-2 border-b border-line pb-2">
+                            <a
+                              href={item.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs font-mono text-signal hover:underline flex items-center gap-1.5 truncate"
+                            >
+                              <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                              <span className="truncate">{item.url}</span>
+                            </a>
+                            <span className="text-[10px] font-mono text-ink-muted">
+                              {(item.rawContent || '').length} characters
+                            </span>
+                          </div>
+                          <div className="p-3 bg-surface-raised rounded text-[11px] font-mono text-ink-muted max-h-32 overflow-y-auto whitespace-pre-wrap">
+                            {item.rawContent?.slice(0, 500)}...
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* SUBTAB 3: MULTI-URL CONTENT EXTRACTOR */}
+            {intelligenceSubTab === 'extract' && (
+              <div className="space-y-5 animate-in fade-in-50 duration-150">
+                <div className="bg-surface border border-line rounded-lg p-5 shadow-xs space-y-4">
+                  <div>
+                    <h3 className="text-sm font-semibold text-ink flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-signal" />
+                      <span>Multi-URL Clean Markdown Extractor</span>
+                    </h3>
+                    <p className="text-xs text-ink-muted mt-0.5">
+                      Batch extract clean, structured LLM-ready markdown from up to 20 URLs in parallel.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-mono text-ink-muted block mb-1">Target URLs (One per line)</label>
+                    <textarea
+                      rows={4}
+                      value={extractUrlsInput}
+                      onChange={e => setExtractUrlsInput(e.target.value)}
+                      placeholder="https://news.ycombinator.com&#10;https://github.com/bhaktofmahakal/offline-os"
+                      className="w-full p-3 text-xs bg-surface-raised border border-line rounded font-mono text-ink"
+                    />
+                  </div>
+
+                  <div className="flex justify-end pt-2 border-t border-line">
+                    <button
+                      onClick={handleRunTavilyExtract}
+                      disabled={isExtracting}
+                      className="px-4 py-2 bg-signal text-surface rounded-lg text-xs font-semibold hover:bg-signal/90 flex items-center gap-2 shadow-sm disabled:opacity-50 transition-all cursor-pointer"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${isExtracting ? 'animate-spin' : ''}`} />
+                      <span>{isExtracting ? 'Extracting Content...' : '📄 Run Content Extraction'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Extract Results */}
+                {extractResults.length > 0 && (
+                  <div className="space-y-4">
+                    {extractResults.map((item, idx) => (
+                      <div key={idx} className="bg-surface border border-line rounded-lg p-4 space-y-3">
+                        <div className="flex items-center justify-between border-b border-line pb-2">
+                          <span className="text-xs font-mono font-semibold text-signal truncate">{item.url}</span>
+                          <button
+                            onClick={() => copyToClipboard(item.rawContent, 88880 + idx)}
+                            className="text-xs text-ink-muted hover:text-ink flex items-center gap-1"
+                          >
+                            <Copy className="w-3 h-3" /> Copy
+                          </button>
+                        </div>
+                        <div className="p-3 bg-surface-raised rounded text-[11px] font-mono text-ink max-h-48 overflow-y-auto whitespace-pre-wrap">
+                          {item.rawContent}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* SUBTAB 4: NEURAL WEB SEARCH */}
+            {intelligenceSubTab === 'search' && (
+              <div className="space-y-5 animate-in fade-in-50 duration-150">
+                <div className="bg-surface border border-line rounded-lg p-5 shadow-xs space-y-4">
+                  <div>
+                    <h3 className="text-sm font-semibold text-ink flex items-center gap-2">
+                      <Search className="w-4 h-4 text-signal" />
+                      <span>Neural Web Search Engine</span>
+                    </h3>
+                    <p className="text-xs text-ink-muted mt-0.5">
+                      Fast, semantic web search tailored specifically for LLMs and autonomous agents.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="md:col-span-2">
+                      <label className="text-[11px] font-mono text-ink-muted block mb-1">Search Query</label>
+                      <input
+                        type="text"
+                        value={tavilySearchInput}
+                        onChange={e => setTavilySearchInput(e.target.value)}
+                        placeholder="Search for companies, founders, breakthroughs..."
+                        className="w-full h-9 px-3 text-xs bg-surface-raised border border-line rounded text-ink"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-mono text-ink-muted block mb-1">Domain Filter (Optional, comma-separated)</label>
+                      <input
+                        type="text"
+                        value={tavilySearchDomain}
+                        onChange={e => setTavilySearchDomain(e.target.value)}
+                        placeholder="techcrunch.com, ycombinator.com"
+                        className="w-full h-9 px-3 text-xs bg-surface-raised border border-line rounded text-ink font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-line">
+                    <div className="flex items-center gap-2 text-xs font-mono text-ink-muted">
+                      <span>Search Depth:</span>
+                      <button
+                        onClick={() => setTavilySearchDepth('basic')}
+                        className={`px-2 py-0.5 rounded text-[11px] ${tavilySearchDepth === 'basic' ? 'bg-signal text-surface' : 'bg-surface-raised text-ink-muted'}`}
+                      >
+                        basic
+                      </button>
+                      <button
+                        onClick={() => setTavilySearchDepth('advanced')}
+                        className={`px-2 py-0.5 rounded text-[11px] ${tavilySearchDepth === 'advanced' ? 'bg-signal text-surface' : 'bg-surface-raised text-ink-muted'}`}
+                      >
+                        advanced
+                      </button>
+                    </div>
+
+                    <button
+                      onClick={handleRunTavilySearch}
+                      disabled={isTavilySearching}
+                      className="px-4 py-2 bg-signal text-surface rounded-lg text-xs font-semibold hover:bg-signal/90 flex items-center gap-2 shadow-sm disabled:opacity-50 transition-all cursor-pointer"
+                    >
+                      <Search className="w-3.5 h-3.5" />
+                      <span>{isTavilySearching ? 'Searching...' : '⚡ Run Search'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Search Results */}
+                {tavilySearchResults.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="text-xs font-mono text-ink-muted">
+                      Found <strong className="text-ink">{tavilySearchResults.length}</strong> verified web results:
+                    </div>
+                    <div className="space-y-3">
+                      {tavilySearchResults.map((result, idx) => (
+                        <div key={idx} className="bg-surface border border-line rounded-lg p-4 space-y-2 hover:border-signal/40 transition-colors">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <a
+                                href={result.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm font-semibold text-ink hover:text-signal transition-colors flex items-center gap-1.5"
+                              >
+                                <span>{result.title}</span>
+                                <ExternalLink className="w-3 h-3 flex-shrink-0 text-ink-muted" />
+                              </a>
+                              <div className="text-[11px] font-mono text-ink-muted mt-0.5 truncate">
+                                {result.url}
+                              </div>
+                            </div>
+                            {result.score && (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-signal-soft text-signal border border-signal/20 font-semibold flex-shrink-0">
+                                {Math.round(result.score * 100)}% match
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-ink-muted leading-relaxed">
+                            {result.content}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </main>
 
       {/* 3. DETAIL DRAWER (With Real-Time CRUD: Edit & Delete Member) */}
@@ -2272,6 +3000,56 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                         <span>Click to scrape GitHub, funding signals & synthesize dossier.</span>
                         <span className="font-mono text-[10px] text-signal font-semibold">Tavily • Firecrawl • Gemini</span>
                       </div>
+                    )}
+                  </div>
+
+                  {/* Tavily Autonomous Deep Memo Card */}
+                  <div className="p-3.5 bg-surface-raised border border-line rounded-lg space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 font-mono text-[11px] font-semibold text-signal uppercase">
+                        <Globe className="w-3.5 h-3.5" />
+                        <span>Tavily Deep Intel Memo</span>
+                      </div>
+                      <button
+                        onClick={() => handleDrawerResearch(selectedPerson)}
+                        disabled={drawerResearching}
+                        className="px-2 py-1 bg-surface border border-signal/40 text-signal hover:bg-signal-soft text-[10px] font-mono font-semibold rounded flex items-center gap-1 disabled:opacity-50 transition-colors shadow-xs cursor-pointer"
+                        title="Generate autonomous executive research report using Tavily Research endpoint"
+                      >
+                        <RefreshCw className={`w-3 h-3 ${drawerResearching ? 'animate-spin' : ''}`} />
+                        <span>{drawerResearching ? 'Synthesizing Memo...' : '🔬 Run Deep Memo'}</span>
+                      </button>
+                    </div>
+
+                    {drawerResearchReport[selectedPerson.id] ? (
+                      <div className="space-y-2 pt-1 text-xs animate-in fade-in-50 duration-200">
+                        <div className="p-2.5 bg-surface rounded border border-line text-[11px] text-ink leading-relaxed max-h-48 overflow-y-auto font-mono whitespace-pre-wrap">
+                          {drawerResearchReport[selectedPerson.id].content}
+                        </div>
+                        {drawerResearchReport[selectedPerson.id].sources?.length > 0 && (
+                          <div className="text-[10px] space-y-1">
+                            <span className="font-mono text-ink-muted uppercase block">Sources Cited:</span>
+                            <div className="space-y-0.5 max-h-24 overflow-y-auto">
+                              {drawerResearchReport[selectedPerson.id].sources.map((src, sIdx) => (
+                                <a
+                                  key={sIdx}
+                                  href={src.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-signal hover:underline flex items-center gap-1 truncate"
+                                >
+                                  <ExternalLink className="w-2.5 h-2.5 flex-shrink-0" />
+                                  <span className="truncate">{src.title || src.url}</span>
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-[11px] text-ink-muted italic">
+                        Generate an autonomous deep research memo on {selectedPerson.name} and their market footprint.
+                      </p>
                     )}
                   </div>
 
