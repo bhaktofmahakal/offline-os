@@ -2281,8 +2281,8 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                       {/* Side-by-side Diff (Responsive Grid: 1 col on mobile, 2 col on md+) */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Left: Canonical */}
-                        <div className="p-3.5 bg-signal-soft/20 border border-signal/20 rounded">
-                          <div className="text-[11px] font-mono font-semibold text-signal uppercase mb-2 flex items-center justify-between">
+                        <div className="p-4 bg-signal-soft/20 border border-signal/30 rounded-xl space-y-2">
+                          <div className="text-[11px] font-mono font-semibold text-signal uppercase flex items-center justify-between">
                             <span>Canonical Record (Primary)</span>
                             <span>#{canonical?.id || '—'}</span>
                           </div>
@@ -2306,8 +2306,8 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                         </div>
 
                         {/* Right: Duplicate Candidate */}
-                        <div className="p-3.5 bg-warning-soft/20 border border-warning/30 rounded">
-                          <div className="text-[11px] font-mono font-semibold text-warning uppercase mb-2 flex items-center justify-between">
+                        <div className="p-4 bg-warning-soft/20 border border-warning/30 rounded-xl space-y-2">
+                          <div className="text-[11px] font-mono font-semibold text-warning uppercase flex items-center justify-between">
                             <span>Duplicate Record (Candidate)</span>
                             <span>#{duplicate.id}</span>
                           </div>
@@ -2457,7 +2457,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
                     {/* Member A & Member B Cards (Responsive Grid: 1 col on mobile, 2 col on sm+) */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                      <div className="p-3 bg-surface-raised border border-line rounded">
+                      <div className="p-3.5 bg-surface-raised border border-line/80 rounded-xl space-y-1">
                         <div className="text-[11px] font-mono text-ink-faint uppercase">Member A</div>
                         <div className="font-semibold text-sm text-ink">{intro.person_a.name}</div>
                         <div className="text-xs text-ink-muted">
@@ -2465,7 +2465,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                         </div>
                       </div>
 
-                      <div className="p-3 bg-surface-raised border border-line rounded">
+                      <div className="p-3.5 bg-surface-raised border border-line/80 rounded-xl space-y-1">
                         <div className="text-[11px] font-mono text-ink-faint uppercase">Member B</div>
                         <div className="font-semibold text-sm text-ink">{intro.person_b.name}</div>
                         <div className="text-xs text-ink-muted">
@@ -2475,7 +2475,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                     </div>
 
                     {/* Suggested Icebreaker Draft */}
-                    <div className="p-3 bg-surface-muted/60 border-l-2 border-copper rounded-r space-y-1">
+                    <div className="p-4 bg-surface-muted/60 border-l-2 border-copper rounded-r-xl space-y-1.5">
                       <div className="flex items-center justify-between text-[11px] font-mono text-copper font-semibold">
                         <span>Suggested Intro Draft:</span>
                         <button
@@ -3514,14 +3514,14 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
             {/* Modal Body: Side-by-side verification */}
             <div className="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs">
-              <div className="p-3 bg-surface-raised border border-line rounded text-ink leading-relaxed">
+              <div className="p-3.5 bg-surface-raised border border-line/80 rounded-xl text-ink leading-relaxed">
                 You are about to merge <strong>Duplicate #{candidateToMerge.duplicate.id}</strong> ({candidateToMerge.duplicate.name}) into <strong>Canonical Primary #{candidateToMerge.canonical.id}</strong> ({candidateToMerge.canonical.name}).
                 All relationship mappings and intros will consolidate to the Canonical profile.
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Canonical Preview */}
-                <div className="p-3.5 bg-signal-soft/20 border border-signal/30 rounded space-y-2">
+                <div className="p-4 bg-signal-soft/20 border border-signal/30 rounded-xl space-y-2">
                   <div className="text-[11px] font-mono font-semibold text-signal uppercase flex items-center justify-between">
                     <span>Canonical Primary (Preserved)</span>
                     <span>#{candidateToMerge.canonical.id}</span>
@@ -3535,7 +3535,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                 </div>
 
                 {/* Duplicate Preview */}
-                <div className="p-3.5 bg-warning-soft/20 border border-warning/30 rounded space-y-2">
+                <div className="p-4 bg-warning-soft/20 border border-warning/30 rounded-xl space-y-2">
                   <div className="text-[11px] font-mono font-semibold text-warning uppercase flex items-center justify-between">
                     <span>Duplicate Candidate (Merged)</span>
                     <span>#{candidateToMerge.duplicate.id}</span>
