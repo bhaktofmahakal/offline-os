@@ -43,5 +43,17 @@ DEMO_VIDEO_SCRIPT_AND_ROADMAP.md
 docs/
 scripts/
 
+# Screenshots & Media (Never push to GitHub)
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.mp4
+*.mov
+*.webm
+screenshots/
+
 .DS_Store
 Thumbs.db
+

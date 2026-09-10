@@ -290,7 +290,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
     setImportProgress({
       current: 0,
       total: parsed.length,
-      logs: [`🚀 Initializing ingestion pipeline for ${parsed.length} Airtable records...`],
+      logs: [`[INIT] Initializing ingestion pipeline for ${parsed.length} Airtable records...`],
     });
 
     for (let idx = 0; idx < parsed.length; idx++) {
@@ -328,10 +328,10 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
         const data = await res.json();
         let resultSummary = '';
         if (data.is_duplicate || data.duplicate_detected) {
-          resultSummary = `⚠️ Flagged duplicate (${Math.round((data.confidence || 0.95) * 100)}% match)`;
+          resultSummary = `[FLAGGED] Duplicate record (${Math.round((data.confidence || 0.95) * 100)}% match)`;
         } else {
           const rec = data.record || data;
-          resultSummary = `✨ Saved! Fit: ${rec.fit_score || 80}/100 | ${rec.role_type || 'member'} | ${(rec.sector_tags || []).join(', ') || 'general'}`;
+          resultSummary = `[SAVED] Fit: ${rec.fit_score || 80}/100 | ${rec.role_type || 'member'} | ${(rec.sector_tags || []).join(', ') || 'general'}`;
         }
 
         setImportProgress(prev => ({
@@ -342,14 +342,14 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
         setImportProgress(prev => ({
           ...prev,
           current: idx + 1,
-          logs: [...prev.logs, `[${idx + 1}/${parsed.length}] ❌ Error processing ${row.name}: ${err.message}`],
+          logs: [...prev.logs, `[${idx + 1}/${parsed.length}] [ERROR] Failed to process ${row.name}: ${err.message}`],
         }));
       }
     }
 
     setImportProgress(prev => ({
       ...prev,
-      logs: [...prev.logs, '🎉 Batch processing complete! Refreshing live console...'],
+      logs: [...prev.logs, '[COMPLETE] Batch processing complete! Refreshing live console...'],
     }));
 
     await fetchData();
@@ -406,7 +406,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to create webhook');
-      alert(`✅ Webhook registered successfully!\nID: ${data.webhook?.id}\nExpires in 7 days.`);
+      alert(`Webhook registered successfully!\nID: ${data.webhook?.id}\nExpires in 7 days.`);
       await fetchAirtableWebhooks(airtableBaseId.trim());
     } catch (err: any) {
       alert('Webhook Registration Error: ' + err.message);
@@ -480,9 +480,9 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       current: 0,
       total: 100,
       logs: [
-        `🚀 Connecting to Airtable Base [${airtableBaseId}] Table [${airtableTableName}]...`,
-        '🔑 Authenticating using official Airtable Personal Access Token (PAT)...',
-        '⏳ Fetching paginated records with cursor pagination...'
+        `[CONNECT] Connecting to Airtable Base [${airtableBaseId}] Table [${airtableTableName}]...`,
+        '[AUTH] Authenticating using official Airtable Personal Access Token (PAT)...',
+        '[FETCH] Fetching paginated records with cursor pagination...'
       ],
     });
 
@@ -503,17 +503,17 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       }
 
       const syncLogs = [
-        `✅ Airtable Sync Completed!`,
-        `📊 Total rows retrieved: ${data.total_fetched || 0}`,
-        `📥 Ingested into Supabase: ${data.new_ingested || 0} new member profiles`,
-        `🔍 Duplicates identified & deduplicated: ${data.duplicates_detected || 0}`,
+        `[COMPLETE] Airtable Sync Completed`,
+        `[TOTAL] Total rows retrieved: ${data.total_fetched || 0}`,
+        `[INGESTED] Ingested into Supabase: ${data.new_ingested || 0} new member profiles`,
+        `[DEDUP] Duplicates identified & deduplicated: ${data.duplicates_detected || 0}`,
       ];
 
       if (data.auto_enriched && data.auto_enriched > 0) {
-        syncLogs.push(`⚡ Autonomous 360° AI enrichment triggered for ${data.auto_enriched} records`);
+        syncLogs.push(`[ENRICH] Autonomous profile enrichment triggered for ${data.auto_enriched} records`);
       }
 
-      syncLogs.push('🎉 Sync complete! Live dashboard refreshed.');
+      syncLogs.push('[SUCCESS] Sync complete! Live dashboard refreshed.');
 
       setImportProgress({
         current: 100,
@@ -525,7 +525,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
     } catch (err: any) {
       setImportProgress(prev => ({
         ...prev,
-        logs: [...prev.logs, `❌ Error during Airtable sync: ${err.message}`],
+        logs: [...prev.logs, `[ERROR] Error during Airtable sync: ${err.message}`],
       }));
     } finally {
       setImporting(false);
@@ -1101,17 +1101,20 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
           setActiveTab('people');
           setIsMobileMenuOpen(false);
         }}
-        className={`w-full min-h-[44px] flex items-center justify-between px-3 py-2.5 text-sm rounded-lg transition-all ${
+        className={`w-full min-h-[42px] flex items-center justify-between pl-3.5 pr-2.5 py-2 text-sm rounded-lg transition-all relative ${
           activeTab === 'people'
-            ? 'bg-surface-raised text-ink font-semibold border-l-[3.5px] border-[#E05A47] shadow-xs'
+            ? 'bg-surface-raised text-ink font-semibold shadow-xs'
             : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
         }`}
       >
-        <div className="flex items-center gap-2.5">
-          <BookOpen className={`w-4 h-4 ${activeTab === 'people' ? 'text-[#E05A47]' : 'text-ink-muted'}`} />
-          <span>Members Directory</span>
+        {activeTab === 'people' && (
+          <span className="absolute left-0 top-2 bottom-2 w-1 bg-[#E05A47] rounded-r-full" />
+        )}
+        <div className="flex items-center gap-2.5 min-w-0">
+          <BookOpen className={`w-4 h-4 shrink-0 ${activeTab === 'people' ? 'text-[#E05A47]' : 'text-ink-muted'}`} />
+          <span className="truncate whitespace-nowrap">Members Directory</span>
         </div>
-        <span className="text-xs font-mono tabular-nums px-2 py-0.5 rounded bg-surface border border-line text-ink-muted">
+        <span className="text-xs font-mono tabular-nums px-2 py-0.5 rounded bg-surface border border-line text-ink-muted shrink-0 ml-2">
           {activePeople.length}
         </span>
       </button>
@@ -1121,18 +1124,21 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
           setActiveTab('duplicates');
           setIsMobileMenuOpen(false);
         }}
-        className={`w-full min-h-[44px] flex items-center justify-between px-3 py-2.5 text-sm rounded-lg transition-all ${
+        className={`w-full min-h-[42px] flex items-center justify-between pl-3.5 pr-2.5 py-2 text-sm rounded-lg transition-all relative ${
           activeTab === 'duplicates'
-            ? 'bg-surface-raised text-ink font-semibold border-l-[3.5px] border-[#E05A47] shadow-xs'
+            ? 'bg-surface-raised text-ink font-semibold shadow-xs'
             : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
         }`}
       >
-        <div className="flex items-center gap-2.5">
-          <Code2 className={`w-4 h-4 ${activeTab === 'duplicates' ? 'text-[#E05A47]' : 'text-warning'}`} />
-          <span>Duplicates Queue</span>
+        {activeTab === 'duplicates' && (
+          <span className="absolute left-0 top-2 bottom-2 w-1 bg-[#E05A47] rounded-r-full" />
+        )}
+        <div className="flex items-center gap-2.5 min-w-0">
+          <Code2 className={`w-4 h-4 shrink-0 ${activeTab === 'duplicates' ? 'text-[#E05A47]' : 'text-warning'}`} />
+          <span className="truncate whitespace-nowrap">Duplicates Queue</span>
         </div>
         {metrics.duplicates > 0 && (
-          <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-warning-soft text-warning border border-warning/30">
+          <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-warning-soft text-warning border border-warning/30 shrink-0 ml-2">
             {metrics.duplicates}
           </span>
         )}
@@ -1143,17 +1149,20 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
           setActiveTab('intros');
           setIsMobileMenuOpen(false);
         }}
-        className={`w-full min-h-[44px] flex items-center justify-between px-3 py-2.5 text-sm rounded-lg transition-all ${
+        className={`w-full min-h-[42px] flex items-center justify-between pl-3.5 pr-2.5 py-2 text-sm rounded-lg transition-all relative ${
           activeTab === 'intros'
-            ? 'bg-surface-raised text-ink font-semibold border-l-[3.5px] border-[#E05A47] shadow-xs'
+            ? 'bg-surface-raised text-ink font-semibold shadow-xs'
             : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
         }`}
       >
-        <div className="flex items-center gap-2.5">
-          <MessageSquare className={`w-4 h-4 ${activeTab === 'intros' ? 'text-[#E05A47]' : 'text-copper'}`} />
-          <span>Introductions</span>
+        {activeTab === 'intros' && (
+          <span className="absolute left-0 top-2 bottom-2 w-1 bg-[#E05A47] rounded-r-full" />
+        )}
+        <div className="flex items-center gap-2.5 min-w-0">
+          <MessageSquare className={`w-4 h-4 shrink-0 ${activeTab === 'intros' ? 'text-[#E05A47]' : 'text-copper'}`} />
+          <span className="truncate whitespace-nowrap">Introductions</span>
         </div>
-        <span className="text-xs font-mono tabular-nums px-2 py-0.5 rounded bg-surface border border-line text-ink-muted">
+        <span className="text-xs font-mono tabular-nums px-2 py-0.5 rounded bg-surface border border-line text-ink-muted shrink-0 ml-2">
           {introductions.length}
         </span>
       </button>
@@ -1163,18 +1172,21 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
           setActiveTab('intelligence');
           setIsMobileMenuOpen(false);
         }}
-        className={`w-full min-h-[44px] flex items-center justify-between px-3 py-2.5 text-sm rounded-lg transition-all ${
+        className={`w-full min-h-[42px] flex items-center justify-between pl-3.5 pr-2.5 py-2 text-sm rounded-lg transition-all relative ${
           activeTab === 'intelligence'
-            ? 'bg-surface-raised text-ink font-semibold border-l-[3.5px] border-[#E05A47] shadow-xs'
+            ? 'bg-surface-raised text-ink font-semibold shadow-xs'
             : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
         }`}
       >
-        <div className="flex items-center gap-2.5">
-          <Compass className={`w-4 h-4 ${activeTab === 'intelligence' ? 'text-[#E05A47]' : 'text-signal'}`} />
-          <span>Intelligence Lab</span>
+        {activeTab === 'intelligence' && (
+          <span className="absolute left-0 top-2 bottom-2 w-1 bg-[#E05A47] rounded-r-full" />
+        )}
+        <div className="flex items-center gap-2.5 min-w-0">
+          <Compass className={`w-4 h-4 shrink-0 ${activeTab === 'intelligence' ? 'text-[#E05A47]' : 'text-signal'}`} />
+          <span className="truncate whitespace-nowrap">Intelligence Lab</span>
         </div>
-        <span className="text-[10px] uppercase tracking-wider font-mono font-bold px-1.5 py-0.5 rounded bg-signal/15 text-signal border border-signal/30">
-          AI ENGINE
+        <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-signal-soft text-signal border border-signal/20 shrink-0 ml-2">
+          AI LAB
         </span>
       </button>
     </div>
@@ -1305,32 +1317,8 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
             {/* 4. Subtle Divider Line (Image 2) */}
             <div className="w-8 h-[1px] bg-line/70 my-1" />
 
-            {/* 5. Nav Icons Rail (Image 2) */}
-            {/* Introductions Tab (Chat Bubble - Active in Reference Screenshot) */}
-            <button
-              onClick={() => setActiveTab('intros')}
-              className="relative w-full py-1 flex items-center justify-center group transition-colors"
-              title={`Introductions (${introductions.length})`}
-              aria-label="Introductions"
-            >
-              {activeTab === 'intros' && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3.5px] h-6 bg-[#E05A47] rounded-r" />
-              )}
-              <div
-                className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
-                  activeTab === 'intros'
-                    ? 'bg-surface-raised border border-line/60 text-ink shadow-xs'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface-muted/70'
-                }`}
-              >
-                <MessageSquare className={`w-5 h-5 ${activeTab === 'intros' ? 'text-ink' : 'text-ink-muted'}`} />
-              </div>
-              <span className="pointer-events-none absolute left-full ml-3 px-2 py-1 rounded bg-ink text-surface text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-md">
-                Introductions ({introductions.length})
-              </span>
-            </button>
-
-            {/* Members Directory Tab (Open Book) */}
+            {/* 5. Nav Icons Rail */}
+            {/* 1. Members Directory Tab (Open Book) */}
             <button
               onClick={() => setActiveTab('people')}
               className="relative w-full py-1 flex items-center justify-center group transition-colors"
@@ -1338,7 +1326,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
               aria-label="Members Directory"
             >
               {activeTab === 'people' && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3.5px] h-6 bg-[#E05A47] rounded-r" />
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[#E05A47] rounded-r-full" />
               )}
               <div
                 className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
@@ -1354,31 +1342,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
               </span>
             </button>
 
-            {/* Intelligence Lab Tab (Compass) */}
-            <button
-              onClick={() => setActiveTab('intelligence')}
-              className="relative w-full py-1 flex items-center justify-center group transition-colors"
-              title="Intelligence Lab"
-              aria-label="Intelligence Lab"
-            >
-              {activeTab === 'intelligence' && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3.5px] h-6 bg-[#E05A47] rounded-r" />
-              )}
-              <div
-                className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
-                  activeTab === 'intelligence'
-                    ? 'bg-surface-raised border border-line/60 text-ink shadow-xs'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface-muted/70'
-                }`}
-              >
-                <Compass className={`w-5 h-5 ${activeTab === 'intelligence' ? 'text-ink' : 'text-ink-muted'}`} />
-              </div>
-              <span className="pointer-events-none absolute left-full ml-3 px-2 py-1 rounded bg-ink text-surface text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-md">
-                Intelligence Lab
-              </span>
-            </button>
-
-            {/* Duplicates Queue Tab (Code / Quality) */}
+            {/* 2. Duplicates Queue Tab (Code / Quality) */}
             <button
               onClick={() => setActiveTab('duplicates')}
               className="relative w-full py-1 flex items-center justify-center group transition-colors"
@@ -1386,7 +1350,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
               aria-label="Duplicates Queue"
             >
               {activeTab === 'duplicates' && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3.5px] h-6 bg-[#E05A47] rounded-r" />
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[#E05A47] rounded-r-full" />
               )}
               <div
                 className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative ${
@@ -1402,6 +1366,54 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
               </div>
               <span className="pointer-events-none absolute left-full ml-3 px-2 py-1 rounded bg-ink text-surface text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-md">
                 Duplicates Queue ({metrics.duplicates})
+              </span>
+            </button>
+
+            {/* 3. Introductions Tab (Chat Bubble) */}
+            <button
+              onClick={() => setActiveTab('intros')}
+              className="relative w-full py-1 flex items-center justify-center group transition-colors"
+              title={`Introductions (${introductions.length})`}
+              aria-label="Introductions"
+            >
+              {activeTab === 'intros' && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[#E05A47] rounded-r-full" />
+              )}
+              <div
+                className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
+                  activeTab === 'intros'
+                    ? 'bg-surface-raised border border-line/60 text-ink shadow-xs'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface-muted/70'
+                }`}
+              >
+                <MessageSquare className={`w-5 h-5 ${activeTab === 'intros' ? 'text-ink' : 'text-ink-muted'}`} />
+              </div>
+              <span className="pointer-events-none absolute left-full ml-3 px-2 py-1 rounded bg-ink text-surface text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-md">
+                Introductions ({introductions.length})
+              </span>
+            </button>
+
+            {/* 4. Intelligence Lab Tab (Compass) */}
+            <button
+              onClick={() => setActiveTab('intelligence')}
+              className="relative w-full py-1 flex items-center justify-center group transition-colors"
+              title="Intelligence Lab"
+              aria-label="Intelligence Lab"
+            >
+              {activeTab === 'intelligence' && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[#E05A47] rounded-r-full" />
+              )}
+              <div
+                className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
+                  activeTab === 'intelligence'
+                    ? 'bg-surface-raised border border-line/60 text-ink shadow-xs'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface-muted/70'
+                }`}
+              >
+                <Compass className={`w-5 h-5 ${activeTab === 'intelligence' ? 'text-ink' : 'text-ink-muted'}`} />
+              </div>
+              <span className="pointer-events-none absolute left-full ml-3 px-2 py-1 rounded bg-ink text-surface text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-md">
+                Intelligence Lab
               </span>
             </button>
           </div>
@@ -1510,17 +1522,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
               <PanelLeft className="w-5 h-5" />
             </button>
 
-            {/* Desktop Expand Toggle when collapsed */}
-            {isSidebarCollapsed && (
-              <button
-                onClick={toggleSidebar}
-                className="hidden md:flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg border border-line/60 hover:bg-surface-muted text-ink-muted hover:text-ink transition-all shadow-2xs mr-1"
-                aria-label="Expand Sidebar"
-                title="Expand Sidebar"
-              >
-                <PanelLeft className="w-4 h-4" />
-              </button>
-            )}
+
 
             {/* Search Input */}
             <div className="relative w-full">
@@ -2659,7 +2661,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                       className="px-4 py-2 bg-signal text-surface rounded-lg text-xs font-semibold hover:bg-signal/90 flex items-center gap-2 shadow-sm disabled:opacity-50 transition-all cursor-pointer"
                     >
                       <RefreshCw className={`w-3.5 h-3.5 ${isResearching ? 'animate-spin' : ''}`} />
-                      <span>{isResearching ? 'Synthesizing Intelligence...' : '🚀 Execute Deep Research'}</span>
+                      <span>{isResearching ? 'Synthesizing Intelligence...' : 'Execute Deep Research'}</span>
                     </button>
                   </div>
                 </div>
@@ -2802,7 +2804,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                       className="px-4 py-2 bg-signal text-surface rounded-lg text-xs font-semibold hover:bg-signal/90 flex items-center gap-2 shadow-sm disabled:opacity-50 transition-all cursor-pointer"
                     >
                       <RefreshCw className={`w-3.5 h-3.5 ${isCrawling ? 'animate-spin' : ''}`} />
-                      <span>{isCrawling ? 'Crawling Domain...' : '🕷️ Execute Domain Crawl'}</span>
+                      <span>{isCrawling ? 'Crawling Domain...' : 'Execute Domain Crawl'}</span>
                     </button>
                   </div>
                 </div>
@@ -2873,7 +2875,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                       className="px-4 py-2 bg-signal text-surface rounded-lg text-xs font-semibold hover:bg-signal/90 flex items-center gap-2 shadow-sm disabled:opacity-50 transition-all cursor-pointer"
                     >
                       <RefreshCw className={`w-3.5 h-3.5 ${isExtracting ? 'animate-spin' : ''}`} />
-                      <span>{isExtracting ? 'Extracting Content...' : '📄 Run Content Extraction'}</span>
+                      <span>{isExtracting ? 'Extracting Content...' : 'Run Content Extraction'}</span>
                     </button>
                   </div>
                 </div>
@@ -2962,7 +2964,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                       className="px-4 py-2 bg-signal text-surface rounded-lg text-xs font-semibold hover:bg-signal/90 flex items-center gap-2 shadow-sm disabled:opacity-50 transition-all cursor-pointer"
                     >
                       <Search className="w-3.5 h-3.5" />
-                      <span>{isTavilySearching ? 'Searching...' : '⚡ Run Search'}</span>
+                      <span>{isTavilySearching ? 'Searching...' : 'Run Search'}</span>
                     </button>
                   </div>
                 </div>
@@ -4184,30 +4186,48 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                     const text = `Subject: Intro: ${selectedIntroForDispatch.person_a.name} <> ${selectedIntroForDispatch.person_b.name}\n\nHi ${selectedIntroForDispatch.person_a.name} & ${selectedIntroForDispatch.person_b.name},\n\n${selectedIntroForDispatch.suggested_intro}\n\nBest,\nNetworkOS Team`;
                     copyToClipboard(text, selectedIntroForDispatch.id);
                   }}
-                  className="min-h-[38px] px-3 text-xs bg-surface border border-line rounded text-ink hover:bg-surface-muted transition-colors flex items-center gap-1.5"
+                  className="min-h-[38px] px-3 text-xs bg-surface border border-line rounded-lg text-ink hover:bg-surface-muted transition-colors flex items-center gap-1.5"
+                  title="Copy email text to clipboard"
                 >
                   {copiedIntroId === selectedIntroForDispatch.id ? (
                     <>
                       <Check className="w-3.5 h-3.5 text-signal" />
-                      <span>Copied Draft</span>
+                      <span className="text-signal font-medium">Copied Draft</span>
                     </>
                   ) : (
                     <>
-                      <Copy className="w-3.5 h-3.5" />
+                      <Copy className="w-3.5 h-3.5 text-ink-muted" />
                       <span>Copy Email</span>
                     </>
                   )}
                 </button>
 
+                {/* 1. Open in Gmail */}
+                <a
+                  href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(`${selectedIntroForDispatch.person_a.email || ''},${selectedIntroForDispatch.person_b.email || ''}`)}&su=${encodeURIComponent(`Intro: ${selectedIntroForDispatch.person_a.name} <> ${selectedIntroForDispatch.person_b.name}`)}&body=${encodeURIComponent(`Hi ${selectedIntroForDispatch.person_a.name} & ${selectedIntroForDispatch.person_b.name},\n\n${selectedIntroForDispatch.suggested_intro}\n\nBest,\nNetworkOS Team`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => {
+                    setDispatchedIntroIds(prev => new Set(prev).add(selectedIntroForDispatch.id));
+                  }}
+                  className="min-h-[38px] px-3.5 text-xs font-semibold bg-[#EA4335] hover:bg-[#D93025] text-white rounded-lg transition-colors shadow-2xs flex items-center gap-1.5"
+                  title="Open directly in Gmail web composer (opens in new tab)"
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  <span>Open in Gmail</span>
+                </a>
+
+                {/* 2. Default Desktop Client / Outlook */}
                 <a
                   href={`mailto:${selectedIntroForDispatch.person_a.email || ''},${selectedIntroForDispatch.person_b.email || ''}?subject=${encodeURIComponent(`Intro: ${selectedIntroForDispatch.person_a.name} <> ${selectedIntroForDispatch.person_b.name}`)}&body=${encodeURIComponent(`Hi ${selectedIntroForDispatch.person_a.name} & ${selectedIntroForDispatch.person_b.name},\n\n${selectedIntroForDispatch.suggested_intro}\n\nBest,\nNetworkOS Team`)}`}
                   onClick={() => {
                     setDispatchedIntroIds(prev => new Set(prev).add(selectedIntroForDispatch.id));
                   }}
-                  className="min-h-[38px] px-4 text-xs font-semibold bg-signal text-surface rounded hover:bg-signal/90 transition-colors shadow-sm flex items-center gap-1.5"
+                  className="min-h-[38px] px-3 text-xs font-medium bg-surface-raised border border-line/80 hover:bg-surface-muted text-ink rounded-lg transition-colors shadow-2xs flex items-center gap-1.5"
+                  title="Open in default desktop app (Outlook, Apple Mail, etc.)"
                 >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Open in Mail Client</span>
+                  <Send className="w-3.5 h-3.5 text-ink-muted" />
+                  <span>Outlook / Default App</span>
                 </a>
               </div>
             </div>
