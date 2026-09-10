@@ -38,9 +38,10 @@ skills-lock.json
 *.log
 test_*.csv
 
-# Private Internal Working Documents
+# Private Internal Working Documents & Local Scripts
 DEMO_VIDEO_SCRIPT_AND_ROADMAP.md
 docs/
+scripts/
 
 .DS_Store
 Thumbs.db
