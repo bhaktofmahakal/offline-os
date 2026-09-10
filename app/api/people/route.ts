@@ -118,6 +118,14 @@ export async function PATCH(request: Request) {
     if (updateFields.duplicate_confidence !== undefined) updatePayload.duplicate_confidence = updateFields.duplicate_confidence;
     if (updateFields.review_status !== undefined) updatePayload.review_status = updateFields.review_status;
 
+    // AI Intelligence & Enrichment persistence fields
+    if (updateFields.clean_summary !== undefined) updatePayload.clean_summary = updateFields.clean_summary;
+    if (updateFields.ai_classification !== undefined) updatePayload.ai_classification = updateFields.ai_classification;
+    if (updateFields.ai_enrichment_status !== undefined) updatePayload.ai_enrichment_status = updateFields.ai_enrichment_status;
+    if (updateFields.community_fit_tags !== undefined) updatePayload.community_fit_tags = updateFields.community_fit_tags;
+    if (updateFields.ai_model !== undefined) updatePayload.ai_model = updateFields.ai_model;
+    if (updateFields.ai_generated_at !== undefined) updatePayload.ai_generated_at = updateFields.ai_generated_at;
+
     // Update timestamp
     updatePayload.updated_at = new Date().toISOString();
 

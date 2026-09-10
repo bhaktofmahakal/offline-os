@@ -129,13 +129,26 @@ Return ONLY a raw JSON object with this exact schema (no markdown fences, no exp
       new Set([...(person.community_fit_tags || []), '360_enriched', ...((dossier.tech_stack || []) as string[]).map((t: string) => `#${t.toLowerCase()}`)])
     );
 
+    const nowIso = new Date().toISOString();
+    const updatedAiClassification = {
+      ...(typeof person.ai_classification === 'object' && person.ai_classification !== null ? person.ai_classification : {}),
+      dossier,
+      live_evidence: liveWebEvidence || null,
+      ai_model: 'gemini-2.5-flash',
+      enriched_at: nowIso,
+    };
+
     const { data: updated, error: updateErr } = await supabase
       .from('people')
       .update({
         ai_enrichment_status: 'completed',
         community_fit_tags: updatedTags,
         fit_score_reasoning: dossier.executive_summary,
-        updated_at: new Date().toISOString(),
+        clean_summary: dossier.executive_summary,
+        ai_classification: updatedAiClassification,
+        ai_model: 'gemini-2.5-flash',
+        ai_generated_at: nowIso,
+        updated_at: nowIso,
       })
       .eq('id', id)
       .select()

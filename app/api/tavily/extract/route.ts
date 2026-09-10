@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getTavilyClient } from '@/lib/tavily';
+import { supabase } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -24,15 +25,37 @@ export async function POST(request: Request) {
       format,
     });
 
+    const formattedResults = (response.results || []).map((r: any) => ({
+      url: r.url,
+      rawContent: r.rawContent,
+      images: r.images || [],
+      favicon: r.favicon || null,
+    }));
+
+    // Persist extraction record in Supabase intelligence_records
+    try {
+      await supabase.from('intelligence_records').insert([
+        {
+          record_type: 'extract',
+          title: `URL Extractor: ${cleanUrls[0]} ${cleanUrls.length > 1 ? `(+${cleanUrls.length - 1} more)` : ''}`,
+          query_or_url: cleanUrls.join(', '),
+          parameters: { extractDepth, format, count: cleanUrls.length },
+          results_count: formattedResults.length,
+          content: formattedResults.map((r: any) => `## Extracted: ${r.url}\n${(r.rawContent || '').slice(0, 500)}...`).join('\n\n'),
+          payload: { results: formattedResults, failedResults: response.failedResults || [] },
+          status: 'completed',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ]);
+    } catch (logErr) {
+      console.warn('[EXTRACT LOGGING WARNING]', logErr);
+    }
+
     return NextResponse.json({
       success: true,
       responseTime: response.responseTime,
-      results: (response.results || []).map((r: any) => ({
-        url: r.url,
-        rawContent: r.rawContent,
-        images: r.images || [],
-        favicon: r.favicon || null,
-      })),
+      results: formattedResults,
       failedResults: response.failedResults || [],
     });
   } catch (err: any) {

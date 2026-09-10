@@ -47,7 +47,8 @@ import {
   BookOpen,
   MessageSquare,
   Compass,
-  Code2
+  Code2,
+  History
 } from 'lucide-react';
 
 interface Person {
@@ -72,6 +73,10 @@ interface Person {
   missing_fields: string[];
   ai_enrichment_status: string;
   review_status?: string;
+  ai_classification?: any;
+  clean_summary?: string | null;
+  ai_model?: string | null;
+  ai_generated_at?: string | null;
 }
 
 interface Introduction {
@@ -465,7 +470,10 @@ export default function OfflineCRM() {
   const [creatingWebhook, setCreatingWebhook] = useState(false);
   
   // Tavily Deep Intelligence Lab States
-  const [intelligenceSubTab, setIntelligenceSubTab] = useState<'research' | 'crawl' | 'extract' | 'search'>('research');
+  const [intelligenceSubTab, setIntelligenceSubTab] = useState<'research' | 'crawl' | 'extract' | 'search' | 'history'>('research');
+  const [intelligenceRecords, setIntelligenceRecords] = useState<any[]>([]);
+  const [loadingIntelHistory, setLoadingIntelHistory] = useState(false);
+  const [intelHistoryFilter, setIntelHistoryFilter] = useState<'all' | 'search' | 'deep_research' | 'crawl' | 'extract'>('all');
   const [researchPrompt, setResearchPrompt] = useState('Competitor analysis and market landscape for AI coding agents in 2026');
   const [researchModel, setResearchModel] = useState<'mini' | 'pro'>('mini');
   const [researchStatus, setResearchStatus] = useState<'idle' | 'pending' | 'in_progress' | 'completed' | 'failed'>('idle');
@@ -906,6 +914,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
             setResearchReport(pollData.content || pollData.report || 'Research report compiled.');
             setResearchSources(pollData.sources || []);
             setIsResearching(false);
+            fetchIntelligenceHistory();
           } else if (pollData.status === 'failed') {
             clearInterval(pollInterval);
             setResearchStatus('failed');
@@ -943,6 +952,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to crawl website');
       setCrawlResults(data.results || []);
+      fetchIntelligenceHistory();
     } catch (err: any) {
       console.error('Crawl error:', err);
       alert('Error crawling URL: ' + err.message);
@@ -967,6 +977,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to extract URLs');
       setExtractResults(data.results || []);
+      fetchIntelligenceHistory();
     } catch (err: any) {
       console.error('Extract error:', err);
       alert('Error extracting: ' + err.message);
@@ -994,6 +1005,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to run search');
       setTavilySearchResults(data.results || []);
+      fetchIntelligenceHistory();
     } catch (err: any) {
       console.error('Search error:', err);
       alert('Error searching: ' + err.message);
@@ -1009,7 +1021,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       const res = await fetch('/api/tavily/research', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input: query, model: 'mini' }),
+        body: JSON.stringify({ input: query, model: 'mini', personId: person.id }),
       });
       const data = await res.json();
       if (!res.ok || !data.requestId) throw new Error(data.error || 'Failed to trigger drawer memo');
@@ -1017,18 +1029,36 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       // Poll until complete
       const interval = setInterval(async () => {
         try {
-          const pollRes = await fetch(`/api/tavily/research?requestId=${encodeURIComponent(data.requestId)}`);
+          const pollRes = await fetch(`/api/tavily/research?requestId=${encodeURIComponent(data.requestId)}&personId=${person.id}`);
           const pollData = await pollRes.json();
           if (pollData.status === 'completed') {
             clearInterval(interval);
+            const memoContent = pollData.content || pollData.report || 'Research completed.';
+            const memoSources = pollData.sources || [];
             setDrawerResearchReport(prev => ({
               ...prev,
               [person.id]: {
-                content: pollData.content || pollData.report || 'Research completed.',
-                sources: pollData.sources || [],
+                content: memoContent,
+                sources: memoSources,
               },
             }));
+            // Update local member state
+            setPeople(prev => prev.map(p => {
+              if (p.id === person.id) {
+                const updatedAi = {
+                  ...(typeof p.ai_classification === 'object' && p.ai_classification !== null ? p.ai_classification : {}),
+                  deep_memo: {
+                    content: memoContent,
+                    sources: memoSources,
+                    completed_at: new Date().toISOString(),
+                  },
+                };
+                return { ...p, ai_classification: updatedAi, clean_summary: memoContent.slice(0, 300) + '...' };
+              }
+              return p;
+            }));
             setDrawerResearching(false);
+            fetchIntelligenceHistory();
           } else if (pollData.status === 'failed') {
             clearInterval(interval);
             setDrawerResearching(false);
@@ -1052,6 +1082,56 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
     }
   }, [darkMode]);
 
+  // Fetch persistent intelligence history from Supabase
+  const fetchIntelligenceHistory = async () => {
+    setLoadingIntelHistory(true);
+    try {
+      const res = await fetch('/api/intelligence');
+      const data = await res.json();
+      if (data.records) setIntelligenceRecords(data.records);
+    } catch (err) {
+      console.error('Error loading intelligence history:', err);
+    } finally {
+      setLoadingIntelHistory(false);
+    }
+  };
+
+  const handleRestoreIntelligenceRecord = (rec: any) => {
+    if (rec.record_type === 'search') {
+      if (rec.payload?.results) setTavilySearchResults(rec.payload.results);
+      if (rec.query_or_url) setTavilySearchInput(rec.query_or_url);
+      setIntelligenceSubTab('search');
+    } else if (rec.record_type === 'deep_research') {
+      if (rec.content) setResearchReport(rec.content);
+      if (rec.payload?.sources) setResearchSources(rec.payload.sources);
+      if (rec.query_or_url) setResearchPrompt(rec.query_or_url);
+      setResearchStatus('completed');
+      setIntelligenceSubTab('research');
+    } else if (rec.record_type === 'crawl') {
+      if (rec.payload?.results) setCrawlResults(rec.payload.results);
+      if (rec.query_or_url) setCrawlInputUrl(rec.query_or_url);
+      setIntelligenceSubTab('crawl');
+    } else if (rec.record_type === 'extract') {
+      if (rec.payload?.results) setExtractResults(rec.payload.results);
+      if (rec.query_or_url) setExtractUrlsInput(rec.query_or_url);
+      setIntelligenceSubTab('extract');
+    }
+  };
+
+  const handleDeleteIntelligenceRecord = async (recordId: number) => {
+    try {
+      setIntelligenceRecords(prev => prev.filter(r => r.id !== recordId));
+      await fetch(`/api/intelligence?id=${recordId}`, { method: 'DELETE' });
+    } catch (err) {
+      console.error('Error deleting intelligence record:', err);
+    }
+  };
+
+  const filteredIntelRecords = useMemo(() => {
+    if (intelHistoryFilter === 'all') return intelligenceRecords;
+    return intelligenceRecords.filter(r => r.record_type === intelHistoryFilter);
+  }, [intelligenceRecords, intelHistoryFilter]);
+
   // Load Data from Supabase API
   const fetchData = async () => {
     setRefreshing(true);
@@ -1063,8 +1143,31 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       const peopleData = await peopleRes.json();
       const introsData = await introsRes.json();
 
-      if (peopleData.people) setPeople(peopleData.people);
+      if (peopleData.people) {
+        setPeople(peopleData.people);
+
+        // Permanently hydrate 360 dossiers and deep intel memos from Supabase!
+        const initialDossiers: Record<number, any> = {};
+        const initialMemos: Record<number, { content: string; sources: any[] }> = {};
+
+        peopleData.people.forEach((p: any) => {
+          if (p.ai_classification && typeof p.ai_classification === 'object') {
+            if (p.ai_classification.dossier) {
+              initialDossiers[p.id] = p.ai_classification.dossier;
+            }
+            if (p.ai_classification.deep_memo) {
+              initialMemos[p.id] = p.ai_classification.deep_memo;
+            }
+          }
+        });
+
+        setDossierCache(prev => ({ ...initialDossiers, ...prev }));
+        setDrawerResearchReport(prev => ({ ...initialMemos, ...prev }));
+      }
       if (introsData.introductions) setIntroductions(introsData.introductions);
+
+      // Hydrate persistent intelligence audit history from database
+      await fetchIntelligenceHistory();
     } catch (err) {
       console.error('Error loading data:', err);
     } finally {
@@ -2864,6 +2967,24 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   <Search className="w-3.5 h-3.5" />
                   <span>Neural Search</span>
                 </button>
+                <button
+                  onClick={() => setIntelligenceSubTab('history')}
+                  className={`px-3 py-1.5 text-xs rounded font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap ${
+                    intelligenceSubTab === 'history'
+                      ? 'bg-signal text-surface font-semibold shadow-xs'
+                      : 'text-ink-muted hover:text-ink'
+                  }`}
+                >
+                  <History className="w-3.5 h-3.5" />
+                  <span>Audit Ledger</span>
+                  {intelligenceRecords.length > 0 && (
+                    <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                      intelligenceSubTab === 'history' ? 'bg-surface/20 text-surface' : 'bg-surface-raised text-ink-muted border border-line'
+                    }`}>
+                      {intelligenceRecords.length}
+                    </span>
+                  )}
+                </button>
               </div>
             </div>
 
@@ -3586,6 +3707,138 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* SUBTAB 5: INTELLIGENCE AUDIT LEDGER & PERSISTENT HISTORY */}
+            {intelligenceSubTab === 'history' && (
+              <div className="space-y-6 animate-in fade-in-50 duration-150">
+                <div className="bg-surface border border-line rounded-xl p-5 sm:p-6 shadow-xs">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-line pb-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Database className="w-4 h-4 text-signal" />
+                        <h3 className="text-base font-semibold text-ink">Intelligence Audit Ledger</h3>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-signal-soft border border-signal/20 text-signal font-semibold">
+                          {intelligenceRecords.length} Persistent Records
+                        </span>
+                      </div>
+                      <p className="text-xs text-ink-muted mt-1">
+                        All autonomous intelligence runs, deep web searches, scraped datasets, and research memos permanently recorded in Supabase PostgreSQL.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {/* Filter chips */}
+                      <div className="flex items-center gap-1 bg-surface-raised p-1 rounded-lg border border-line text-xs">
+                        {(['all', 'search', 'deep_research', 'crawl', 'extract'] as const).map(type => (
+                          <button
+                            key={type}
+                            onClick={() => setIntelHistoryFilter(type)}
+                            className={`px-2.5 py-1 rounded capitalize transition-colors text-xs font-medium cursor-pointer ${
+                              intelHistoryFilter === type
+                                ? 'bg-signal text-surface font-semibold shadow-xs'
+                                : 'text-ink-muted hover:text-ink'
+                            }`}
+                          >
+                            {type === 'deep_research' ? 'Research' : type}
+                          </button>
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={fetchIntelligenceHistory}
+                        disabled={loadingIntelHistory}
+                        className="p-2 rounded-lg border border-line hover:bg-surface-raised text-ink-muted hover:text-ink transition-colors cursor-pointer"
+                        title="Refresh History from Database"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${loadingIntelHistory ? 'animate-spin text-signal' : ''}`} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* List of records */}
+                  {loadingIntelHistory && intelligenceRecords.length === 0 ? (
+                    <div className="py-16 text-center text-ink-muted text-sm flex flex-col items-center justify-center gap-2">
+                      <RefreshCw className="w-5 h-5 animate-spin text-signal" />
+                      <span>Syncing persistent intelligence records from Supabase...</span>
+                    </div>
+                  ) : filteredIntelRecords.length === 0 ? (
+                    <div className="py-16 text-center text-ink-muted text-sm space-y-2">
+                      <Database className="w-8 h-8 text-line mx-auto" />
+                      <p className="font-medium text-ink">No intelligence records found in database.</p>
+                      <p className="text-xs text-ink-faint">Run any Neural Search, Deep Research run, Site Crawl, or URL Extractor to generate persistent records.</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-line/60 mt-3">
+                      {filteredIntelRecords.map((rec: any) => {
+                        const isSearch = rec.record_type === 'search';
+                        const isResearch = rec.record_type === 'deep_research';
+                        const isCrawl = rec.record_type === 'crawl';
+
+                        return (
+                          <div
+                            key={rec.id}
+                            className="py-4 flex flex-col md:flex-row md:items-center justify-between gap-3.5 hover:bg-surface-raised/60 px-3 sm:px-4 rounded-xl transition-colors"
+                          >
+                            <div className="space-y-1.5 flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase ${
+                                  isSearch ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20' :
+                                  isResearch ? 'bg-signal-soft text-signal border border-signal/20' :
+                                  isCrawl ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' :
+                                  'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                                }`}>
+                                  {rec.record_type === 'deep_research' ? 'Deep Research' : rec.record_type}
+                                </span>
+                                <span className="text-[11px] font-mono text-ink-faint">
+                                  {new Date(rec.created_at).toLocaleString()}
+                                </span>
+                                {rec.results_count > 0 && (
+                                  <span className="text-[11px] font-mono text-signal bg-signal-soft/80 border border-signal/20 px-1.5 py-0.2 rounded font-semibold">
+                                    {rec.results_count} {rec.record_type === 'crawl' ? 'pages' : 'sources'}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm font-semibold text-ink truncate">
+                                {rec.title || rec.query_or_url}
+                              </p>
+                              <p className="text-xs text-ink-muted font-mono truncate max-w-2xl">
+                                {rec.query_or_url}
+                              </p>
+                            </div>
+
+                            <div className="flex items-center gap-2 shrink-0 self-start md:self-center">
+                              <button
+                                onClick={() => handleRestoreIntelligenceRecord(rec)}
+                                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface-raised border border-line hover:border-signal/50 text-ink hover:text-signal transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                                <span>Restore to View</span>
+                              </button>
+                              {rec.content && (
+                                <button
+                                  onClick={() => copyToClipboard(rec.content, rec.id)}
+                                  className="p-1.5 rounded-lg border border-line hover:bg-surface-raised text-ink-muted hover:text-ink transition-colors cursor-pointer"
+                                  title="Copy Output"
+                                >
+                                  {copiedIntroId === rec.id ? <Check className="w-3.5 h-3.5 text-signal" /> : <Copy className="w-3.5 h-3.5" />}
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleDeleteIntelligenceRecord(rec.id)}
+                                className="p-1.5 rounded-lg border border-line hover:bg-red-500/10 text-ink-muted hover:text-red-500 transition-colors cursor-pointer"
+                                title="Delete Record"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
             </div>

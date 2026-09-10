@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getTavilyClient } from '@/lib/tavily';
+import { supabase } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -42,14 +43,36 @@ export async function POST(request: Request) {
 
     const response = await client.crawl(url.trim(), options);
 
+    const formattedResults = (response.results || []).map((r: any) => ({
+      url: r.url,
+      rawContent: r.rawContent,
+    }));
+
+    // Persist crawl record in Supabase intelligence_records
+    try {
+      await supabase.from('intelligence_records').insert([
+        {
+          record_type: 'crawl',
+          title: `Site Crawler: ${url.trim().slice(0, 80)}`,
+          query_or_url: url.trim(),
+          parameters: { limit, maxDepth, maxBreadth, extractDepth, format },
+          results_count: formattedResults.length,
+          content: formattedResults.map((r: any) => `## Page: ${r.url}\n${(r.rawContent || '').slice(0, 500)}...`).join('\n\n'),
+          payload: { results: formattedResults, baseUrl: response.baseUrl || url },
+          status: 'completed',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ]);
+    } catch (logErr) {
+      console.warn('[CRAWL LOGGING WARNING]', logErr);
+    }
+
     return NextResponse.json({
       success: true,
       baseUrl: response.baseUrl || url,
       responseTime: response.responseTime,
-      results: (response.results || []).map((r: any) => ({
-        url: r.url,
-        rawContent: r.rawContent,
-      })),
+      results: formattedResults,
     });
   } catch (err: any) {
     console.error('Tavily Crawl Error:', err);

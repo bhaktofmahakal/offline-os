@@ -155,3 +155,29 @@ alter table public.people enable row level security;
 alter table public.introductions enable row level security;
 revoke all on table public.people from anon, authenticated;
 revoke all on table public.introductions from anon, authenticated;
+
+-- Intelligence Engine records (Search, Crawl, Extract, Deep Research history)
+create table if not exists public.intelligence_records (
+  id bigint generated always as identity primary key,
+  record_type text not null check (record_type in ('search', 'deep_research', 'crawl', 'extract')),
+  title text not null,
+  query_or_url text not null,
+  parameters jsonb not null default '{}'::jsonb,
+  results_count int default 0,
+  content text,
+  payload jsonb not null default '{}'::jsonb,
+  status text not null default 'completed' check (status in ('pending', 'running', 'completed', 'failed')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists intelligence_records_type_idx on public.intelligence_records(record_type);
+create index if not exists intelligence_records_created_idx on public.intelligence_records(created_at desc);
+
+drop trigger if exists intelligence_records_set_updated_at on public.intelligence_records;
+create trigger intelligence_records_set_updated_at
+before update on public.intelligence_records
+for each row execute function public.set_updated_at();
+
+alter table public.intelligence_records enable row level security;
+
