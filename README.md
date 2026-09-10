@@ -2,7 +2,6 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Next.js-14.2-black?style=for-the-badge&logo=next.js" alt="Next.js" />
-  <img src="https://img.shields.io/badge/Tavily_AI-Core_Suite-blue?style=for-the-badge" alt="Tavily AI" />
   <img src="https://img.shields.io/badge/Airtable-Native_Web_API-red?style=for-the-badge&logo=airtable" alt="Airtable" />
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL_%2B_pgvector-emerald?style=for-the-badge&logo=supabase" alt="Supabase" />
   <img src="https://img.shields.io/badge/Google_Gemini-2.5_Flash-orange?style=for-the-badge&logo=google" alt="Gemini" />
@@ -12,10 +11,10 @@
 **NetworkOS** (evolved from *Offline OS*) is an enterprise-grade, autonomous relationship intelligence engine and operator console built for elite tech networks, founder communities, venture studios, and modern operator networks.
 
 It replaces static spreadsheets and manual reviews with an **active, autonomous operating system**:
-* Ingests applicants from **Airtable**, **Typeform**, **Tally**, **n8n**, CSV spreadsheets, and a public portal.
+* Ingests applicants from **Airtable**, **Typeform**, **n8n**, CSV spreadsheets, and a public portal.
 * Adjudicates fuzzy duplicates in <1ms with **RapidFuzz + Gemini 2.5 Flash**.
-* Performs deep autonomous market research and web crawls using the **Tavily AI Core Suite** (`@tavily/core`).
-* Generates 360° founder dossiers using **TinyFish CLI** and real-time neural search.
+* Performs deep autonomous market research and web crawls.
+* Generates 360° founder dossiers using real-time neural search.
 * Evaluates applicant fit deterministically via an explainable 100-point rubric.
 * Identifies bilateral introductions using **768-dimensional semantic embeddings** (`pgvector`), drafting customized double-opt-in icebreakers.
 * Writes evaluation intelligence back to Airtable bi-directionally in real-time.
@@ -28,13 +27,8 @@ It replaces static spreadsheets and manual reviews with an **active, autonomous 
 | :--- | :--- | :--- | :--- |
 | **Operator Console (Dashboard)** | **Vercel** | 🟢 Live 24/7 | **[https://offline-os-gray.vercel.app](https://offline-os-gray.vercel.app)** |
 | **Public Application Portal** | **Vercel** | 🟢 Live 24/7 | **[https://offline-os-gray.vercel.app/apply](https://offline-os-gray.vercel.app/apply)** |
-| **Airtable Universal Ingest API** | **Vercel Serverless** | 🟢 Live 24/7 | `POST /api/v1/ingest` |
-| **Tavily Intelligence API Suite** | **Vercel Serverless** | 🟢 Live 24/7 | `POST /api/tavily/*` |
 | **Python Auxiliary Microservice** | **Render** | 🟡 Active | **[https://offline-os.onrender.com](https://offline-os.onrender.com)** |
 | **GitHub Repository** | **GitHub** | 🟢 Public | **[https://github.com/bhaktofmahakal/offline-os](https://github.com/bhaktofmahakal/offline-os)** |
-
-> [!NOTE]
-> **Production Infrastructure:** The core CRM, Ingestion Hub, Deep Intelligence Lab, Member CRUD, AI Scoring, and Database operations run serverless 24/7 on **Vercel + Supabase Cloud PostgreSQL**. All secrets run securely server-side with zero client-side leakage.
 
 ---
 
@@ -104,19 +98,19 @@ flowchart TD
 * **Universal Real-Time Ingest (`POST /api/v1/ingest`)**: Zero-latency endpoint with rapid deduplication and auto-tagging for Tally, Typeform, Airtable Automations, and n8n.
 * **Bi-Directional Writeback (`POST /api/airtable/writeback`)**: Automatically syncs AI Fit Score, thesis, and sector tags back into custom Airtable columns.
 
-### 2. Deep Intelligence Lab (Powered by `@tavily/core`)
+### 2. Deep Intelligence Lab
 A dedicated intelligence workspace accessible directly from the dashboard navigation:
 1. **🔬 Autonomous Deep Research**:
-   * Multi-query planning and synthesis (`mini` fast vs. `pro` exhaustive models).
-   * Asynchronous task dispatch and polling (`/api/tavily/research`).
+   * Multi-query planning and synthesis (
+   * Asynchronous task dispatch and polling
    * Renders comprehensive Markdown intelligence reports with clickable, verified primary sources.
 2. **🕷️ Recursive Site Crawler & Mapper**:
    * Recursively crawls target domains up to 50 pages with configurable depth and breadth.
-   * Delivers clean, structured, LLM-ready markdown extracts (`/api/tavily/crawl`).
+   * Delivers clean, structured, LLM-ready markdown extracts
 3. **📄 Multi-URL Clean Extractor**:
-   * Batch extracts markdown content from up to 20 URLs in parallel (`/api/tavily/extract`).
+   * Batch extracts markdown content from up to 20 URLs in parallel
 4. **⚡ Neural Web Search Engine**:
-   * Real-time semantic web queries with domain filtering and relevance percentage scoring (`/api/tavily/search`).
+   * Real-time semantic web queries with domain filtering and relevance percentage scoring.
 5. **Slide-Over Drawer 1-Click Research Memo**:
    * Generates instant executive background briefs on any member's ventures, investments, and footprint.
 
