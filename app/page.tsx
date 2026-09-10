@@ -3021,7 +3021,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
               setIsEditingMember(false);
             }}
           />
-          <aside className="relative w-full sm:w-96 border-l border-line bg-surface flex flex-col justify-between h-full shadow-2xl z-10 animate-in slide-in-from-right duration-200">
+          <aside className="relative w-full sm:w-[480px] md:w-[520px] max-w-full border-l border-line bg-surface flex flex-col justify-between h-full shadow-2xl z-10 animate-in slide-in-from-right duration-200">
             {/* Drawer Top Header */}
             <div className="p-4 sm:p-5 border-b border-line flex items-center justify-between bg-surface-raised">
               <div className="flex items-center gap-2">
@@ -3178,63 +3178,91 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
               ) : (
                 /* READ-ONLY VIEW IN DRAWER */
                 <>
-                  {/* Header Identity */}
-                  <div>
-                    <h2 className="text-base font-bold text-ink">{selectedPerson.name}</h2>
-                    <div className="text-ink-muted mt-0.5">
-                      {selectedPerson.role_title} at <strong className="text-ink">{selectedPerson.company || 'Independent'}</strong>
+                  {/* Header Identity Hero */}
+                  <div className="flex items-start gap-3.5 pb-2">
+                    <div className="w-12 h-12 rounded-xl bg-signal/15 text-signal flex items-center justify-center font-bold text-base flex-shrink-0 shadow-2xs border border-signal/20">
+                      {selectedPerson.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
                     </div>
-                    <div className="font-mono text-[11px] text-ink-faint mt-1 break-all">
-                      {selectedPerson.email_normalized || selectedPerson.email || 'No email provided'}
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-lg font-bold tracking-tight text-ink truncate">{selectedPerson.name}</h2>
+                      <div className="text-xs text-ink-muted mt-0.5 truncate">
+                        {selectedPerson.role_title ? `${selectedPerson.role_title} at ` : ''}
+                        <strong className="text-ink font-semibold">{selectedPerson.company || 'Independent'}</strong>
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span className="font-mono text-[11px] text-ink-faint truncate">
+                          {selectedPerson.email_normalized || selectedPerson.email || 'No email provided'}
+                        </span>
+                        {(selectedPerson.email_normalized || selectedPerson.email) && (
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(selectedPerson.email_normalized || selectedPerson.email || '');
+                            }}
+                            className="p-0.5 text-ink-faint hover:text-ink transition-colors"
+                            title="Copy email address"
+                          >
+                            <Copy className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
 
                   {/* Fit Score & Reasoning */}
                   {selectedPerson.fit_score !== null && (
-                    <div className="p-3.5 bg-signal-soft/30 border border-signal/30 rounded space-y-2">
+                    <div className="p-3.5 bg-signal-soft/40 border border-signal/30 rounded-xl space-y-2 shadow-2xs">
                       <div className="flex items-center justify-between">
-                        <span className="font-mono font-semibold text-signal uppercase text-[11px]">Applicant Fit Score</span>
-                        <span className="text-base font-mono font-bold text-signal">{selectedPerson.fit_score}/100</span>
+                        <span className="text-xs font-semibold text-signal uppercase tracking-wider">Applicant Fit Score</span>
+                        <span className="text-sm font-mono font-bold px-2 py-0.5 rounded-md bg-signal text-surface shadow-2xs">
+                          {selectedPerson.fit_score}/100
+                        </span>
                       </div>
-                      <p className="text-ink text-[11px] leading-relaxed italic">
-                        &ldquo;{selectedPerson.fit_score_reasoning}&rdquo;
-                      </p>
+                      {selectedPerson.fit_score_reasoning && (
+                        <p className="text-ink text-xs leading-relaxed italic opacity-90">
+                          &ldquo;{selectedPerson.fit_score_reasoning}&rdquo;
+                        </p>
+                      )}
                     </div>
                   )}
 
                   {/* 360° Autonomous AI Intelligence Dossier */}
-                  <div className="p-3.5 bg-surface-raised border border-line rounded-lg space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 font-mono text-[11px] font-semibold text-signal uppercase">
-                        <Sparkles className="w-3.5 h-3.5" />
-                        <span>360° AI Intelligence Dossier</span>
+                  <div className="p-4 bg-surface-raised border border-line/80 rounded-xl space-y-3 shadow-2xs hover:border-line transition-all">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-signal-soft flex items-center justify-center text-signal flex-shrink-0">
+                          <Sparkles className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-xs font-semibold text-ink truncate">Intelligence Dossier</h4>
+                          <p className="text-[10px] text-ink-muted truncate">Public footprint & signals</p>
+                        </div>
                       </div>
                       <button
                         onClick={() => handleRunEnrichment(selectedPerson.id)}
                         disabled={isEnrichingPerson}
-                        className="px-2 py-1 bg-signal text-surface text-[10px] font-mono font-semibold rounded hover:bg-signal/90 flex items-center gap-1 disabled:opacity-50 transition-colors shadow-xs cursor-pointer"
+                        className="h-8 px-3 bg-signal hover:bg-signal/90 text-surface text-xs font-medium rounded-lg flex items-center gap-1.5 disabled:opacity-50 transition-all shadow-2xs cursor-pointer flex-shrink-0"
                       >
-                        <Zap className={`w-3 h-3 ${isEnrichingPerson ? 'animate-spin' : ''}`} />
-                        <span>{isEnrichingPerson ? 'Enriching...' : '⚡ Run 360° AI Enrichment'}</span>
+                        <Zap className={`w-3.5 h-3.5 ${isEnrichingPerson ? 'animate-spin' : ''}`} />
+                        <span>{isEnrichingPerson ? 'Enriching...' : 'Enrich Profile'}</span>
                       </button>
                     </div>
 
                     {dossierCache[selectedPerson.id] ? (
-                      <div className="space-y-2.5 pt-1 text-xs animate-in fade-in-50 duration-200">
+                      <div className="space-y-3 pt-1 text-xs animate-in fade-in-50 duration-200">
                         {/* Executive Summary */}
-                        <div className="p-2.5 bg-surface rounded border border-line text-[11px] text-ink leading-relaxed">
-                          <strong className="text-signal font-mono uppercase text-[10px] block mb-1">Executive Debrief</strong>
-                          {dossierCache[selectedPerson.id].executive_summary}
+                        <div className="p-3 bg-surface rounded-lg border border-line text-xs text-ink leading-relaxed">
+                          <span className="text-signal font-semibold uppercase text-[10px] tracking-wider block mb-1.5">Executive Debrief</span>
+                          <p>{dossierCache[selectedPerson.id].executive_summary}</p>
                         </div>
 
                         {/* Traction Signals */}
                         {dossierCache[selectedPerson.id].traction_signals?.length > 0 && (
-                          <div>
-                            <span className="font-mono text-[10px] text-ink-muted uppercase block mb-1">Verified Traction Signals</span>
+                          <div className="space-y-1.5">
+                            <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Verified Traction Signals</span>
                             <div className="space-y-1">
                               {dossierCache[selectedPerson.id].traction_signals.map((sig: string, sIdx: number) => (
-                                <div key={sIdx} className="flex items-center gap-1.5 text-[11px] text-ink">
-                                  <CheckCircle2 className="w-3 h-3 text-signal flex-shrink-0" />
+                                <div key={sIdx} className="flex items-center gap-2 text-xs text-ink bg-surface px-2.5 py-1.5 rounded border border-line/60">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-signal flex-shrink-0" />
                                   <span>{sig}</span>
                                 </div>
                               ))}
@@ -3244,11 +3272,11 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
                         {/* Tech Stack & Key Archetypes */}
                         {dossierCache[selectedPerson.id].tech_stack?.length > 0 && (
-                          <div>
-                            <span className="font-mono text-[10px] text-ink-muted uppercase block mb-1">Detected Tech Stack</span>
-                            <div className="flex flex-wrap gap-1">
+                          <div className="space-y-1.5">
+                            <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Detected Tech Stack</span>
+                            <div className="flex flex-wrap gap-1.5">
                               {dossierCache[selectedPerson.id].tech_stack.map((tech: string, tIdx: number) => (
-                                <span key={tIdx} className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-signal-soft/40 text-signal border border-signal/20">
+                                <span key={tIdx} className="px-2 py-0.5 rounded text-xs font-mono bg-signal-soft text-signal border border-signal/20">
                                   {tech}
                                 </span>
                               ))}
@@ -3257,49 +3285,53 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                         )}
                       </div>
                     ) : (
-                      <div className="text-[11px] text-ink-muted italic flex items-center justify-between py-1">
-                        <span>Click to scrape GitHub, funding signals & synthesize dossier.</span>
-                        <span className="font-mono text-[10px] text-signal font-semibold">AI Powered</span>
-                      </div>
+                      <p className="text-xs text-ink-muted leading-relaxed pt-0.5">
+                        Scrape public footprint, verified traction, and generate an autonomous executive debrief.
+                      </p>
                     )}
                   </div>
 
                   {/* Autonomous Deep Memo Card */}
-                  <div className="p-3.5 bg-surface-raised border border-line rounded-lg space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 font-mono text-[11px] font-semibold text-signal uppercase">
-                        <Globe className="w-3.5 h-3.5" />
-                        <span>Deep Intel Memo</span>
+                  <div className="p-4 bg-surface-raised border border-line/80 rounded-xl space-y-3 shadow-2xs hover:border-line transition-all">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-copper-soft flex items-center justify-center text-copper flex-shrink-0">
+                          <FileText className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-xs font-semibold text-ink truncate">Deep Intel Memo</h4>
+                          <p className="text-[10px] text-ink-muted truncate">Market footprint deep-dive</p>
+                        </div>
                       </div>
                       <button
                         onClick={() => handleDrawerResearch(selectedPerson)}
                         disabled={drawerResearching}
-                        className="px-2 py-1 bg-surface border border-signal/40 text-signal hover:bg-signal-soft text-[10px] font-mono font-semibold rounded flex items-center gap-1 disabled:opacity-50 transition-colors shadow-xs cursor-pointer"
+                        className="h-8 px-3 bg-surface border border-line hover:border-copper/50 hover:bg-surface-muted text-ink text-xs font-medium rounded-lg flex items-center gap-1.5 disabled:opacity-50 transition-all shadow-2xs cursor-pointer flex-shrink-0"
                         title="Generate autonomous executive research report"
                       >
-                        <RefreshCw className={`w-3 h-3 ${drawerResearching ? 'animate-spin' : ''}`} />
-                        <span>{drawerResearching ? 'Synthesizing Memo...' : '🔬 Run Deep Memo'}</span>
+                        <RefreshCw className={`w-3.5 h-3.5 ${drawerResearching ? 'animate-spin' : ''}`} />
+                        <span>{drawerResearching ? 'Synthesizing...' : 'Generate Memo'}</span>
                       </button>
                     </div>
 
                     {drawerResearchReport[selectedPerson.id] ? (
-                      <div className="space-y-2 pt-1 text-xs animate-in fade-in-50 duration-200">
-                        <div className="p-2.5 bg-surface rounded border border-line text-[11px] text-ink leading-relaxed max-h-48 overflow-y-auto font-mono whitespace-pre-wrap">
+                      <div className="space-y-2.5 pt-1 text-xs animate-in fade-in-50 duration-200">
+                        <div className="p-3 bg-surface rounded-lg border border-line text-xs text-ink leading-relaxed max-h-56 overflow-y-auto font-mono whitespace-pre-wrap">
                           {drawerResearchReport[selectedPerson.id].content}
                         </div>
                         {drawerResearchReport[selectedPerson.id].sources?.length > 0 && (
-                          <div className="text-[10px] space-y-1">
-                            <span className="font-mono text-ink-muted uppercase block">Sources Cited:</span>
-                            <div className="space-y-0.5 max-h-24 overflow-y-auto">
+                          <div className="text-xs space-y-1.5">
+                            <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Sources Cited:</span>
+                            <div className="space-y-1 max-h-24 overflow-y-auto">
                               {drawerResearchReport[selectedPerson.id].sources.map((src, sIdx) => (
                                 <a
                                   key={sIdx}
                                   href={src.url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-signal hover:underline flex items-center gap-1 truncate"
+                                  className="text-signal hover:underline flex items-center gap-1.5 text-xs truncate"
                                 >
-                                  <ExternalLink className="w-2.5 h-2.5 flex-shrink-0" />
+                                  <ExternalLink className="w-3 h-3 flex-shrink-0" />
                                   <span className="truncate">{src.title || src.url}</span>
                                 </a>
                               ))}
@@ -3308,78 +3340,101 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                         )}
                       </div>
                     ) : (
-                      <p className="text-[11px] text-ink-muted italic">
+                      <p className="text-xs text-ink-muted leading-relaxed pt-0.5">
                         Generate an autonomous deep research memo on {selectedPerson.name} and their market footprint.
                       </p>
                     )}
                   </div>
 
-                  {/* Bio Notes */}
-                  <div className="space-y-1">
-                    <span className="font-mono text-[11px] uppercase text-ink-muted">Bio & Operator Notes</span>
-                    <p className="p-3 bg-surface-muted/60 border border-line rounded text-ink leading-relaxed">
-                      {selectedPerson.bio_notes || <span className="italic text-ink-faint">No bio notes supplied.</span>}
-                    </p>
+                  {/* Bio & Operator Notes */}
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Bio & Operator Notes</h4>
+                    <div className="p-3.5 bg-surface-raised border border-line/80 rounded-xl text-xs leading-relaxed text-ink shadow-2xs">
+                      {selectedPerson.bio_notes ? (
+                        <p className="whitespace-pre-wrap">{selectedPerson.bio_notes}</p>
+                      ) : (
+                        <span className="text-ink-faint italic">No bio notes provided.</span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Classification Taxonomy */}
                   <div className="space-y-2">
-                    <span className="font-mono text-[11px] uppercase text-ink-muted">Taxonomy & Classification</span>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div className="p-2.5 bg-surface-muted/40 border border-line rounded">
-                        <div className="text-ink-faint text-[10px] font-mono uppercase">Role Type</div>
-                        <div className="font-semibold text-ink capitalize">{selectedPerson.role_type || 'Unclassified'}</div>
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Taxonomy & Classification</h4>
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div className="p-3 bg-surface-raised border border-line/80 rounded-xl shadow-2xs">
+                        <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block mb-1">Role Type</span>
+                        <div className="text-xs font-semibold text-ink capitalize">
+                          {selectedPerson.role_type || <span className="text-ink-faint font-normal">Unassigned</span>}
+                        </div>
                       </div>
-                      <div className="p-2.5 bg-surface-muted/40 border border-line rounded">
-                        <div className="text-ink-faint text-[10px] font-mono uppercase">Seniority</div>
-                        <div className="font-semibold text-ink capitalize">{selectedPerson.seniority || 'Unclassified'}</div>
+                      <div className="p-3 bg-surface-raised border border-line/80 rounded-xl shadow-2xs">
+                        <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block mb-1">Seniority</span>
+                        <div className="text-xs font-semibold text-ink capitalize">
+                          {selectedPerson.seniority || <span className="text-ink-faint font-normal">Unassigned</span>}
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Sector Tags */}
-                  <div className="space-y-1.5">
-                    <span className="font-mono text-[11px] uppercase text-ink-muted">Sector Tags</span>
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Sector Tags</h4>
                     <div className="flex flex-wrap gap-1.5">
                       {selectedPerson.sector_tags && selectedPerson.sector_tags.length > 0 ? (
                         selectedPerson.sector_tags.map((tag, tIdx) => (
                           <span
                             key={tIdx}
-                            className="px-2 py-0.5 rounded text-xs font-mono bg-surface-muted text-ink border border-line"
+                            className="px-2.5 py-1 rounded-lg text-xs font-medium bg-surface-raised text-ink border border-line shadow-2xs"
                           >
                             #{tag}
                           </span>
                         ))
                       ) : (
-                        <span className="text-ink-faint italic">No sectors assigned.</span>
+                        <span className="text-ink-faint italic text-xs">No sectors assigned.</span>
                       )}
                     </div>
                   </div>
 
                   {/* Community Fit Tags */}
-                  <div className="space-y-1.5">
-                    <span className="font-mono text-[11px] uppercase text-ink-muted">Community Fit Tags</span>
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Community Fit Tags</h4>
                     <div className="flex flex-wrap gap-1.5">
                       {selectedPerson.community_fit_tags && selectedPerson.community_fit_tags.length > 0 ? (
                         selectedPerson.community_fit_tags.map((tag, tIdx) => (
                           <span
                             key={tIdx}
-                            className="px-2 py-0.5 rounded text-xs font-mono bg-signal-soft text-signal border border-signal/30"
+                            className="px-2.5 py-1 rounded-lg text-xs font-medium bg-signal-soft text-signal border border-signal/30 shadow-2xs"
                           >
                             {tag}
                           </span>
                         ))
                       ) : (
-                        <span className="text-ink-faint italic">No fit tags.</span>
+                        <span className="text-ink-faint italic text-xs">No fit tags.</span>
                       )}
                     </div>
                   </div>
 
                   {/* System Metadata */}
-                  <div className="pt-3 border-t border-line space-y-1 text-[11px] font-mono text-ink-muted">
-                    <div>Source: {selectedPerson.source}</div>
-                    <div>Record ID: {selectedPerson.source_record_id || `rec_${selectedPerson.id}`}</div>
-                    <div>Enrichment: {selectedPerson.ai_enrichment_status}</div>
+                  <div className="pt-3 border-t border-line space-y-1.5 text-xs text-ink-muted">
+                    <div className="flex items-center justify-between">
+                      <span className="text-ink-faint">Lead Source</span>
+                      <span className="font-mono text-ink text-[11px] px-2 py-0.5 rounded bg-surface border border-line">
+                        {selectedPerson.source}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-ink-faint">Record ID</span>
+                      <span className="font-mono text-ink text-[11px]">
+                        {selectedPerson.source_record_id || `rec_${selectedPerson.id}`}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-ink-faint">Enrichment Status</span>
+                      <span className="text-[11px] font-semibold text-signal uppercase">
+                        {selectedPerson.ai_enrichment_status}
+                      </span>
+                    </div>
                   </div>
                 </>
               )}
