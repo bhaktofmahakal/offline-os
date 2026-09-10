@@ -157,8 +157,8 @@ export async function POST(request: Request) {
       duplicate_confidence: dup_confidence,
       is_incomplete: !extracted.email || !extracted.role_title,
       missing_fields: [!extracted.email ? 'email' : null, !extracted.role_title ? 'role_title' : null].filter(Boolean),
-      ai_enrichment_status: is_dup_of ? 'duplicate_flagged' : 'pending_enrichment',
-      review_status: is_dup_of ? 'duplicate_review' : 'pending',
+      ai_enrichment_status: 'completed',
+      review_status: is_dup_of ? 'needs_review' : 'new',
     };
 
     const { data, error } = await supabase

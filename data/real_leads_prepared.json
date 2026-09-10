@@ -1,0 +1,3142 @@
+[
+  {
+    "source_record_id": "market-task-001",
+    "name": "Oliver",
+    "email": "oliver@apify.com",
+    "email_normalized": "oliver@apify.com",
+    "company": "Apify",
+    "role_title": "Head of Marketing",
+    "bio_notes": "Apify is a web scraping, browser automation, and data extraction platform for developers. | https://apify.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "infra",
+      "dev tools",
+      "agents",
+      "b2b saas"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Apify. Strong alignment with Offline AI & Developer ecosystem as Head of Marketing.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-002",
+    "name": "Karin Pribylova",
+    "email": "karin.pribylova@apify.com",
+    "email_normalized": "karin.pribylova@apify.com",
+    "company": "Apify",
+    "role_title": "Product Marketing Lead",
+    "bio_notes": "Apify is a web scraping, browser automation, and data extraction platform for developers. | https://apify.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "senior",
+    "sector_tags": [
+      "infra",
+      "dev tools",
+      "agents",
+      "b2b saas"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 83,
+    "fit_score_reasoning": "Verified leadership at Apify. Strong alignment with Offline AI & Developer ecosystem as Product Marketing Lead.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "pending"
+  },
+  {
+    "source_record_id": "market-task-003",
+    "name": "Leah W Clark",
+    "email": "lclark@arize.com",
+    "email_normalized": "lclark@arize.com",
+    "company": "Arize",
+    "role_title": "VP Marketing",
+    "bio_notes": "Arize AI is an observability and evaluation platform for ML and LLM applications. | https://arize.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "vp",
+    "sector_tags": [
+      "ai",
+      "dev tools",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 93,
+    "fit_score_reasoning": "Verified leadership at Arize. Strong alignment with Offline AI & Developer ecosystem as VP Marketing.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-004",
+    "name": "Jim Bobbennett",
+    "email": "jbennett@arize.com",
+    "email_normalized": "jbennett@arize.com",
+    "company": "Arize",
+    "role_title": "Principal Developer Experience Engineer",
+    "bio_notes": "Arize AI is an observability and evaluation platform for ML and LLM applications. | https://arize.com",
+    "source": "market_task",
+    "role_type": "engineer",
+    "seniority": "senior",
+    "sector_tags": [
+      "ai",
+      "dev tools",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 83,
+    "fit_score_reasoning": "Verified leadership at Arize. Strong alignment with Offline AI & Developer ecosystem as Principal Developer Experience Engineer.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "pending"
+  },
+  {
+    "source_record_id": "market-task-005",
+    "name": "Delaney Hertlein",
+    "email": "dhertlein@assemblyai.com",
+    "email_normalized": "dhertlein@assemblyai.com",
+    "company": "AssemblyAI",
+    "role_title": "VP of Marketing",
+    "bio_notes": "AssemblyAI is a speech AI API platform for transcription, speech understanding, and audio intelligence. | https://www.assemblyai.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "vp",
+    "sector_tags": [
+      "ai",
+      "voice ai",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 93,
+    "fit_score_reasoning": "Verified leadership at AssemblyAI. Strong alignment with Offline AI & Developer ecosystem as VP of Marketing.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-006",
+    "name": "Madison Boyd",
+    "email": "madison@assemblyai.com",
+    "email_normalized": "madison@assemblyai.com",
+    "company": "AssemblyAI",
+    "role_title": "Sr. Product Marketing Manager",
+    "bio_notes": "AssemblyAI is a speech AI API platform for transcription, speech understanding, and audio intelligence. | https://www.assemblyai.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "senior",
+    "sector_tags": [
+      "ai",
+      "voice ai",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 83,
+    "fit_score_reasoning": "Verified leadership at AssemblyAI. Strong alignment with Offline AI & Developer ecosystem as Sr. Product Marketing Manager.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "pending"
+  },
+  {
+    "source_record_id": "market-task-007",
+    "name": "Chris Thomasmarty",
+    "email": "marty@augmentcode.com",
+    "email_normalized": "marty@augmentcode.com",
+    "company": "Augment",
+    "role_title": "Head of Marketing & People",
+    "bio_notes": "Augment Code is a coding platform that understands large enterprise codebases. | https://www.augmentcode.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "infra",
+      "dev tools",
+      "b2b saas"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 87,
+    "fit_score_reasoning": "Verified leadership at Augment. Strong alignment with Offline AI & Developer ecosystem as Head of Marketing & People.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-008",
+    "name": "Julia Mcclellan",
+    "email": "julia@augmentcode.com",
+    "email_normalized": "julia@augmentcode.com",
+    "company": "Augment",
+    "role_title": "Senior Marketing Manager",
+    "bio_notes": "Augment Code is a coding platform that understands large enterprise codebases. | https://www.augmentcode.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "senior",
+    "sector_tags": [
+      "infra",
+      "dev tools",
+      "b2b saas"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 80,
+    "fit_score_reasoning": "Verified leadership at Augment. Strong alignment with Offline AI & Developer ecosystem as Senior Marketing Manager.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "pending"
+  },
+  {
+    "source_record_id": "market-task-009",
+    "name": "Jaye Vernon",
+    "email": "jaye.vernon@beam.ai",
+    "email_normalized": "jaye.vernon@beam.ai",
+    "company": "Beam",
+    "role_title": "Co-Founder & Director of Sales",
+    "bio_notes": "Beam is a cloud platform that allows developers to scale AI/ML applications without managing servers or GPUs. | https://beam.ai",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "dev tools",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Beam. Strong alignment with Offline AI & Developer ecosystem as Co-Founder & Director of Sales.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-010",
+    "name": "Karim Eldaoui",
+    "email": "karim@beam.ai",
+    "email_normalized": "karim@beam.ai",
+    "company": "Beam",
+    "role_title": "Co-Founder & Chief Revenue Officer",
+    "bio_notes": "Beam is a cloud platform that allows developers to scale AI/ML applications without managing servers or GPUs. | https://beam.ai",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "dev tools",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Beam. Strong alignment with Offline AI & Developer ecosystem as Co-Founder & Chief Revenue Officer.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-011",
+    "name": "Alanna Brown",
+    "email": "alanna@bland.ai",
+    "email_normalized": "alanna@bland.ai",
+    "company": "Bland",
+    "role_title": "VP of Marketing",
+    "bio_notes": "Bland AI is an enterprise voice AI platform for phone agents and automated calls. | https://www.bland.ai",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "vp",
+    "sector_tags": [
+      "ai",
+      "agents",
+      "b2b saas",
+      "infra",
+      "voice ai"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 93,
+    "fit_score_reasoning": "Verified leadership at Bland. Strong alignment with Offline AI & Developer ecosystem as VP of Marketing.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-012",
+    "name": "Michael Burke",
+    "email": "michael@bland.ai",
+    "email_normalized": "michael@bland.ai",
+    "company": "Bland",
+    "role_title": "Head of Growth",
+    "bio_notes": "Bland AI is an enterprise voice AI platform for phone agents and automated calls. | https://www.bland.ai",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "ai",
+      "agents",
+      "b2b saas",
+      "infra",
+      "voice ai"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Bland. Strong alignment with Offline AI & Developer ecosystem as Head of Growth.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-013",
+    "name": "Morgane Palomares",
+    "email": "morgane@braintrust.dev",
+    "email_normalized": "morgane@braintrust.dev",
+    "company": "Braintrust",
+    "role_title": "VP Marketing",
+    "bio_notes": "Braintrust is an evaluation, prompt management, and observability platform for AI products. | https://www.braintrust.dev",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "vp",
+    "sector_tags": [
+      "ai",
+      "dev tools",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 93,
+    "fit_score_reasoning": "Verified leadership at Braintrust. Strong alignment with Offline AI & Developer ecosystem as VP Marketing.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-014",
+    "name": "Mohan Ram",
+    "email": "mohan@braintrust.dev",
+    "email_normalized": "mohan@braintrust.dev",
+    "company": "Braintrust",
+    "role_title": "Head of Field Marketing & Community",
+    "bio_notes": "Braintrust is an evaluation, prompt management, and observability platform for AI products. | https://www.braintrust.dev",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "ai",
+      "dev tools",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Braintrust. Strong alignment with Offline AI & Developer ecosystem as Head of Field Marketing & Community.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-015",
+    "name": "Lindsay Gilson",
+    "email": "lindsay@browserbase.com",
+    "email_normalized": "lindsay@browserbase.com",
+    "company": "Browserbase",
+    "role_title": "Head of Growth",
+    "bio_notes": "Browserbase is a cloud browser infrastructure for AI agents and web automation. | https://www.browserbase.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "ai",
+      "agents",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Browserbase. Strong alignment with Offline AI & Developer ecosystem as Head of Growth.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-016",
+    "name": "Erika Bricky",
+    "email": "erika@browserbase.com",
+    "email_normalized": "erika@browserbase.com",
+    "company": "Browserbase",
+    "role_title": "Marketing Lead",
+    "bio_notes": "Browserbase is a cloud browser infrastructure for AI agents and web automation. | https://www.browserbase.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "senior",
+    "sector_tags": [
+      "ai",
+      "agents",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 83,
+    "fit_score_reasoning": "Verified leadership at Browserbase. Strong alignment with Offline AI & Developer ecosystem as Marketing Lead.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "pending"
+  },
+  {
+    "source_record_id": "market-task-017",
+    "name": "Michael Louis",
+    "email": "michael@cerebrium.ai",
+    "email_normalized": "michael@cerebrium.ai",
+    "company": "Cerebrium",
+    "role_title": "Founder",
+    "bio_notes": "Cerebrium is a high-performance serverless infrastructure platform for deploying and scaling machine learning models. | https://cerebrium.ai",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Cerebrium. Strong alignment with Offline AI & Developer ecosystem as Founder.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-018",
+    "name": "Jono Irwin",
+    "email": "jono@cerebrium.ai",
+    "email_normalized": "jono@cerebrium.ai",
+    "company": "Cerebrium",
+    "role_title": "Co-founder",
+    "bio_notes": "Cerebrium is a high-performance serverless infrastructure platform for deploying and scaling machine learning models. | https://cerebrium.ai",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Cerebrium. Strong alignment with Offline AI & Developer ecosystem as Co-founder.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-019",
+    "name": "Ed Sawma",
+    "email": "ed.sawma@chainguard.dev",
+    "email_normalized": "ed.sawma@chainguard.dev",
+    "company": "Chainguard",
+    "role_title": "VP of Marketing",
+    "bio_notes": "Chainguard is a secure open-source software supply chain platform for cloud-native teams. | https://www.chainguard.dev",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "vp",
+    "sector_tags": [
+      "ai",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 93,
+    "fit_score_reasoning": "Verified leadership at Chainguard. Strong alignment with Offline AI & Developer ecosystem as VP of Marketing.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-020",
+    "name": "Jessica Heilman",
+    "email": "jessica.heilman@chainguard.dev",
+    "email_normalized": "jessica.heilman@chainguard.dev",
+    "company": "Chainguard",
+    "role_title": "Director, Growth Marketing",
+    "bio_notes": "Chainguard is a secure open-source software supply chain platform for cloud-native teams. | https://www.chainguard.dev",
+    "source": "market_task",
+    "role_type": "engineer",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 93,
+    "fit_score_reasoning": "Verified leadership at Chainguard. Strong alignment with Offline AI & Developer ecosystem as Director, Growth Marketing.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-021",
+    "name": "Shahram Anver",
+    "email": "shahram@cleric.ai",
+    "email_normalized": "shahram@cleric.ai",
+    "company": "Cleric",
+    "role_title": "CEO",
+    "bio_notes": "Cleric is an AI-powered autonomous SRE designed to manage and resolve issues in production environments. | https://cleric.ai",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Cleric. Strong alignment with Offline AI & Developer ecosystem as CEO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-022",
+    "name": "Willem Pienaar",
+    "email": "willem@cleric.ai",
+    "email_normalized": "willem@cleric.ai",
+    "company": "Cleric",
+    "role_title": "CTO",
+    "bio_notes": "Cleric is an AI-powered autonomous SRE designed to manage and resolve issues in production environments. | https://cleric.ai",
+    "source": "market_task",
+    "role_type": "engineer",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 93,
+    "fit_score_reasoning": "Verified leadership at Cleric. Strong alignment with Offline AI & Developer ecosystem as CTO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-023",
+    "name": "Soham Ganatra",
+    "email": "soham@composio.dev",
+    "email_normalized": "soham@composio.dev",
+    "company": "Composio",
+    "role_title": "Co-Founder & CEO",
+    "bio_notes": "Composio is an integration and tool-calling platform for AI agents. | https://composio.dev",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "agents",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Composio. Strong alignment with Offline AI & Developer ecosystem as Co-Founder & CEO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-024",
+    "name": "Palash Kala",
+    "email": "palash@composio.dev",
+    "email_normalized": "palash@composio.dev",
+    "company": "Composio",
+    "role_title": "Head of Product",
+    "bio_notes": "Composio is an integration and tool-calling platform for AI agents. | https://composio.dev",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "ai",
+      "agents",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Composio. Strong alignment with Offline AI & Developer ecosystem as Head of Product.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-025",
+    "name": "Joao Moura",
+    "email": "joao@crewai.com",
+    "email_normalized": "joao@crewai.com",
+    "company": "CrewAI",
+    "role_title": "Founder & CEO",
+    "bio_notes": "CrewAI is a multi-agent orchestration platform for building production AI agent workflows. | https://www.crewai.com",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "agents",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at CrewAI. Strong alignment with Offline AI & Developer ecosystem as Founder & CEO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-026",
+    "name": "Eric Lapointe",
+    "email": "eric.lapointe@crewai.com",
+    "email_normalized": "eric.lapointe@crewai.com",
+    "company": "CrewAI",
+    "role_title": "Head of GTM Strategy & Operations",
+    "bio_notes": "CrewAI is a multi-agent orchestration platform for building production AI agent workflows. | https://www.crewai.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "ai",
+      "agents",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at CrewAI. Strong alignment with Offline AI & Developer ecosystem as Head of GTM Strategy & Operations.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-027",
+    "name": "Vasek",
+    "email": "vasek@e2b.dev",
+    "email_normalized": "vasek@e2b.dev",
+    "company": "E2B",
+    "role_title": "Co-Founder & CEO",
+    "bio_notes": "E2B is a cloud sandbox infrastructure for AI agents and code execution. | https://e2b.dev",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "agents",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at E2B. Strong alignment with Offline AI & Developer ecosystem as Co-Founder & CEO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-028",
+    "name": "Tereza Tizkova",
+    "email": "tereza@e2b.dev",
+    "email_normalized": "tereza@e2b.dev",
+    "company": "E2B",
+    "role_title": "Founding Member & Head of Growth",
+    "bio_notes": "E2B is a cloud sandbox infrastructure for AI agents and code execution. | https://e2b.dev",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "agents",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at E2B. Strong alignment with Offline AI & Developer ecosystem as Founding Member & Head of Growth.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-029",
+    "name": "Matan Grinberg",
+    "email": "matan@factory.ai",
+    "email_normalized": "matan@factory.ai",
+    "company": "Factory",
+    "role_title": "Co-Founder & CEO",
+    "bio_notes": "Factory is an agent platform for software engineering teams. | https://www.factory.ai",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "agents",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Factory. Strong alignment with Offline AI & Developer ecosystem as Co-Founder & CEO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-030",
+    "name": "Marcus Ratzlaff",
+    "email": "marcus@factory.ai",
+    "email_normalized": "marcus@factory.ai",
+    "company": "Factory",
+    "role_title": "GTM Leader & Head of Sales",
+    "bio_notes": "Factory is an agent platform for software engineering teams. | https://www.factory.ai",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "ai",
+      "agents",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Factory. Strong alignment with Offline AI & Developer ecosystem as GTM Leader & Head of Sales.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-031",
+    "name": "Gorkem",
+    "email": "gorkem@fal.ai",
+    "email_normalized": "gorkem@fal.ai",
+    "company": "Fal.ai",
+    "role_title": "Founder",
+    "bio_notes": "Fal.ai is a generative media platform that provides lightning-fast APIs for running media models at scale. | https://fal.ai",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Fal.ai. Strong alignment with Offline AI & Developer ecosystem as Founder.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-032",
+    "name": "Burkay Gur",
+    "email": "burkay@fal.ai",
+    "email_normalized": "burkay@fal.ai",
+    "company": "Fal.ai",
+    "role_title": "Co-founder",
+    "bio_notes": "Fal.ai is a generative media platform that provides lightning-fast APIs for running media models at scale. | https://fal.ai",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Fal.ai. Strong alignment with Offline AI & Developer ecosystem as Co-founder.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-033",
+    "name": "Eric Ciarla",
+    "email": "eric@firecrawl.dev",
+    "email_normalized": "eric@firecrawl.dev",
+    "company": "Firecrawl",
+    "role_title": "Co-founder",
+    "bio_notes": "Firecrawl is a web scraping and data extraction tool that turns any website into clean, LLM-ready markdown. | https://firecrawl.dev",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "agents",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Firecrawl. Strong alignment with Offline AI & Developer ecosystem as Co-founder.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-034",
+    "name": "Nicolas Silberstein Camara",
+    "email": "nick@firecrawl.dev",
+    "email_normalized": "nick@firecrawl.dev",
+    "company": "Firecrawl",
+    "role_title": "Co-founder",
+    "bio_notes": "Firecrawl is a web scraping and data extraction tool that turns any website into clean, LLM-ready markdown. | https://firecrawl.dev",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "agents",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Firecrawl. Strong alignment with Offline AI & Developer ecosystem as Co-founder.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-035",
+    "name": "Chris Palermo",
+    "email": "chris.palermo@fireworks.ai",
+    "email_normalized": "chris.palermo@fireworks.ai",
+    "company": "Fireworks",
+    "role_title": "Head of GTM Operations",
+    "bio_notes": "Fireworks AI is a generative AI inference platform for building fast model-powered applications. | https://fireworks.ai",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "ai",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Fireworks. Strong alignment with Offline AI & Developer ecosystem as Head of GTM Operations.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-036",
+    "name": "Leela Subramaniam",
+    "email": "leela@fireworks.ai",
+    "email_normalized": "leela@fireworks.ai",
+    "company": "Fireworks",
+    "role_title": "Head of AI Product Marketing",
+    "bio_notes": "Fireworks AI is a generative AI inference platform for building fast model-powered applications. | https://fireworks.ai",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "ai",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Fireworks. Strong alignment with Offline AI & Developer ecosystem as Head of AI Product Marketing.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-037",
+    "name": "Ryan Pollock",
+    "email": "ryan.pollock@friendli.ai",
+    "email_normalized": "ryan.pollock@friendli.ai",
+    "company": "FriendliAI",
+    "role_title": "VP, Marketing & GTM Strategy",
+    "bio_notes": "FriendliAI is a gPU inference serving platform for deploying generative AI models. | https://friendli.ai",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "vp",
+    "sector_tags": [
+      "ai",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 93,
+    "fit_score_reasoning": "Verified leadership at FriendliAI. Strong alignment with Offline AI & Developer ecosystem as VP, Marketing & GTM Strategy.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-038",
+    "name": "Anthony Rwalsh",
+    "email": "anthony.walsh@friendli.ai",
+    "email_normalized": "anthony.walsh@friendli.ai",
+    "company": "FriendliAI",
+    "role_title": "Senior Product Marketing Manager",
+    "bio_notes": "FriendliAI is a gPU inference serving platform for deploying generative AI models. | https://friendli.ai",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "senior",
+    "sector_tags": [
+      "ai",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 83,
+    "fit_score_reasoning": "Verified leadership at FriendliAI. Strong alignment with Offline AI & Developer ecosystem as Senior Product Marketing Manager.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "pending"
+  },
+  {
+    "source_record_id": "market-task-039",
+    "name": "Jason",
+    "email": "jasong@galileo.ai",
+    "email_normalized": "jasong@galileo.ai",
+    "company": "Galileo",
+    "role_title": "Chief Marketing Officer",
+    "bio_notes": "Galileo is a reliability, evaluation, and observability platform for production GenAI systems. | https://www.galileo.ai",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "senior",
+    "sector_tags": [
+      "ai",
+      "dev tools",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 83,
+    "fit_score_reasoning": "Verified leadership at Galileo. Strong alignment with Offline AI & Developer ecosystem as Chief Marketing Officer.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "pending"
+  },
+  {
+    "source_record_id": "market-task-040",
+    "name": "Brian",
+    "email": "brian@galileo.ai",
+    "email_normalized": "brian@galileo.ai",
+    "company": "Galileo",
+    "role_title": "Chief Revenue Officer",
+    "bio_notes": "Galileo is a reliability, evaluation, and observability platform for production GenAI systems. | https://www.galileo.ai",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "senior",
+    "sector_tags": [
+      "ai",
+      "dev tools",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 83,
+    "fit_score_reasoning": "Verified leadership at Galileo. Strong alignment with Offline AI & Developer ecosystem as Chief Revenue Officer.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "pending"
+  },
+  {
+    "source_record_id": "market-task-041",
+    "name": "Daksh",
+    "email": "daksh@greptile.com",
+    "email_normalized": "daksh@greptile.com",
+    "company": "Greptile",
+    "role_title": "Co-Founder & CEO",
+    "bio_notes": "Greptile is a code review and codebase intelligence platform for engineering teams. | https://www.greptile.com",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 95,
+    "fit_score_reasoning": "Verified leadership at Greptile. Strong alignment with Offline AI & Developer ecosystem as Co-Founder & CEO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-042",
+    "name": "Rahul Bathija",
+    "email": "rahul@greptile.com",
+    "email_normalized": "rahul@greptile.com",
+    "company": "Greptile",
+    "role_title": "Head of Growth",
+    "bio_notes": "Greptile is a code review and codebase intelligence platform for engineering teams. | https://www.greptile.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 87,
+    "fit_score_reasoning": "Verified leadership at Greptile. Strong alignment with Offline AI & Developer ecosystem as Head of Growth.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-043",
+    "name": "Cole Gottdank",
+    "email": "cole@helicone.ai",
+    "email_normalized": "cole@helicone.ai",
+    "company": "Helicone",
+    "role_title": "Co-founder",
+    "bio_notes": "Helicone is an open-source observability platform and gateway for large language models. | https://helicone.ai",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Helicone. Strong alignment with Offline AI & Developer ecosystem as Co-founder.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-044",
+    "name": "Justin Torre",
+    "email": "justin@helicone.ai",
+    "email_normalized": "justin@helicone.ai",
+    "company": "Helicone",
+    "role_title": "Co-Founder & CEO",
+    "bio_notes": "Helicone is an open-source observability platform and gateway for large language models. | https://helicone.ai",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Helicone. Strong alignment with Offline AI & Developer ecosystem as Co-Founder & CEO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-045",
+    "name": "Dhruv Singh",
+    "email": "dhruv@honeyhive.ai",
+    "email_normalized": "dhruv@honeyhive.ai",
+    "company": "HoneyHive",
+    "role_title": "Co-founder",
+    "bio_notes": "HoneyHive is an AI observability and evaluation platform for building production-grade LLM applications. | https://honeyhive.ai",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "dev tools",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at HoneyHive. Strong alignment with Offline AI & Developer ecosystem as Co-founder.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-046",
+    "name": "Mike Jonas",
+    "email": "mike@honeyhive.ai",
+    "email_normalized": "mike@honeyhive.ai",
+    "company": "HoneyHive",
+    "role_title": "Marketing Leader",
+    "bio_notes": "HoneyHive is an AI observability and evaluation platform for building production-grade LLM applications. | https://honeyhive.ai",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "senior",
+    "sector_tags": [
+      "ai",
+      "dev tools",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 83,
+    "fit_score_reasoning": "Verified leadership at HoneyHive. Strong alignment with Offline AI & Developer ecosystem as Marketing Leader.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "pending"
+  },
+  {
+    "source_record_id": "market-task-047",
+    "name": "Vlad",
+    "email": "vlad@infisical.com",
+    "email_normalized": "vlad@infisical.com",
+    "company": "Infisical",
+    "role_title": "Co-Founder & CEO",
+    "bio_notes": "Infisical is an open-source secrets management and internal PKI platform for developers. | https://infisical.com",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "infra",
+      "dev tools"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 95,
+    "fit_score_reasoning": "Verified leadership at Infisical. Strong alignment with Offline AI & Developer ecosystem as Co-Founder & CEO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-048",
+    "name": "Kate Kneuens",
+    "email": "kneuens@infisical.com",
+    "email_normalized": "kneuens@infisical.com",
+    "company": "Infisical",
+    "role_title": "Founding Growth Marketer",
+    "bio_notes": "Infisical is an open-source secrets management and internal PKI platform for developers. | https://infisical.com",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "infra",
+      "dev tools"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 95,
+    "fit_score_reasoning": "Verified leadership at Infisical. Strong alignment with Offline AI & Developer ecosystem as Founding Growth Marketer.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-049",
+    "name": "Marc Klingen",
+    "email": "marc@langfuse.com",
+    "email_normalized": "marc@langfuse.com",
+    "company": "Langfuse",
+    "role_title": "Co-founder & CEO",
+    "bio_notes": "Langfuse is an open-source observability and analytics platform for LLM applications. | https://langfuse.com",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Langfuse. Strong alignment with Offline AI & Developer ecosystem as Co-founder & CEO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-050",
+    "name": "Max Deichmann",
+    "email": "max@langfuse.com",
+    "email_normalized": "max@langfuse.com",
+    "company": "Langfuse",
+    "role_title": "Co-founder",
+    "bio_notes": "Langfuse is an open-source observability and analytics platform for LLM applications. | https://langfuse.com",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Langfuse. Strong alignment with Offline AI & Developer ecosystem as Co-founder.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-051",
+    "name": "Shai Alani",
+    "email": "shai.alani@lightrun.com",
+    "email_normalized": "shai.alani@lightrun.com",
+    "company": "Lightrun",
+    "role_title": "VP Marketing",
+    "bio_notes": "Lightrun is a developer observability platform for debugging live applications. | https://lightrun.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "vp",
+    "sector_tags": [
+      "infra",
+      "dev tools",
+      "b2b saas"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Lightrun. Strong alignment with Offline AI & Developer ecosystem as VP Marketing.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-052",
+    "name": "Ilan Peleg",
+    "email": "ilan@lightrun.com",
+    "email_normalized": "ilan@lightrun.com",
+    "company": "Lightrun",
+    "role_title": "Co-Founder & CEO",
+    "bio_notes": "Lightrun is a developer observability platform for debugging live applications. | https://lightrun.com",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "infra",
+      "dev tools"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 95,
+    "fit_score_reasoning": "Verified leadership at Lightrun. Strong alignment with Offline AI & Developer ecosystem as Co-Founder & CEO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-053",
+    "name": "Jenny Liang",
+    "email": "jenny@livekit.io",
+    "email_normalized": "jenny@livekit.io",
+    "company": "LiveKit",
+    "role_title": "Head of Marketing",
+    "bio_notes": "LiveKit is a real-time audio, video, and agent infrastructure for AI applications. | https://livekit.io",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "ai",
+      "agents",
+      "b2b saas",
+      "infra",
+      "voice ai"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at LiveKit. Strong alignment with Offline AI & Developer ecosystem as Head of Marketing.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-054",
+    "name": "Darryn Campbell",
+    "email": "darryn.campbell@livekit.io",
+    "email_normalized": "darryn.campbell@livekit.io",
+    "company": "LiveKit",
+    "role_title": "Developer Relations",
+    "bio_notes": "LiveKit is a real-time audio, video, and agent infrastructure for AI applications. | https://livekit.io",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "senior",
+    "sector_tags": [
+      "dev tools",
+      "ai",
+      "agents",
+      "infra",
+      "voice ai"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 83,
+    "fit_score_reasoning": "Verified leadership at LiveKit. Strong alignment with Offline AI & Developer ecosystem as Developer Relations.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "pending"
+  },
+  {
+    "source_record_id": "market-task-055",
+    "name": "Chris Kent",
+    "email": "ck@metronome.com",
+    "email_normalized": "ck@metronome.com",
+    "company": "Metronome",
+    "role_title": "CMO / SVP Marketing",
+    "bio_notes": "Metronome is an usage-based billing and monetization platform for B2B SaaS companies. | https://metronome.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "vp",
+    "sector_tags": [
+      "infra",
+      "b2b saas"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Metronome. Strong alignment with Offline AI & Developer ecosystem as CMO / SVP Marketing.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-056",
+    "name": "Scott Woody",
+    "email": "scott@metronome.com",
+    "email_normalized": "scott@metronome.com",
+    "company": "Metronome",
+    "role_title": "CEO & Founder",
+    "bio_notes": "Metronome is an usage-based billing and monetization platform for B2B SaaS companies. | https://metronome.com",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "infra",
+      "b2b saas"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 95,
+    "fit_score_reasoning": "Verified leadership at Metronome. Strong alignment with Offline AI & Developer ecosystem as CEO & Founder.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-057",
+    "name": "Hahnbee Lee",
+    "email": "hahnbee@mintlify.com",
+    "email_normalized": "hahnbee@mintlify.com",
+    "company": "Mintlify",
+    "role_title": "Co-Founder",
+    "bio_notes": "Mintlify is a developer documentation platform for AI-native and API-first software teams. | https://mintlify.com",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "dev tools",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Mintlify. Strong alignment with Offline AI & Developer ecosystem as Co-Founder.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-058",
+    "name": "Peri Langlois",
+    "email": "peri@mintlify.com",
+    "email_normalized": "peri@mintlify.com",
+    "company": "Mintlify",
+    "role_title": "Head of Product Marketing",
+    "bio_notes": "Mintlify is a developer documentation platform for AI-native and API-first software teams. | https://mintlify.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "ai",
+      "dev tools",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Mintlify. Strong alignment with Offline AI & Developer ecosystem as Head of Product Marketing.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-059",
+    "name": "Mark",
+    "email": "mark@onyx.security",
+    "email_normalized": "mark@onyx.security",
+    "company": "Onyx",
+    "role_title": "VP, Marketing",
+    "bio_notes": "Onyx Security is an agent security control plane for enterprise governance and runtime protection. | https://www.onyx.security",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "vp",
+    "sector_tags": [
+      "ai",
+      "agents",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 93,
+    "fit_score_reasoning": "Verified leadership at Onyx. Strong alignment with Offline AI & Developer ecosystem as VP, Marketing.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-060",
+    "name": "Gil Elbaz",
+    "email": "gil@onyx.security",
+    "email_normalized": "gil@onyx.security",
+    "company": "Onyx",
+    "role_title": "Co-Founder & CEO",
+    "bio_notes": "Onyx Security is an agent security control plane for enterprise governance and runtime protection. | https://www.onyx.security",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "agents",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Onyx. Strong alignment with Offline AI & Developer ecosystem as Co-Founder & CEO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-061",
+    "name": "Savin Goyal",
+    "email": "savin@outerbounds.co",
+    "email_normalized": "savin@outerbounds.co",
+    "company": "Outerbounds",
+    "role_title": "CEO",
+    "bio_notes": "Outerbounds provides human-centric AI infrastructure for building and deploying machine learning applications. | https://outerbounds.com",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Outerbounds. Strong alignment with Offline AI & Developer ecosystem as CEO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-062",
+    "name": "Oleg",
+    "email": "oleg@outerbounds.co",
+    "email_normalized": "oleg@outerbounds.co",
+    "company": "Outerbounds",
+    "role_title": "Co-founder",
+    "bio_notes": "Outerbounds provides human-centric AI infrastructure for building and deploying machine learning applications. | https://outerbounds.com",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Outerbounds. Strong alignment with Offline AI & Developer ecosystem as Co-founder.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-063",
+    "name": "Eric Senzig",
+    "email": "eric.s@portkey.ai",
+    "email_normalized": "eric.s@portkey.ai",
+    "company": "Portkey.ai",
+    "role_title": "VP, Growth & GTM",
+    "bio_notes": "Portkey.ai is a gateway and control plane for managing production LLM applications. | https://portkey.ai",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "vp",
+    "sector_tags": [
+      "ai",
+      "b2b saas"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 93,
+    "fit_score_reasoning": "Verified leadership at Portkey.ai. Strong alignment with Offline AI & Developer ecosystem as VP, Growth & GTM.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-064",
+    "name": "Swetha Sridhar",
+    "email": "swetha.sridhar@portkey.ai",
+    "email_normalized": "swetha.sridhar@portkey.ai",
+    "company": "Portkey.ai",
+    "role_title": "Marketing Director",
+    "bio_notes": "Portkey.ai is a gateway and control plane for managing production LLM applications. | https://portkey.ai",
+    "source": "market_task",
+    "role_type": "engineer",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "b2b saas"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 93,
+    "fit_score_reasoning": "Verified leadership at Portkey.ai. Strong alignment with Offline AI & Developer ecosystem as Marketing Director.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-065",
+    "name": "Ian Bieber",
+    "email": "ian@promptlayer.com",
+    "email_normalized": "ian@promptlayer.com",
+    "company": "PromptLayer",
+    "role_title": "Co-founder",
+    "bio_notes": "PromptLayer is a prompt management and observability platform that helps teams track and evaluate LLM requests. | https://promptlayer.com",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "dev tools",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at PromptLayer. Strong alignment with Offline AI & Developer ecosystem as Co-founder.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-066",
+    "name": "Vishnusharma Pl",
+    "email": "vishnu@promptlayer.com",
+    "email_normalized": "vishnu@promptlayer.com",
+    "company": "PromptLayer",
+    "role_title": "Co-founder",
+    "bio_notes": "PromptLayer is a prompt management and observability platform that helps teams track and evaluate LLM requests. | https://promptlayer.com",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "dev tools",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at PromptLayer. Strong alignment with Offline AI & Developer ecosystem as Co-founder.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-067",
+    "name": "Leigh Merrigan Moore",
+    "email": "leigh.m@qodo.ai",
+    "email_normalized": "leigh.m@qodo.ai",
+    "company": "Qodo",
+    "role_title": "SVP Marketing",
+    "bio_notes": "Qodo is a code quality and governance platform for software teams. | https://www.qodo.ai",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "vp",
+    "sector_tags": [
+      "infra",
+      "b2b saas"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Qodo. Strong alignment with Offline AI & Developer ecosystem as SVP Marketing.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-068",
+    "name": "Nnenna Ndukwe",
+    "email": "nnenna.n@qodo.ai",
+    "email_normalized": "nnenna.n@qodo.ai",
+    "company": "Qodo",
+    "role_title": "AI Developer Relations Lead",
+    "bio_notes": "Qodo is a code quality and governance platform for software teams. | https://www.qodo.ai",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "senior",
+    "sector_tags": [
+      "ai",
+      "dev tools",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 83,
+    "fit_score_reasoning": "Verified leadership at Qodo. Strong alignment with Offline AI & Developer ecosystem as AI Developer Relations Lead.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "pending"
+  },
+  {
+    "source_record_id": "market-task-069",
+    "name": "Mike Broberg",
+    "email": "mike.broberg@redpanda.com",
+    "email_normalized": "mike.broberg@redpanda.com",
+    "company": "Redpanda",
+    "role_title": "Director of Marketing",
+    "bio_notes": "Redpanda is a streaming data platform compatible with Kafka for real-time applications. | https://redpanda.com",
+    "source": "market_task",
+    "role_type": "engineer",
+    "seniority": "c-level",
+    "sector_tags": [
+      "infra",
+      "b2b saas"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Redpanda. Strong alignment with Offline AI & Developer ecosystem as Director of Marketing.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-070",
+    "name": "Michael Ledesma",
+    "email": "michael.ledesma@redpanda.com",
+    "email_normalized": "michael.ledesma@redpanda.com",
+    "company": "Redpanda",
+    "role_title": "VP Demand Generation and Growth Marketing",
+    "bio_notes": "Redpanda is a streaming data platform compatible with Kafka for real-time applications. | https://redpanda.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "vp",
+    "sector_tags": [
+      "infra",
+      "b2b saas"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Redpanda. Strong alignment with Offline AI & Developer ecosystem as VP Demand Generation and Growth Marketing.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-071",
+    "name": "Andre Jcking",
+    "email": "andre@rootly.com",
+    "email_normalized": "andre@rootly.com",
+    "company": "Rootly",
+    "role_title": "VP of Sales",
+    "bio_notes": "Rootly is an incident management and on-call automation platform for reliability teams. | https://rootly.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "vp",
+    "sector_tags": [
+      "infra",
+      "agents",
+      "b2b saas"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 93,
+    "fit_score_reasoning": "Verified leadership at Rootly. Strong alignment with Offline AI & Developer ecosystem as VP of Sales.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-072",
+    "name": "Adam Bfrank",
+    "email": "adam@rootly.com",
+    "email_normalized": "adam@rootly.com",
+    "company": "Rootly",
+    "role_title": "Head of Product, Marketing & Growth",
+    "bio_notes": "Rootly is an incident management and on-call automation platform for reliability teams. | https://rootly.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "infra",
+      "agents",
+      "b2b saas"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Rootly. Strong alignment with Offline AI & Developer ecosystem as Head of Product, Marketing & Growth.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-073",
+    "name": "Dan Stotts",
+    "email": "dan.stotts@runpod.io",
+    "email_normalized": "dan.stotts@runpod.io",
+    "company": "RunPod",
+    "role_title": "Head of Marketing",
+    "bio_notes": "RunPod is a gPU cloud platform for AI model training, fine-tuning, and inference. | https://www.runpod.io",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "ai",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at RunPod. Strong alignment with Offline AI & Developer ecosystem as Head of Marketing.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-074",
+    "name": "Emmett Fear",
+    "email": "emmett.fear@runpod.io",
+    "email_normalized": "emmett.fear@runpod.io",
+    "company": "RunPod",
+    "role_title": "Director of Demand Gen",
+    "bio_notes": "RunPod is a gPU cloud platform for AI model training, fine-tuning, and inference. | https://www.runpod.io",
+    "source": "market_task",
+    "role_type": "engineer",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 93,
+    "fit_score_reasoning": "Verified leadership at RunPod. Strong alignment with Offline AI & Developer ecosystem as Director of Demand Gen.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-075",
+    "name": "Jonathan Fishman Profile",
+    "email": "jonathanfishman@sett.ai",
+    "email_normalized": "jonathanfishman@sett.ai",
+    "company": "Sett",
+    "role_title": "Head of Marketing",
+    "bio_notes": "Sett is an AI infrastructure platform that automates content creation and optimization for mobile game studios. | https://www.sett.ai",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "ai",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Sett. Strong alignment with Offline AI & Developer ecosystem as Head of Marketing.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-076",
+    "name": "Amit Carmi",
+    "email": "amit@sett.ai",
+    "email_normalized": "amit@sett.ai",
+    "company": "Sett",
+    "role_title": "Co-Founder & CEO",
+    "bio_notes": "Sett is an AI infrastructure platform that automates content creation and optimization for mobile game studios. | https://www.sett.ai",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Sett. Strong alignment with Offline AI & Developer ecosystem as Co-Founder & CEO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-077",
+    "name": "Bret",
+    "email": "bret@sierra.ai",
+    "email_normalized": "bret@sierra.ai",
+    "company": "Sierra",
+    "role_title": "Co-founder",
+    "bio_notes": "Sierra is a conversational AI platform for building autonomous enterprise agents. | https://sierra.ai",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "agents",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Sierra. Strong alignment with Offline AI & Developer ecosystem as Co-founder.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-078",
+    "name": "Clay Bavor",
+    "email": "clay@sierra.ai",
+    "email_normalized": "clay@sierra.ai",
+    "company": "Sierra",
+    "role_title": "Co-founder",
+    "bio_notes": "Sierra is a conversational AI platform for building autonomous enterprise agents. | https://sierra.ai",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "agents",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Sierra. Strong alignment with Offline AI & Developer ecosystem as Co-founder.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-079",
+    "name": "Cassie Lancellotti Young",
+    "email": "cassie@sierra.ai",
+    "email_normalized": "cassie@sierra.ai",
+    "company": "Sierra",
+    "role_title": "Head of Marketing",
+    "bio_notes": "Sierra is a conversational AI platform for building autonomous enterprise agents. | https://sierra.ai",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "ai",
+      "agents",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Sierra. Strong alignment with Offline AI & Developer ecosystem as Head of Marketing.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-080",
+    "name": "Scott Dbuchanan",
+    "email": "scott@stacklok.com",
+    "email_normalized": "scott@stacklok.com",
+    "company": "Stacklok",
+    "role_title": "CMO",
+    "bio_notes": "Stacklok is an enterprise MCP and software supply chain security platform. | https://stacklok.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "senior",
+    "sector_tags": [
+      "ai",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 83,
+    "fit_score_reasoning": "Verified leadership at Stacklok. Strong alignment with Offline AI & Developer ecosystem as CMO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "pending"
+  },
+  {
+    "source_record_id": "market-task-081",
+    "name": "Craig Mcluckie",
+    "email": "craig@stacklok.com",
+    "email_normalized": "craig@stacklok.com",
+    "company": "Stacklok",
+    "role_title": "Founder and CEO",
+    "bio_notes": "Stacklok is an enterprise MCP and software supply chain security platform. | https://stacklok.com",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Stacklok. Strong alignment with Offline AI & Developer ecosystem as Founder and CEO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-082",
+    "name": "Dor Sasson",
+    "email": "dor.sasson@stigg.io",
+    "email_normalized": "dor.sasson@stigg.io",
+    "company": "Stigg",
+    "role_title": "Co-founder & CEO",
+    "bio_notes": "Stigg is a pricing, packaging, and entitlement infrastructure for SaaS companies. | https://www.stigg.io",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "infra",
+      "b2b saas"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 95,
+    "fit_score_reasoning": "Verified leadership at Stigg. Strong alignment with Offline AI & Developer ecosystem as Co-founder & CEO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-083",
+    "name": "Sara Nelissen",
+    "email": "sara@stigg.io",
+    "email_normalized": "sara@stigg.io",
+    "company": "Stigg",
+    "role_title": "Product Marketing Director",
+    "bio_notes": "Stigg is a pricing, packaging, and entitlement infrastructure for SaaS companies. | https://www.stigg.io",
+    "source": "market_task",
+    "role_type": "engineer",
+    "seniority": "c-level",
+    "sector_tags": [
+      "infra",
+      "b2b saas"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Stigg. Strong alignment with Offline AI & Developer ecosystem as Product Marketing Director.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-084",
+    "name": "Rotem Weiss",
+    "email": "rotem@tavily.com",
+    "email_normalized": "rotem@tavily.com",
+    "company": "Tavily",
+    "role_title": "Founder & CEO",
+    "bio_notes": "Tavily is a search API built for AI agents and retrieval-augmented applications. | https://tavily.com",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "dev tools",
+      "agents",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Tavily. Strong alignment with Offline AI & Developer ecosystem as Founder & CEO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-085",
+    "name": "Sofia Guzowski",
+    "email": "sofia@tavily.com",
+    "email_normalized": "sofia@tavily.com",
+    "company": "Tavily",
+    "role_title": "Head of Partnerships",
+    "bio_notes": "Tavily is a search API built for AI agents and retrieval-augmented applications. | https://tavily.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "ai",
+      "dev tools",
+      "agents",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Tavily. Strong alignment with Offline AI & Developer ecosystem as Head of Partnerships.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-086",
+    "name": "Brian Adelacruz",
+    "email": "brian@tavus.io",
+    "email_normalized": "brian@tavus.io",
+    "company": "Tavus",
+    "role_title": "Head of Business Development",
+    "bio_notes": "Tavus is a conversational video AI platform for building high-fidelity digital personas and personalized video interactions. | https://www.tavus.io",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "ai",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Tavus. Strong alignment with Offline AI & Developer ecosystem as Head of Business Development.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-087",
+    "name": "Hassaan Raza",
+    "email": "hassaan@tavus.io",
+    "email_normalized": "hassaan@tavus.io",
+    "company": "Tavus",
+    "role_title": "Co-Founder / CEO",
+    "bio_notes": "Tavus is a conversational video AI platform for building high-fidelity digital personas and personalized video interactions. | https://www.tavus.io",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Tavus. Strong alignment with Offline AI & Developer ecosystem as Co-Founder / CEO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-088",
+    "name": "Guy",
+    "email": "guy@tessl.io",
+    "email_normalized": "guy@tessl.io",
+    "company": "Tessl",
+    "role_title": "Founder & CEO",
+    "bio_notes": "Tessl is an AI-native software development platform that reimagines how software is created and maintained. | https://tessl.io",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Tessl. Strong alignment with Offline AI & Developer ecosystem as Founder & CEO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-089",
+    "name": "Simon Maple",
+    "email": "simon@tessl.io",
+    "email_normalized": "simon@tessl.io",
+    "company": "Tessl",
+    "role_title": "Head of Developer Relations",
+    "bio_notes": "Tessl is an AI-native software development platform that reimagines how software is created and maintained. | https://tessl.io",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "ai",
+      "dev tools",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Tessl. Strong alignment with Offline AI & Developer ecosystem as Head of Developer Relations.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-090",
+    "name": "Ovais Tariq",
+    "email": "ot@tigrisdata.com",
+    "email_normalized": "ot@tigrisdata.com",
+    "company": "Tigris",
+    "role_title": "Founder & CEO",
+    "bio_notes": "Tigris is a globally distributed S3-compatible object storage for developer workloads. | https://www.tigrisdata.com",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "dev tools"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 95,
+    "fit_score_reasoning": "Verified leadership at Tigris. Strong alignment with Offline AI & Developer ecosystem as Founder & CEO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-091",
+    "name": "Himank Chaudhary",
+    "email": "himank@tigrisdata.com",
+    "email_normalized": "himank@tigrisdata.com",
+    "company": "Tigris",
+    "role_title": "Co-Founder & CTO",
+    "bio_notes": "Tigris is a globally distributed S3-compatible object storage for developer workloads. | https://www.tigrisdata.com",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "dev tools"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 95,
+    "fit_score_reasoning": "Verified leadership at Tigris. Strong alignment with Offline AI & Developer ecosystem as Co-Founder & CTO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-092",
+    "name": "Nick Billy",
+    "email": "nick@traversal.com",
+    "email_normalized": "nick@traversal.com",
+    "company": "Traversal",
+    "role_title": "Head of Growth",
+    "bio_notes": "Traversal is an AI-powered incident response and troubleshooting platform. | https://www.traversal.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "ai",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Traversal. Strong alignment with Offline AI & Developer ecosystem as Head of Growth.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-093",
+    "name": "Ryan Powers",
+    "email": "powers@traversal.com",
+    "email_normalized": "powers@traversal.com",
+    "company": "Traversal",
+    "role_title": "SVP of Marketing",
+    "bio_notes": "Traversal is an AI-powered incident response and troubleshooting platform. | https://www.traversal.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "vp",
+    "sector_tags": [
+      "ai",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 93,
+    "fit_score_reasoning": "Verified leadership at Traversal. Strong alignment with Offline AI & Developer ecosystem as SVP of Marketing.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-094",
+    "name": "Simon",
+    "email": "simon@turbopuffer.com",
+    "email_normalized": "simon@turbopuffer.com",
+    "company": "Turbopuffer",
+    "role_title": "Co-Founder & CEO",
+    "bio_notes": "Turbopuffer is a serverless vector search engine for AI applications. | https://turbopuffer.com",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Turbopuffer. Strong alignment with Offline AI & Developer ecosystem as Co-Founder & CEO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-095",
+    "name": "Will Kenney",
+    "email": "will@turbopuffer.com",
+    "email_normalized": "will@turbopuffer.com",
+    "company": "Turbopuffer",
+    "role_title": "Growth Lead",
+    "bio_notes": "Turbopuffer is a serverless vector search engine for AI applications. | https://turbopuffer.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "senior",
+    "sector_tags": [
+      "ai"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 83,
+    "fit_score_reasoning": "Verified leadership at Turbopuffer. Strong alignment with Offline AI & Developer ecosystem as Growth Lead.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "pending"
+  },
+  {
+    "source_record_id": "market-task-096",
+    "name": "Amelia Mango",
+    "email": "amelia@fixie.ai",
+    "email_normalized": "amelia@fixie.ai",
+    "company": "Ultravox",
+    "role_title": "Head of Marketing",
+    "bio_notes": "Ultravox is an AI-native platform for building real-time voice and audio applications with large language models. | https://ultravox.ai",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "ai",
+      "voice ai",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Ultravox. Strong alignment with Offline AI & Developer ecosystem as Head of Marketing.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-097",
+    "name": "Zack Zach",
+    "email": "zach@fixie.ai",
+    "email_normalized": "zach@fixie.ai",
+    "company": "Ultravox",
+    "role_title": "Co-founder",
+    "bio_notes": "Ultravox is an AI-native platform for building real-time voice and audio applications with large language models. | https://ultravox.ai",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "voice ai",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Ultravox. Strong alignment with Offline AI & Developer ecosystem as Co-founder.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-098",
+    "name": "Erin Mariesymons",
+    "email": "erin@getunblocked.com",
+    "email_normalized": "erin@getunblocked.com",
+    "company": "Unblocked",
+    "role_title": "VP of Marketing",
+    "bio_notes": "Unblocked is an engineering intelligence platform that gives teams context about code and decisions. | https://www.getunblocked.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "vp",
+    "sector_tags": [
+      "infra",
+      "b2b saas"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Unblocked. Strong alignment with Offline AI & Developer ecosystem as VP of Marketing.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-099",
+    "name": "Brandon Waselnuk",
+    "email": "brandon@getunblocked.com",
+    "email_normalized": "brandon@getunblocked.com",
+    "company": "Unblocked",
+    "role_title": "DevRel Head",
+    "bio_notes": "Unblocked is an engineering intelligence platform that gives teams context about code and decisions. | https://www.getunblocked.com",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "senior",
+    "sector_tags": [
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 80,
+    "fit_score_reasoning": "Verified leadership at Unblocked. Strong alignment with Offline AI & Developer ecosystem as DevRel Head.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "pending"
+  },
+  {
+    "source_record_id": "market-task-100",
+    "name": "Cody Jthornton",
+    "email": "cody@vapi.ai",
+    "email_normalized": "cody@vapi.ai",
+    "company": "Vapi",
+    "role_title": "Head of GTM",
+    "bio_notes": "Vapi is a voice AI platform for building and deploying phone agents. | https://vapi.ai",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "ai",
+      "agents",
+      "b2b saas",
+      "infra",
+      "voice ai"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Vapi. Strong alignment with Offline AI & Developer ecosystem as Head of GTM.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-101",
+    "name": "Amandamartin Dev",
+    "email": "amanda@vapi.ai",
+    "email_normalized": "amanda@vapi.ai",
+    "company": "Vapi",
+    "role_title": "Head of Developer Relations",
+    "bio_notes": "Vapi is a voice AI platform for building and deploying phone agents. | https://vapi.ai",
+    "source": "market_task",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "dev tools",
+      "ai",
+      "agents",
+      "infra",
+      "voice ai"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 90,
+    "fit_score_reasoning": "Verified leadership at Vapi. Strong alignment with Offline AI & Developer ecosystem as Head of Developer Relations.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-102",
+    "name": "Akash Sharma",
+    "email": "akash@vellum.ai",
+    "email_normalized": "akash@vellum.ai",
+    "company": "Vellum",
+    "role_title": "CEO",
+    "bio_notes": "Vellum is an enterprise-grade platform for building, evaluating, and deploying production AI applications. | https://vellum.ai",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "dev tools",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Vellum. Strong alignment with Offline AI & Developer ecosystem as CEO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-103",
+    "name": "Noa Flaherty",
+    "email": "noa@vellum.ai",
+    "email_normalized": "noa@vellum.ai",
+    "company": "Vellum",
+    "role_title": "Co-founder",
+    "bio_notes": "Vellum is an enterprise-grade platform for building, evaluating, and deploying production AI applications. | https://vellum.ai",
+    "source": "market_task",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "dev tools",
+      "b2b saas",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Vellum. Strong alignment with Offline AI & Developer ecosystem as Co-founder.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "approved"
+  },
+  {
+    "source_record_id": "market-task-dup-001",
+    "name": "Oliver",
+    "email": "oliver@apify.com",
+    "email_normalized": "oliver@apify.com",
+    "company": "Apify",
+    "role_title": "Head of Marketing",
+    "bio_notes": "Met at SF AI Builders Summit. Interested in developer partnerships.",
+    "source": "event",
+    "role_type": "operator",
+    "seniority": "director",
+    "sector_tags": [
+      "infra",
+      "dev tools",
+      "agents",
+      "b2b saas"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": null,
+    "fit_score_reasoning": null,
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "duplicate_review"
+  },
+  {
+    "source_record_id": "market-task-dup-002",
+    "name": "Soham Ganatra",
+    "email": "soham+alt@composio.dev",
+    "email_normalized": "soham+alt@composio.dev",
+    "company": "Composio",
+    "role_title": "Co-Founder & CEO",
+    "bio_notes": "Referral from Index Ventures; building agent toolkits.",
+    "source": "referral",
+    "role_type": "founder",
+    "seniority": "c-level",
+    "sector_tags": [
+      "ai",
+      "agents",
+      "infra"
+    ],
+    "community_fit_tags": [
+      "verified_contact",
+      "tech_leader",
+      "offline_fellow"
+    ],
+    "fit_score": 98,
+    "fit_score_reasoning": "Verified leadership at Composio. Strong alignment with Offline AI & Developer ecosystem as Co-Founder & CEO.",
+    "is_duplicate_of": null,
+    "duplicate_confidence": null,
+    "is_incomplete": false,
+    "missing_fields": [],
+    "ai_enrichment_status": "enriched",
+    "review_status": "duplicate_review"
+  }
+]
