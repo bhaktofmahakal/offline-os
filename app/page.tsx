@@ -88,6 +88,242 @@ interface Introduction {
   person_b: Partial<Person>;
 }
 
+function extractDomain(urlStr: string): string {
+  try {
+    const parsed = new URL(urlStr);
+    return parsed.hostname.replace(/^www\./, '');
+  } catch {
+    return urlStr || 'source';
+  }
+}
+
+function cleanWebSnippet(raw: string, maxLen = 320): string {
+  if (!raw) return '';
+  let cleaned = raw
+    // Strip markdown images
+    .replace(/!\[.*?\]\(.*?\)/g, '')
+    // Replace markdown links [Anchor](url) with Anchor
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    // Remove standalone bracket fragments or cut-off link ends e.g. ](/companies/...) or ](https://...)
+    .replace(/\]\([^\)]+\)/g, ' ')
+    // Remove cut-off link starts e.g. [Anchor]
+    .replace(/\[([^\]]+)\]/g, '$1')
+    // Remove relative paths in parentheses e.g. (/companies/...)
+    .replace(/\(\/[a-zA-Z0-9_\-\/]+\)/g, ' ')
+    // Remove markdown table syntax | ... |
+    .replace(/\|[^\n]+\|/g, ' ')
+    .replace(/\|/g, ' ')
+    // Remove markdown headers
+    .replace(/#{1,6}\s+/g, '')
+    // Remove markdown bold / italic / code ticks
+    .replace(/`{1,3}/g, '')
+    .replace(/(\*\*|__|\*|_)/g, '')
+    // Strip standalone bracket artifacts
+    .replace(/[\[\]]/g, '')
+    // Strip ellipsis bracket leftovers
+    .replace(/\s*\.{3,}\s*/g, ' ')
+    // Normalize spaces and line breaks
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (cleaned.length > maxLen) {
+    cleaned = cleaned.slice(0, maxLen).trim() + '...';
+  }
+  return cleaned;
+}
+
+function ExecutiveMarkdownViewer({
+  content,
+  maxHeightClass = 'max-h-[550px]',
+  title = 'Autonomous Intelligence Memo',
+}: {
+  content: string;
+  maxHeightClass?: string;
+  title?: string;
+}) {
+  const [showRaw, setShowRaw] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Helper to parse inline markdown: bold, code, links
+  const renderInline = (text: string) => {
+    const parts = [];
+    const regex = /(\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*|`([^`]+)`)/g;
+    let match;
+    let lastIdx = 0;
+    let key = 0;
+
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIdx) {
+        parts.push(text.substring(lastIdx, match.index));
+      }
+      if (match[2] && match[3]) {
+        // Link [Anchor](url)
+        parts.push(
+          <a
+            key={key++}
+            href={match[3]}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-signal hover:underline inline-flex items-center gap-0.5 font-medium"
+          >
+            <span>{match[2]}</span>
+            <ExternalLink className="w-2.5 h-2.5 inline" />
+          </a>
+        );
+      } else if (match[4]) {
+        // Bold **text**
+        parts.push(
+          <strong key={key++} className="font-semibold text-ink">
+            {match[4]}
+          </strong>
+        );
+      } else if (match[5]) {
+        // Code `code`
+        parts.push(
+          <code key={key++} className="px-1.5 py-0.5 rounded bg-surface border border-line font-mono text-[11px] text-signal">
+            {match[5]}
+          </code>
+        );
+      }
+      lastIdx = regex.lastIndex;
+    }
+    if (lastIdx < text.length) {
+      parts.push(text.substring(lastIdx));
+    }
+    return parts.length > 0 ? parts : text;
+  };
+
+  const lines = content.split('\n');
+
+  return (
+    <div className="bg-surface border border-line rounded-xl overflow-hidden shadow-xs">
+      {/* Executive Sub-Header Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 bg-surface-raised border-b border-line">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-signal animate-pulse" />
+          <span className="text-xs font-semibold text-ink font-mono uppercase tracking-wider">{title}</span>
+          <span className="text-[10px] font-mono text-ink-muted bg-surface px-2 py-0.5 rounded border border-line">
+            {content.length.toLocaleString()} chars
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowRaw(!showRaw)}
+            className="px-2 py-1 text-[11px] font-mono rounded bg-surface border border-line text-ink-muted hover:text-ink hover:border-signal/50 transition-colors cursor-pointer"
+          >
+            {showRaw ? 'Executive View' : 'Raw Markdown'}
+          </button>
+          <button
+            onClick={handleCopy}
+            className="px-2.5 py-1 text-[11px] font-mono rounded bg-signal text-surface font-semibold hover:bg-signal/90 transition-colors flex items-center gap-1 shadow-xs cursor-pointer"
+          >
+            {copied ? (
+              <>
+                <Check className="w-3 h-3" />
+                <span>Copied Memo</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3 h-3" />
+                <span>Copy Memo</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Body Area */}
+      <div className={`p-4 sm:p-5 overflow-y-auto ${maxHeightClass} space-y-3`}>
+        {showRaw ? (
+          <pre className="text-xs font-mono text-ink-muted whitespace-pre-wrap leading-relaxed">
+            {content}
+          </pre>
+        ) : (
+          <div className="space-y-3 text-xs text-ink leading-relaxed font-sans">
+            {lines.map((line, idx) => {
+              const trimmed = line.trim();
+              if (!trimmed) return <div key={idx} className="h-1" />;
+
+              // Level 1 Header
+              if (trimmed.startsWith('# ')) {
+                return (
+                  <h2 key={idx} className="text-sm font-bold text-ink pt-2 pb-1 border-b border-line flex items-center gap-2">
+                    <span className="w-1.5 h-3.5 bg-signal rounded-full flex-shrink-0" />
+                    <span>{trimmed.replace(/^#\s+/, '')}</span>
+                  </h2>
+                );
+              }
+              // Level 2 Header
+              if (trimmed.startsWith('## ')) {
+                return (
+                  <h3 key={idx} className="text-xs font-bold text-ink pt-2 pb-1 border-l-2 border-signal pl-2 text-ink">
+                    {trimmed.replace(/^##\s+/, '')}
+                  </h3>
+                );
+              }
+              // Level 3 Header
+              if (trimmed.startsWith('### ')) {
+                return (
+                  <h4 key={idx} className="text-xs font-semibold uppercase tracking-wider text-signal pt-1">
+                    {trimmed.replace(/^###\s+/, '')}
+                  </h4>
+                );
+              }
+              // Bullet item
+              if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ')) {
+                const bulletText = trimmed.replace(/^[-*•]\s+/, '');
+                return (
+                  <div key={idx} className="flex items-start gap-2 pl-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-signal mt-1.5 flex-shrink-0" />
+                    <div className="text-ink text-xs leading-relaxed flex-1">
+                      {renderInline(bulletText)}
+                    </div>
+                  </div>
+                );
+              }
+              // Numbered item
+              const numMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
+              if (numMatch) {
+                return (
+                  <div key={idx} className="flex items-start gap-2 pl-1">
+                    <span className="px-1.5 py-0.2 text-[10px] font-mono font-bold bg-surface-raised border border-line rounded text-ink flex-shrink-0">
+                      {numMatch[1]}
+                    </span>
+                    <div className="text-ink text-xs leading-relaxed flex-1">
+                      {renderInline(numMatch[2])}
+                    </div>
+                  </div>
+                );
+              }
+              // Blockquote
+              if (trimmed.startsWith('> ')) {
+                return (
+                  <blockquote key={idx} className="border-l-2 border-signal/60 bg-signal-soft/20 p-2.5 rounded-r-lg text-ink-muted italic text-xs">
+                    {renderInline(trimmed.replace(/^>\s+/, ''))}
+                  </blockquote>
+                );
+              }
+              // Regular paragraph
+              return (
+                <p key={idx} className="text-xs text-ink leading-relaxed">
+                  {renderInline(trimmed)}
+                </p>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function OfflineCRM() {
   const [people, setPeople] = useState<Person[]>([]);
   const [introductions, setIntroductions] = useState<Introduction[]>([]);
@@ -210,6 +446,8 @@ export default function OfflineCRM() {
   const [tavilySearchDomain, setTavilySearchDomain] = useState('');
   const [isTavilySearching, setIsTavilySearching] = useState(false);
   const [tavilySearchResults, setTavilySearchResults] = useState<any[]>([]);
+  const [rawViewResults, setRawViewResults] = useState<Record<string, boolean>>({});
+  const [copiedResultId, setCopiedResultId] = useState<string | null>(null);
 
   // Drawer research state
   const [drawerResearching, setDrawerResearching] = useState(false);
@@ -2737,9 +2975,11 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                     )}
 
                     {/* Markdown Body */}
-                    <div className="prose dark:prose-invert max-w-none text-xs text-ink leading-relaxed font-sans whitespace-pre-wrap p-4 bg-surface-raised rounded-lg border border-line font-mono overflow-x-auto">
-                      {researchReport}
-                    </div>
+                    <ExecutiveMarkdownViewer
+                      content={researchReport}
+                      maxHeightClass="max-h-[650px]"
+                      title="Deep Synthesis Intelligence Memo"
+                    />
                   </div>
                 )}
               </div>
@@ -2813,32 +3053,111 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
                 {/* Crawl Results */}
                 {crawlResults.length > 0 && (
-                  <div className="space-y-3">
-                    <div className="text-xs font-mono text-ink-muted">
-                      Crawled <strong className="text-ink">{crawlResults.length}</strong> pages successfully:
+                  <div className="space-y-4 pt-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line pb-3">
+                      <div className="text-xs font-mono text-ink-muted">
+                        Recursive Crawl Completed: <strong className="text-ink font-semibold">{crawlResults.length}</strong> pages mapped
+                      </div>
+                      <span className="text-[11px] font-mono text-signal bg-signal-soft px-2.5 py-0.5 rounded-full border border-signal/20 font-medium">
+                        Structured LLM Payload
+                      </span>
                     </div>
-                    <div className="space-y-3">
-                      {crawlResults.map((item, idx) => (
-                        <div key={idx} className="bg-surface border border-line rounded-lg p-4 space-y-2">
-                          <div className="flex items-center justify-between gap-2 border-b border-line pb-2">
-                            <a
-                              href={item.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs font-mono text-signal hover:underline flex items-center gap-1.5 truncate"
-                            >
-                              <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                              <span className="truncate">{item.url}</span>
-                            </a>
-                            <span className="text-[10px] font-mono text-ink-muted">
-                              {(item.rawContent || '').length} characters
-                            </span>
+
+                    <div className="grid grid-cols-1 gap-4">
+                      {crawlResults.map((item, idx) => {
+                        const domain = extractDomain(item.url);
+                        const isRaw = !!rawViewResults[item.url || `crawl-${idx}`];
+                        const charCount = (item.rawContent || '').length;
+                        const wordCount = (item.rawContent || '').split(/\s+/).filter(Boolean).length;
+
+                        return (
+                          <div key={idx} className="bg-surface border border-line rounded-xl p-5 space-y-3.5 hover:border-signal/40 transition-colors">
+                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line pb-3">
+                              <div className="flex items-center gap-2 truncate max-w-xl">
+                                <span className="text-[10px] font-mono font-bold text-ink-faint px-1.5 py-0.5 rounded bg-surface-raised border border-line">
+                                  #{idx + 1}
+                                </span>
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-medium bg-surface-raised border border-line text-ink">
+                                  <Globe className="w-3.5 h-3.5 text-signal flex-shrink-0" />
+                                  <span className="truncate max-w-[200px]">{domain}</span>
+                                </span>
+                                <a
+                                  href={item.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs font-mono text-signal hover:underline flex items-center gap-1 truncate"
+                                >
+                                  <span className="truncate">{item.url}</span>
+                                  <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                                </a>
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-mono text-ink-muted px-2 py-0.5 rounded bg-surface-raised border border-line">
+                                  {wordCount.toLocaleString()} words • {charCount.toLocaleString()} chars
+                                </span>
+                                <button
+                                  onClick={() => {
+                                    copyToClipboard(item.rawContent, 66600 + idx);
+                                    setCopiedResultId(`crawl-${idx}`);
+                                    setTimeout(() => setCopiedResultId(null), 2000);
+                                  }}
+                                  className="px-2.5 py-1 text-xs bg-surface-raised border border-line hover:border-signal/50 text-ink rounded-md transition-colors flex items-center gap-1 cursor-pointer"
+                                >
+                                  {copiedResultId === `crawl-${idx}` ? (
+                                    <>
+                                      <Check className="w-3 h-3 text-signal" />
+                                      <span className="text-[11px] text-signal font-medium">Copied</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Copy className="w-3 h-3 text-ink-muted" />
+                                      <span className="text-[11px]">Copy Markdown</span>
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className="bg-surface-raised border border-line/70 rounded-lg p-3.5">
+                              {isRaw ? (
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between text-[11px] font-mono text-ink-muted border-b border-line pb-1.5">
+                                    <span>Raw Scraped Markdown:</span>
+                                    <button
+                                      onClick={() => setRawViewResults(prev => ({ ...prev, [item.url || `crawl-${idx}`]: false }))}
+                                      className="text-signal hover:underline font-semibold"
+                                    >
+                                      Switch to Clean Preview
+                                    </button>
+                                  </div>
+                                  <pre className="text-xs font-mono text-ink-muted max-h-48 overflow-y-auto whitespace-pre-wrap leading-relaxed">
+                                    {item.rawContent}
+                                  </pre>
+                                </div>
+                              ) : (
+                                <div className="space-y-2">
+                                  <p className="text-xs text-ink leading-relaxed font-sans">
+                                    {cleanWebSnippet(item.rawContent, 380)}
+                                  </p>
+                                  <div className="flex items-center justify-between pt-1.5 border-t border-line/40">
+                                    <span className="text-[10px] font-mono text-ink-faint">
+                                      Sanitized Excerpt
+                                    </span>
+                                    <button
+                                      onClick={() => setRawViewResults(prev => ({ ...prev, [item.url || `crawl-${idx}`]: true }))}
+                                      className="text-[11px] font-mono text-ink-muted hover:text-signal transition-colors flex items-center gap-1 cursor-pointer"
+                                    >
+                                      <span>View Raw Markdown ({charCount.toLocaleString()} chars)</span>
+                                      <ChevronRight className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <div className="p-3 bg-surface-raised rounded text-[11px] font-mono text-ink-muted max-h-32 overflow-y-auto whitespace-pre-wrap">
-                            {item.rawContent?.slice(0, 500)}...
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -2884,23 +3203,106 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
                 {/* Extract Results */}
                 {extractResults.length > 0 && (
-                  <div className="space-y-4">
-                    {extractResults.map((item, idx) => (
-                      <div key={idx} className="bg-surface border border-line rounded-lg p-4 space-y-3">
-                        <div className="flex items-center justify-between border-b border-line pb-2">
-                          <span className="text-xs font-mono font-semibold text-signal truncate">{item.url}</span>
-                          <button
-                            onClick={() => copyToClipboard(item.rawContent, 88880 + idx)}
-                            className="text-xs text-ink-muted hover:text-ink flex items-center gap-1"
-                          >
-                            <Copy className="w-3 h-3" /> Copy
-                          </button>
-                        </div>
-                        <div className="p-3 bg-surface-raised rounded text-[11px] font-mono text-ink max-h-48 overflow-y-auto whitespace-pre-wrap">
-                          {item.rawContent}
-                        </div>
+                  <div className="space-y-4 pt-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line pb-3">
+                      <div className="text-xs font-mono text-ink-muted">
+                        Extraction Completed: <strong className="text-ink font-semibold">{extractResults.length}</strong> target URLs parsed
                       </div>
-                    ))}
+                      <span className="text-[11px] font-mono text-signal bg-signal-soft px-2.5 py-0.5 rounded-full border border-signal/20 font-medium">
+                        Structured Clean Markdown
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4">
+                      {extractResults.map((item, idx) => {
+                        const domain = extractDomain(item.url);
+                        const isRaw = !!rawViewResults[item.url || `extract-${idx}`];
+                        const charCount = (item.rawContent || '').length;
+
+                        return (
+                          <div key={idx} className="bg-surface border border-line rounded-xl p-5 space-y-3.5 hover:border-signal/40 transition-colors">
+                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line pb-3">
+                              <div className="flex items-center gap-2 truncate max-w-xl">
+                                <span className="text-[10px] font-mono font-bold text-ink-faint px-1.5 py-0.5 rounded bg-surface-raised border border-line">
+                                  #{idx + 1}
+                                </span>
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-medium bg-surface-raised border border-line text-ink">
+                                  <Globe className="w-3.5 h-3.5 text-signal flex-shrink-0" />
+                                  <span className="truncate max-w-[200px]">{domain}</span>
+                                </span>
+                                <a
+                                  href={item.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs font-mono text-signal hover:underline flex items-center gap-1 truncate"
+                                >
+                                  <span className="truncate">{item.url}</span>
+                                  <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                                </a>
+                              </div>
+
+                              <button
+                                onClick={() => {
+                                  copyToClipboard(item.rawContent, 88880 + idx);
+                                  setCopiedResultId(`extract-${idx}`);
+                                  setTimeout(() => setCopiedResultId(null), 2000);
+                                }}
+                                className="px-2.5 py-1 text-xs bg-surface-raised border border-line hover:border-signal/50 text-ink rounded-md transition-colors flex items-center gap-1 cursor-pointer"
+                              >
+                                {copiedResultId === `extract-${idx}` ? (
+                                  <>
+                                    <Check className="w-3 h-3 text-signal" />
+                                    <span className="text-[11px] text-signal font-medium">Copied</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="w-3 h-3 text-ink-muted" />
+                                    <span className="text-[11px]">Copy Markdown</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+
+                            <div className="bg-surface-raised border border-line/70 rounded-lg p-3.5">
+                              {isRaw ? (
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between text-[11px] font-mono text-ink-muted border-b border-line pb-1.5">
+                                    <span>Raw Scraped Content:</span>
+                                    <button
+                                      onClick={() => setRawViewResults(prev => ({ ...prev, [item.url || `extract-${idx}`]: false }))}
+                                      className="text-signal hover:underline font-semibold"
+                                    >
+                                      Switch to Clean Preview
+                                    </button>
+                                  </div>
+                                  <pre className="text-xs font-mono text-ink-muted max-h-48 overflow-y-auto whitespace-pre-wrap leading-relaxed">
+                                    {item.rawContent}
+                                  </pre>
+                                </div>
+                              ) : (
+                                <div className="space-y-2">
+                                  <p className="text-xs text-ink leading-relaxed font-sans">
+                                    {cleanWebSnippet(item.rawContent, 400)}
+                                  </p>
+                                  <div className="flex items-center justify-between pt-1.5 border-t border-line/40">
+                                    <span className="text-[10px] font-mono text-ink-faint">
+                                      Sanitized Excerpt • {charCount.toLocaleString()} chars
+                                    </span>
+                                    <button
+                                      onClick={() => setRawViewResults(prev => ({ ...prev, [item.url || `extract-${idx}`]: true }))}
+                                      className="text-[11px] font-mono text-ink-muted hover:text-signal transition-colors flex items-center gap-1 cursor-pointer"
+                                    >
+                                      <span>View Raw Markdown</span>
+                                      <ChevronRight className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
@@ -2973,39 +3375,166 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
                 {/* Search Results */}
                 {tavilySearchResults.length > 0 && (
-                  <div className="space-y-3">
-                    <div className="text-xs font-mono text-ink-muted">
-                      Found <strong className="text-ink">{tavilySearchResults.length}</strong> verified web results:
+                  <div className="space-y-4 pt-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line pb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono text-ink-muted">
+                          Verified Intelligence: <strong className="text-ink font-semibold">{tavilySearchResults.length}</strong> sources retrieved
+                        </span>
+                      </div>
+                      <span className="text-[11px] font-mono text-signal bg-signal-soft px-2.5 py-0.5 rounded-full border border-signal/20 font-medium flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" />
+                        Ranked by Neural Relevance
+                      </span>
                     </div>
-                    <div className="space-y-3">
-                      {tavilySearchResults.map((result, idx) => (
-                        <div key={idx} className="bg-surface border border-line rounded-lg p-4 space-y-2 hover:border-signal/40 transition-colors">
-                          <div className="flex items-start justify-between gap-3">
+
+                    <div className="grid grid-cols-1 gap-4">
+                      {tavilySearchResults.map((result, idx) => {
+                        const domain = extractDomain(result.url);
+                        const isRaw = !!rawViewResults[result.url || idx];
+                        const matchPct = result.score ? Math.round(result.score * 100) : null;
+                        const isHighMatch = matchPct ? matchPct >= 85 : false;
+
+                        return (
+                          <div
+                            key={idx}
+                            className="bg-surface border border-line rounded-xl p-5 space-y-3.5 hover:border-signal/50 hover:shadow-md transition-all duration-200 group"
+                          >
+                            {/* Header row: Source Badge, Domain, Relevance Score, Actions */}
+                            <div className="flex flex-wrap items-center justify-between gap-2.5">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-[10px] font-mono font-bold text-ink-faint px-1.5 py-0.5 rounded bg-surface-raised border border-line">
+                                  #{idx + 1}
+                                </span>
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-medium bg-surface-raised border border-line text-ink">
+                                  <Globe className="w-3.5 h-3.5 text-signal flex-shrink-0" />
+                                  <span className="truncate max-w-[220px]">{domain}</span>
+                                </span>
+
+                                {matchPct !== null && (
+                                  <span
+                                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold border ${
+                                      isHighMatch
+                                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                                        : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                                    }`}
+                                  >
+                                    <Sparkles className="w-3 h-3" />
+                                    <span>{matchPct}% Relevancy</span>
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  onClick={() => {
+                                    copyToClipboard(result.url, 77700 + idx);
+                                    setCopiedResultId(`url-${idx}`);
+                                    setTimeout(() => setCopiedResultId(null), 2000);
+                                  }}
+                                  title="Copy URL"
+                                  className="px-2.5 py-1 text-xs bg-surface-raised border border-line hover:border-signal/50 text-ink-muted hover:text-ink rounded-md transition-colors flex items-center gap-1 cursor-pointer"
+                                >
+                                  {copiedResultId === `url-${idx}` ? (
+                                    <>
+                                      <Check className="w-3 h-3 text-signal" />
+                                      <span className="text-[11px] text-signal font-medium">Copied Link</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Copy className="w-3 h-3" />
+                                      <span className="text-[11px]">Copy Link</span>
+                                    </>
+                                  )}
+                                </button>
+
+                                <button
+                                  onClick={() => {
+                                    copyToClipboard(cleanWebSnippet(result.content, 1000), 77800 + idx);
+                                    setCopiedResultId(`snippet-${idx}`);
+                                    setTimeout(() => setCopiedResultId(null), 2000);
+                                  }}
+                                  title="Copy Excerpt"
+                                  className="px-2.5 py-1 text-xs bg-surface-raised border border-line hover:border-signal/50 text-ink-muted hover:text-ink rounded-md transition-colors flex items-center gap-1 cursor-pointer"
+                                >
+                                  {copiedResultId === `snippet-${idx}` ? (
+                                    <>
+                                      <Check className="w-3 h-3 text-signal" />
+                                      <span className="text-[11px] text-signal font-medium">Copied Text</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <FileText className="w-3 h-3" />
+                                      <span className="text-[11px]">Copy Excerpt</span>
+                                    </>
+                                  )}
+                                </button>
+
+                                <a
+                                  href={result.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-1.5 text-ink-muted hover:text-signal hover:bg-signal-soft/30 rounded-md transition-colors"
+                                  title="Open in new tab"
+                                >
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                              </div>
+                            </div>
+
+                            {/* Title Link */}
                             <div>
                               <a
                                 href={result.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-sm font-semibold text-ink hover:text-signal transition-colors flex items-center gap-1.5"
+                                className="text-sm sm:text-base font-semibold text-ink hover:text-signal transition-colors group-hover:text-signal flex items-center gap-1.5 leading-snug"
                               >
-                                <span>{result.title}</span>
-                                <ExternalLink className="w-3 h-3 flex-shrink-0 text-ink-muted" />
+                                <span>{result.title || domain}</span>
+                                <ArrowRight className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-signal flex-shrink-0" />
                               </a>
-                              <div className="text-[11px] font-mono text-ink-muted mt-0.5 truncate">
-                                {result.url}
-                              </div>
                             </div>
-                            {result.score && (
-                              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-signal-soft text-signal border border-signal/20 font-semibold flex-shrink-0">
-                                {Math.round(result.score * 100)}% match
-                              </span>
-                            )}
+
+                            {/* Clean Executive Excerpt */}
+                            <div className="bg-surface-raised border border-line/70 rounded-lg p-3.5">
+                              {isRaw ? (
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between text-[11px] font-mono text-ink-muted border-b border-line pb-1.5">
+                                    <span>Raw Web Scrape Payload:</span>
+                                    <button
+                                      onClick={() => setRawViewResults(prev => ({ ...prev, [result.url || idx]: false }))}
+                                      className="text-signal hover:underline font-semibold"
+                                    >
+                                      Switch to Clean Summary
+                                    </button>
+                                  </div>
+                                  <pre className="text-xs font-mono text-ink-muted max-h-48 overflow-y-auto whitespace-pre-wrap leading-relaxed">
+                                    {result.content}
+                                  </pre>
+                                </div>
+                              ) : (
+                                <div className="space-y-2">
+                                  <p className="text-xs text-ink leading-relaxed font-sans">
+                                    {cleanWebSnippet(result.content, 360)}
+                                  </p>
+                                  <div className="flex items-center justify-between pt-1.5 border-t border-line/40">
+                                    <span className="text-[10px] font-mono text-ink-faint">
+                                      Sanitized AI Excerpt • {result.content?.length || 0} chars source
+                                    </span>
+                                    <button
+                                      onClick={() => setRawViewResults(prev => ({ ...prev, [result.url || idx]: true }))}
+                                      className="text-[11px] font-mono text-ink-muted hover:text-signal transition-colors flex items-center gap-1 cursor-pointer"
+                                    >
+                                      <span>View Raw Payload</span>
+                                      <ChevronRight className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <p className="text-xs text-ink-muted leading-relaxed">
-                            {result.content}
-                          </p>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -3321,9 +3850,11 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
                     {drawerResearchReport[selectedPerson.id] ? (
                       <div className="space-y-2.5 pt-1 text-xs animate-in fade-in-50 duration-200">
-                        <div className="p-3 bg-surface rounded-lg border border-line text-xs text-ink leading-relaxed max-h-56 overflow-y-auto font-mono whitespace-pre-wrap">
-                          {drawerResearchReport[selectedPerson.id].content}
-                        </div>
+                        <ExecutiveMarkdownViewer
+                          content={drawerResearchReport[selectedPerson.id].content}
+                          maxHeightClass="max-h-72"
+                          title={`Executive Dossier • ${selectedPerson.name}`}
+                        />
                         {drawerResearchReport[selectedPerson.id].sources?.length > 0 && (
                           <div className="text-xs space-y-1.5">
                             <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Sources Cited:</span>
