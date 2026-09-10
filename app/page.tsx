@@ -309,6 +309,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(row),
+            signal: AbortSignal.timeout(6000),
           });
         } catch (_) {}
 
