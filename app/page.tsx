@@ -41,7 +41,13 @@ import {
   Download,
   Zap,
   Send,
-  Globe
+  Globe,
+  PanelLeft,
+  Plus,
+  BookOpen,
+  MessageSquare,
+  Compass,
+  Code2
 } from 'lucide-react';
 
 interface Person {
@@ -108,6 +114,28 @@ export default function OfflineCRM() {
   // Mobile drawer & responsive states
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  // Collapsible Sidebar Rail state (persisted in localStorage)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('networkos_sidebar_collapsed');
+      if (saved !== null) {
+        setIsSidebarCollapsed(saved === 'true');
+      }
+    } catch (_) {}
+  }, []);
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('networkos_sidebar_collapsed', String(next));
+      } catch (_) {}
+      return next;
+    });
+  };
 
   // CRUD: Edit Member in Drawer state
   const [isEditingMember, setIsEditingMember] = useState(false);
@@ -276,7 +304,8 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       try {
         let res = null;
         try {
-          res = await fetch('https://offline-os.onrender.com/process-new-record', {
+          const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || 'https://offline-os.onrender.com').trim();
+          res = await fetch(`${backendUrl}/process-new-record`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(row),
@@ -1061,9 +1090,9 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
     setTimeout(() => setCopiedIntroId(null), 2000);
   };
 
-  // Nav Items Helper Component
+  // Nav Items Helper Component (for expanded sidebar & mobile drawer)
   const NavItems = () => (
-    <div className="p-3 space-y-1">
+    <div className="p-3 space-y-1.5">
       <div className="px-3 py-1.5 text-[11px] font-mono uppercase tracking-wider text-ink-muted">
         Workspace
       </div>
@@ -1072,17 +1101,17 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
           setActiveTab('people');
           setIsMobileMenuOpen(false);
         }}
-        className={`w-full min-h-[44px] flex items-center justify-between px-3 py-2 text-sm rounded transition-colors ${
+        className={`w-full min-h-[44px] flex items-center justify-between px-3 py-2.5 text-sm rounded-lg transition-all ${
           activeTab === 'people'
-            ? 'bg-signal-soft text-ink font-semibold border-l-2 border-signal'
+            ? 'bg-surface-raised text-ink font-semibold border-l-[3.5px] border-[#E05A47] shadow-xs'
             : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
         }`}
       >
         <div className="flex items-center gap-2.5">
-          <Users className="w-4 h-4" />
+          <BookOpen className={`w-4 h-4 ${activeTab === 'people' ? 'text-[#E05A47]' : 'text-ink-muted'}`} />
           <span>Members Directory</span>
         </div>
-        <span className="text-xs font-mono tabular-nums px-1.5 py-0.5 rounded bg-surface border border-line text-ink-muted">
+        <span className="text-xs font-mono tabular-nums px-2 py-0.5 rounded bg-surface border border-line text-ink-muted">
           {activePeople.length}
         </span>
       </button>
@@ -1092,18 +1121,18 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
           setActiveTab('duplicates');
           setIsMobileMenuOpen(false);
         }}
-        className={`w-full min-h-[44px] flex items-center justify-between px-3 py-2 text-sm rounded transition-colors ${
+        className={`w-full min-h-[44px] flex items-center justify-between px-3 py-2.5 text-sm rounded-lg transition-all ${
           activeTab === 'duplicates'
-            ? 'bg-signal-soft text-ink font-semibold border-l-2 border-signal'
+            ? 'bg-surface-raised text-ink font-semibold border-l-[3.5px] border-[#E05A47] shadow-xs'
             : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
         }`}
       >
         <div className="flex items-center gap-2.5">
-          <CopyCheck className="w-4 h-4 text-warning" />
+          <Code2 className={`w-4 h-4 ${activeTab === 'duplicates' ? 'text-[#E05A47]' : 'text-warning'}`} />
           <span>Duplicates Queue</span>
         </div>
         {metrics.duplicates > 0 && (
-          <span className="text-xs font-mono font-semibold px-1.5 py-0.5 rounded bg-warning-soft text-warning border border-warning/30">
+          <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-warning-soft text-warning border border-warning/30">
             {metrics.duplicates}
           </span>
         )}
@@ -1114,17 +1143,17 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
           setActiveTab('intros');
           setIsMobileMenuOpen(false);
         }}
-        className={`w-full min-h-[44px] flex items-center justify-between px-3 py-2 text-sm rounded transition-colors ${
+        className={`w-full min-h-[44px] flex items-center justify-between px-3 py-2.5 text-sm rounded-lg transition-all ${
           activeTab === 'intros'
-            ? 'bg-signal-soft text-ink font-semibold border-l-2 border-signal'
+            ? 'bg-surface-raised text-ink font-semibold border-l-[3.5px] border-[#E05A47] shadow-xs'
             : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
         }`}
       >
         <div className="flex items-center gap-2.5">
-          <Sparkles className="w-4 h-4 text-copper" />
+          <MessageSquare className={`w-4 h-4 ${activeTab === 'intros' ? 'text-[#E05A47]' : 'text-copper'}`} />
           <span>Introductions</span>
         </div>
-        <span className="text-xs font-mono tabular-nums px-1.5 py-0.5 rounded bg-surface border border-line text-ink-muted">
+        <span className="text-xs font-mono tabular-nums px-2 py-0.5 rounded bg-surface border border-line text-ink-muted">
           {introductions.length}
         </span>
       </button>
@@ -1134,14 +1163,14 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
           setActiveTab('intelligence');
           setIsMobileMenuOpen(false);
         }}
-        className={`w-full min-h-[44px] flex items-center justify-between px-3 py-2 text-sm rounded transition-colors ${
+        className={`w-full min-h-[44px] flex items-center justify-between px-3 py-2.5 text-sm rounded-lg transition-all ${
           activeTab === 'intelligence'
-            ? 'bg-signal-soft text-ink font-semibold border-l-2 border-signal'
+            ? 'bg-surface-raised text-ink font-semibold border-l-[3.5px] border-[#E05A47] shadow-xs'
             : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
         }`}
       >
         <div className="flex items-center gap-2.5">
-          <Globe className="w-4 h-4 text-signal" />
+          <Compass className={`w-4 h-4 ${activeTab === 'intelligence' ? 'text-[#E05A47]' : 'text-signal'}`} />
           <span>Intelligence Lab</span>
         </div>
         <span className="text-[10px] uppercase tracking-wider font-mono font-bold px-1.5 py-0.5 rounded bg-signal/15 text-signal border border-signal/30">
@@ -1165,7 +1194,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
               {/* Brand Header */}
               <div className="h-14 border-b border-line flex items-center justify-between px-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded bg-signal flex items-center justify-center text-surface text-xs font-mono font-bold">
+                  <div className="w-7 h-7 rounded-lg bg-signal flex items-center justify-center text-surface text-xs font-mono font-bold shadow-xs">
                     N
                   </div>
                   <h1 className="text-sm font-semibold tracking-tight text-ink flex items-center gap-2">
@@ -1177,10 +1206,25 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                 </div>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded hover:bg-surface-muted text-ink-muted"
+                  className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-surface-muted text-ink-muted hover:text-ink"
                   aria-label="Close Navigation Menu"
                 >
                   <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Quick Action Button in Mobile */}
+              <div className="p-3 pb-1">
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setIsImportModalOpen(true);
+                    fetchAirtableBases();
+                  }}
+                  className="w-full min-h-[40px] px-3 py-2 text-xs font-medium rounded-lg bg-surface-raised border border-line/80 hover:border-signal/50 hover:bg-surface-muted text-ink flex items-center justify-center gap-2 transition-all shadow-xs"
+                >
+                  <Plus className="w-4 h-4 text-signal" />
+                  <span>Sync & Ingest Record</span>
                 </button>
               </div>
 
@@ -1197,7 +1241,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                 </span>
                 <button
                   onClick={() => setDarkMode(!darkMode)}
-                  className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded hover:bg-surface-muted transition-colors text-ink"
+                  className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-surface-muted transition-colors text-ink"
                   title="Toggle Dark Mode"
                 >
                   {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -1208,69 +1252,286 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
         </div>
       )}
 
-      {/* 1B. PERSISTENT DESKTOP NAVIGATION RAIL */}
-      <aside className="hidden md:flex md:w-60 lg:w-64 border-r border-line bg-surface flex-col justify-between flex-shrink-0 z-20">
-        <div>
-          {/* Brand Header */}
-          <div className="h-14 border-b border-line flex items-center px-5 gap-3">
-            <div className="w-6 h-6 rounded bg-signal flex items-center justify-center text-surface text-xs font-mono font-bold">
-              N
-            </div>
-            <div>
-              <h1 className="text-sm font-semibold tracking-tight text-ink flex items-center gap-2">
-                NetworkOS
-                <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-signal-soft text-signal border border-signal/20">
-                  PRO v2.0
-                </span>
-              </h1>
-            </div>
+      {/* 1B. ADAPTIVE DESKTOP SIDEBAR: COLLAPSED ICON RAIL VS EXPANDED SIDEBAR */}
+      {isSidebarCollapsed ? (
+        /* --- COLLAPSED ICON RAIL (Matches Reference Dock Design) --- */
+        <aside className="hidden md:flex flex-col justify-between items-center py-3 w-16 border-r border-line bg-surface flex-shrink-0 z-20 transition-all duration-200 select-none">
+          <div className="w-full flex flex-col items-center gap-2.5">
+            {/* 1. Sidebar Toggle Button (Image 1 & 2) */}
+            <button
+              onClick={toggleSidebar}
+              className="w-10 h-10 flex items-center justify-center rounded-xl border border-line/60 hover:bg-surface-muted hover:border-line text-ink-muted hover:text-ink transition-all shadow-2xs group relative"
+              title="Expand Sidebar"
+              aria-label="Expand Sidebar"
+            >
+              <PanelLeft className="w-5 h-5" />
+              <span className="pointer-events-none absolute left-full ml-3 px-2 py-1 rounded bg-ink text-surface text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-md">
+                Expand Sidebar
+              </span>
+            </button>
+
+            {/* 2. Quick Add / Ingest Button (Image 2) */}
+            <button
+              onClick={() => {
+                setIsImportModalOpen(true);
+                fetchAirtableBases();
+              }}
+              className="w-10 h-10 rounded-2xl bg-surface-raised border border-line/70 hover:bg-surface-muted hover:border-signal/50 flex items-center justify-center text-ink transition-all shadow-xs group relative"
+              title="Sync & Ingest / Add Record"
+              aria-label="Sync & Ingest / Add Record"
+            >
+              <Plus className="w-5 h-5 text-ink" />
+              <span className="pointer-events-none absolute left-full ml-3 px-2 py-1 rounded bg-ink text-surface text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-md">
+                Sync & Ingest Record (+)
+              </span>
+            </button>
+
+            {/* 3. Search Button (Image 2) */}
+            <button
+              onClick={() => {
+                const input = document.getElementById('global-search-input');
+                if (input) input.focus();
+              }}
+              className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-surface-muted text-ink-muted hover:text-ink transition-all group relative"
+              title="Search Records"
+              aria-label="Search Records"
+            >
+              <Search className="w-5 h-5" />
+              <span className="pointer-events-none absolute left-full ml-3 px-2 py-1 rounded bg-ink text-surface text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-md">
+                Search Records
+              </span>
+            </button>
+
+            {/* 4. Subtle Divider Line (Image 2) */}
+            <div className="w-8 h-[1px] bg-line/70 my-1" />
+
+            {/* 5. Nav Icons Rail (Image 2) */}
+            {/* Introductions Tab (Chat Bubble - Active in Reference Screenshot) */}
+            <button
+              onClick={() => setActiveTab('intros')}
+              className="relative w-full py-1 flex items-center justify-center group transition-colors"
+              title={`Introductions (${introductions.length})`}
+              aria-label="Introductions"
+            >
+              {activeTab === 'intros' && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3.5px] h-6 bg-[#E05A47] rounded-r" />
+              )}
+              <div
+                className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
+                  activeTab === 'intros'
+                    ? 'bg-surface-raised border border-line/60 text-ink shadow-xs'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface-muted/70'
+                }`}
+              >
+                <MessageSquare className={`w-5 h-5 ${activeTab === 'intros' ? 'text-ink' : 'text-ink-muted'}`} />
+              </div>
+              <span className="pointer-events-none absolute left-full ml-3 px-2 py-1 rounded bg-ink text-surface text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-md">
+                Introductions ({introductions.length})
+              </span>
+            </button>
+
+            {/* Members Directory Tab (Open Book) */}
+            <button
+              onClick={() => setActiveTab('people')}
+              className="relative w-full py-1 flex items-center justify-center group transition-colors"
+              title={`Members Directory (${activePeople.length})`}
+              aria-label="Members Directory"
+            >
+              {activeTab === 'people' && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3.5px] h-6 bg-[#E05A47] rounded-r" />
+              )}
+              <div
+                className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
+                  activeTab === 'people'
+                    ? 'bg-surface-raised border border-line/60 text-ink shadow-xs'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface-muted/70'
+                }`}
+              >
+                <BookOpen className={`w-5 h-5 ${activeTab === 'people' ? 'text-ink' : 'text-ink-muted'}`} />
+              </div>
+              <span className="pointer-events-none absolute left-full ml-3 px-2 py-1 rounded bg-ink text-surface text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-md">
+                Members Directory ({activePeople.length})
+              </span>
+            </button>
+
+            {/* Intelligence Lab Tab (Compass) */}
+            <button
+              onClick={() => setActiveTab('intelligence')}
+              className="relative w-full py-1 flex items-center justify-center group transition-colors"
+              title="Intelligence Lab"
+              aria-label="Intelligence Lab"
+            >
+              {activeTab === 'intelligence' && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3.5px] h-6 bg-[#E05A47] rounded-r" />
+              )}
+              <div
+                className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
+                  activeTab === 'intelligence'
+                    ? 'bg-surface-raised border border-line/60 text-ink shadow-xs'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface-muted/70'
+                }`}
+              >
+                <Compass className={`w-5 h-5 ${activeTab === 'intelligence' ? 'text-ink' : 'text-ink-muted'}`} />
+              </div>
+              <span className="pointer-events-none absolute left-full ml-3 px-2 py-1 rounded bg-ink text-surface text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-md">
+                Intelligence Lab
+              </span>
+            </button>
+
+            {/* Duplicates Queue Tab (Code / Quality) */}
+            <button
+              onClick={() => setActiveTab('duplicates')}
+              className="relative w-full py-1 flex items-center justify-center group transition-colors"
+              title={`Duplicates Queue (${metrics.duplicates})`}
+              aria-label="Duplicates Queue"
+            >
+              {activeTab === 'duplicates' && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3.5px] h-6 bg-[#E05A47] rounded-r" />
+              )}
+              <div
+                className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative ${
+                  activeTab === 'duplicates'
+                    ? 'bg-surface-raised border border-line/60 text-ink shadow-xs'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface-muted/70'
+                }`}
+              >
+                <Code2 className={`w-5 h-5 ${activeTab === 'duplicates' ? 'text-ink' : 'text-ink-muted'}`} />
+                {metrics.duplicates > 0 && (
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-warning" />
+                )}
+              </div>
+              <span className="pointer-events-none absolute left-full ml-3 px-2 py-1 rounded bg-ink text-surface text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-md">
+                Duplicates Queue ({metrics.duplicates})
+              </span>
+            </button>
           </div>
 
-          {/* Navigation Links */}
-          <NavItems />
-        </div>
-
-        {/* Footer Meta & Theme Switcher */}
-        <div className="p-3 border-t border-line space-y-2">
-          <div className="flex items-center justify-between px-3 py-1.5 text-xs text-ink-muted font-mono">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-signal animate-pulse"></span>
-              Database Synced
-            </span>
+          {/* Rail Bottom Actions */}
+          <div className="w-full flex flex-col items-center gap-2 pt-2 border-t border-line/60">
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className="p-1 rounded hover:bg-surface-muted transition-colors text-ink"
+              className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-surface-muted text-ink-muted hover:text-ink transition-all group relative"
               title="Toggle Dark Mode"
             >
               {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              <span className="pointer-events-none absolute left-full ml-3 px-2 py-1 rounded bg-ink text-surface text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-md">
+                {darkMode ? 'Light Theme' : 'Dark Theme'}
+              </span>
             </button>
+            <div
+              className="w-2.5 h-2.5 rounded-full bg-signal animate-pulse my-1 group relative cursor-help"
+              title="Database Synced"
+            >
+              <span className="pointer-events-none absolute left-full ml-3 px-2 py-1 rounded bg-ink text-surface text-xs font-mono whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-md">
+                Supabase & n8n Synced
+              </span>
+            </div>
           </div>
-        </div>
-      </aside>
+        </aside>
+      ) : (
+        /* --- EXPANDED FULL SIDEBAR --- */
+        <aside className="hidden md:flex md:w-60 lg:w-64 border-r border-line bg-surface flex-col justify-between flex-shrink-0 z-20 transition-all duration-200">
+          <div>
+            {/* Brand Header with Collapse Toggle */}
+            <div className="h-14 border-b border-line flex items-center justify-between px-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-signal flex items-center justify-center text-surface text-xs font-mono font-bold shadow-xs">
+                  N
+                </div>
+                <div>
+                  <h1 className="text-sm font-semibold tracking-tight text-ink flex items-center gap-1.5">
+                    NetworkOS
+                    <span className="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-signal-soft text-signal border border-signal/20">
+                      PRO v2.0
+                    </span>
+                  </h1>
+                </div>
+              </div>
+              {/* Sidebar Collapse Button */}
+              <button
+                onClick={toggleSidebar}
+                className="w-8 h-8 flex items-center justify-center rounded-lg border border-line/60 hover:bg-surface-muted hover:border-line text-ink-muted hover:text-ink transition-all"
+                title="Collapse to Icon Rail"
+                aria-label="Collapse to Icon Rail"
+              >
+                <PanelLeft className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Quick Action Button in Expanded Mode */}
+            <div className="p-3 pb-1">
+              <button
+                onClick={() => {
+                  setIsImportModalOpen(true);
+                  fetchAirtableBases();
+                }}
+                className="w-full min-h-[38px] px-3 py-2 text-xs font-medium rounded-lg bg-surface-raised border border-line/80 hover:border-signal/50 hover:bg-surface-muted text-ink flex items-center justify-center gap-2 transition-all shadow-2xs group"
+              >
+                <Plus className="w-4 h-4 text-signal group-hover:scale-110 transition-transform" />
+                <span>Sync & Ingest Record</span>
+              </button>
+            </div>
+
+            {/* Navigation Links with Active Orange Accent */}
+            <NavItems />
+          </div>
+
+          {/* Footer Meta & Theme Switcher */}
+          <div className="p-3 border-t border-line space-y-2">
+            <div className="flex items-center justify-between px-3 py-1.5 text-xs text-ink-muted font-mono">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-signal animate-pulse"></span>
+                Database Synced
+              </span>
+              <button
+                onClick={() => setDarkMode(!darkMode)}
+                className="p-1.5 rounded-lg hover:bg-surface-muted transition-colors text-ink"
+                title="Toggle Dark Mode"
+              >
+                {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+        </aside>
+      )}
 
       {/* 2. MAIN CONTENT REGION */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Operational Bar */}
         <header className="min-h-[3.5rem] py-2 px-4 sm:px-6 border-b border-line bg-surface flex flex-wrap md:flex-nowrap items-center justify-between gap-3 flex-shrink-0">
           <div className="flex items-center gap-2.5 flex-1 min-w-[200px] max-w-full md:max-w-md">
-            {/* Hamburger Button on Mobile */}
+            {/* Sidebar Toggle on Mobile */}
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className="md:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded hover:bg-surface-muted text-ink -ml-2"
+              className="md:hidden min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg border border-line/60 hover:bg-surface-muted text-ink -ml-1"
               aria-label="Open Navigation Menu"
+              title="Open Navigation Menu"
             >
-              <Menu className="w-5 h-5" />
+              <PanelLeft className="w-5 h-5" />
             </button>
+
+            {/* Desktop Expand Toggle when collapsed */}
+            {isSidebarCollapsed && (
+              <button
+                onClick={toggleSidebar}
+                className="hidden md:flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg border border-line/60 hover:bg-surface-muted text-ink-muted hover:text-ink transition-all shadow-2xs mr-1"
+                aria-label="Expand Sidebar"
+                title="Expand Sidebar"
+              >
+                <PanelLeft className="w-4 h-4" />
+              </button>
+            )}
 
             {/* Search Input */}
             <div className="relative w-full">
               <Search className="w-4 h-4 text-ink-faint absolute left-3 top-1/2 -translate-y-1/2" />
               <input
+                id="global-search-input"
                 type="text"
                 placeholder="Search name, company, title, sector..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full h-9 pl-9 pr-3 text-xs bg-surface-raised border border-line rounded focus:outline-none focus:ring-1 focus:ring-signal focus:border-signal text-ink placeholder:text-ink-faint"
+                className="w-full h-9 pl-9 pr-3 text-xs bg-surface-raised border border-line rounded-lg focus:outline-none focus:ring-1 focus:ring-signal focus:border-signal text-ink placeholder:text-ink-faint"
               />
             </div>
           </div>

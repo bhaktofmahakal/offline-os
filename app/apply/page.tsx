@@ -45,8 +45,9 @@ export default function ApplyPage() {
       let n8nSucceeded = false;
 
       // 1. Try n8n Webhook (orchestrator handles ingestion + Slack notification)
+      const n8nWebhookUrl = (process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL || 'https://n8n-render-utsav.onrender.com/webhook/new-offline-applicant').trim();
       try {
-        const n8nRes = await fetch('https://n8n-render-utsav.onrender.com/webhook/new-offline-applicant', {
+        const n8nRes = await fetch(n8nWebhookUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -69,7 +70,8 @@ export default function ApplyPage() {
 
       // 2. Only fall back to direct pipeline if n8n webhook actually failed
       if (!n8nSucceeded) {
-        const res = await fetch('https://offline-os.onrender.com/process-new-record', {
+        const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || 'https://offline-os.onrender.com').trim();
+        const res = await fetch(`${backendUrl}/process-new-record`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
