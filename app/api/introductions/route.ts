@@ -20,7 +20,7 @@ export async function GET() {
     // Fetch people to map person_a_id and person_b_id
     const { data: people } = await supabase
       .from('people')
-      .select('id, source_record_id, name, company, role_title, role_type, seniority, sector_tags, community_fit_tags')
+      .select('id, source_record_id, name, email, company, role_title, role_type, seniority, sector_tags, community_fit_tags')
       .range(0, 999);
 
     const peopleById = new Map((people || []).map((p) => [p.id, p]));

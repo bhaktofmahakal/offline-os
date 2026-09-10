@@ -433,6 +433,21 @@ export default function OfflineCRM() {
   // Warm Intro Dispatcher Modal State
   const [selectedIntroForDispatch, setSelectedIntroForDispatch] = useState<Introduction | null>(null);
   const [dispatchedIntroIds, setDispatchedIntroIds] = useState<Set<number>>(new Set());
+  const [dispatchToEmail, setDispatchToEmail] = useState('');
+  const [dispatchCcEmail, setDispatchCcEmail] = useState('');
+  const [dispatchBccEmail, setDispatchBccEmail] = useState('');
+  const [dispatchSubject, setDispatchSubject] = useState('');
+  const [dispatchBody, setDispatchBody] = useState('');
+
+  const handleOpenDispatchModal = (intro: Introduction) => {
+    setSelectedIntroForDispatch(intro);
+    const emails = [intro.person_a?.email, intro.person_b?.email].filter(Boolean).join(', ');
+    setDispatchToEmail(emails);
+    setDispatchCcEmail('');
+    setDispatchBccEmail('');
+    setDispatchSubject(`Intro: ${intro.person_a?.name || 'Founder A'} (${intro.person_a?.company || 'Founder'}) <> ${intro.person_b?.name || 'Founder B'} (${intro.person_b?.company || 'Founder'})`);
+    setDispatchBody(`Hi ${intro.person_a?.name || 'there'} & ${intro.person_b?.name || 'there'},\n\nConnecting you both based on strong synergies in ${intro.shared_context || 'the startup ecosystem'}.\n\n${intro.suggested_intro || ''}\n\nI will let you two take it from here!\n\nBest,\nNetworkOS Team`);
+  };
 
   // Airtable Direct Ingestion States
   const [importTab, setImportTab] = useState<'airtable' | 'webhook' | 'csv'>('airtable');
@@ -2696,7 +2711,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                               <Check className="w-3.5 h-3.5" /> Approved
                             </span>
                             <button
-                              onClick={() => setSelectedIntroForDispatch(intro)}
+                              onClick={() => handleOpenDispatchModal(intro)}
                               className="min-h-[38px] px-3 py-1 text-xs rounded bg-surface border border-copper text-copper font-medium hover:bg-copper-soft/40 transition-colors flex items-center gap-1.5 shadow-xs"
                               title="Open Warm Intro Dispatcher Modal"
                             >
@@ -4698,39 +4713,101 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
               </button>
             </div>
 
-            {/* Recipient Details */}
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="p-2.5 bg-surface-raised border border-line rounded">
-                <div className="font-mono text-[10px] text-ink-muted uppercase">Founder A</div>
-                <div className="font-semibold text-ink">{selectedIntroForDispatch.person_a.name}</div>
-                <div className="text-[11px] text-ink-muted truncate">{selectedIntroForDispatch.person_a.email || 'No email on record'}</div>
+            {/* Recipient Details & Addresses */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div className="p-3 bg-surface-raised border border-line rounded-lg space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[10px] text-ink-muted uppercase">Founder A</span>
+                  <span className="text-[10px] font-mono text-signal bg-signal-soft px-1.5 py-0.2 rounded border border-signal/20">Recipient</span>
+                </div>
+                <div className="font-semibold text-ink text-sm">{selectedIntroForDispatch.person_a.name}</div>
+                <div className="text-xs text-ink-muted">{selectedIntroForDispatch.person_a.company || 'Founder'}</div>
+                <div className="text-[11px] font-mono text-ink-muted truncate">
+                  {selectedIntroForDispatch.person_a.email ? (
+                    <span className="text-ink font-medium">{selectedIntroForDispatch.person_a.email}</span>
+                  ) : (
+                    <span className="text-amber-500 italic">No email on record (fill below)</span>
+                  )}
+                </div>
               </div>
-              <div className="p-2.5 bg-surface-raised border border-line rounded">
-                <div className="font-mono text-[10px] text-ink-muted uppercase">Founder B</div>
-                <div className="font-semibold text-ink">{selectedIntroForDispatch.person_b.name}</div>
-                <div className="text-[11px] text-ink-muted truncate">{selectedIntroForDispatch.person_b.email || 'No email on record'}</div>
+
+              <div className="p-3 bg-surface-raised border border-line rounded-lg space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[10px] text-ink-muted uppercase">Founder B</span>
+                  <span className="text-[10px] font-mono text-signal bg-signal-soft px-1.5 py-0.2 rounded border border-signal/20">Recipient</span>
+                </div>
+                <div className="font-semibold text-ink text-sm">{selectedIntroForDispatch.person_b.name}</div>
+                <div className="text-xs text-ink-muted">{selectedIntroForDispatch.person_b.company || 'Founder'}</div>
+                <div className="text-[11px] font-mono text-ink-muted truncate">
+                  {selectedIntroForDispatch.person_b.email ? (
+                    <span className="text-ink font-medium">{selectedIntroForDispatch.person_b.email}</span>
+                  ) : (
+                    <span className="text-amber-500 italic">No email on record (fill below)</span>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Email Draft Preview */}
-            <div className="space-y-2 text-xs">
+            {/* Email Dispatch Fields */}
+            <div className="space-y-2.5 text-xs">
+              {/* To field */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="font-mono text-[11px] text-ink-muted uppercase">To (Primary Recipients)</label>
+                  <span className="text-[10px] font-mono text-ink-faint">Comma-separated</span>
+                </div>
+                <input
+                  type="text"
+                  value={dispatchToEmail}
+                  onChange={e => setDispatchToEmail(e.target.value)}
+                  placeholder="founderA@domain.com, founderB@domain.com"
+                  className="w-full h-8 px-2.5 bg-surface-raised border border-line rounded text-ink font-mono text-[11px] focus:outline-none focus:ring-1 focus:ring-signal"
+                />
+              </div>
+
+              {/* CC & BCC Fields */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label className="font-mono text-[11px] text-ink-muted block mb-1">Cc (Optional)</label>
+                  <input
+                    type="text"
+                    value={dispatchCcEmail}
+                    onChange={e => setDispatchCcEmail(e.target.value)}
+                    placeholder="partner@venture.com"
+                    className="w-full h-8 px-2.5 bg-surface-raised border border-line rounded text-ink font-mono text-[11px] focus:outline-none focus:ring-1 focus:ring-signal"
+                  />
+                </div>
+                <div>
+                  <label className="font-mono text-[11px] text-ink-muted block mb-1">Bcc (Optional)</label>
+                  <input
+                    type="text"
+                    value={dispatchBccEmail}
+                    onChange={e => setDispatchBccEmail(e.target.value)}
+                    placeholder="intros@networkos.io"
+                    className="w-full h-8 px-2.5 bg-surface-raised border border-line rounded text-ink font-mono text-[11px] focus:outline-none focus:ring-1 focus:ring-signal"
+                  />
+                </div>
+              </div>
+
+              {/* Subject Line */}
               <div>
                 <label className="font-mono text-[11px] text-ink-muted block mb-1">Subject Line</label>
                 <input
                   type="text"
-                  readOnly
-                  value={`Intro: ${selectedIntroForDispatch.person_a.name} (${selectedIntroForDispatch.person_a.company || 'Founder'}) <> ${selectedIntroForDispatch.person_b.name} (${selectedIntroForDispatch.person_b.company || 'Founder'})`}
-                  className="w-full h-8 px-2.5 bg-surface-raised border border-line rounded text-ink font-mono text-[11px] focus:outline-none"
+                  value={dispatchSubject}
+                  onChange={e => setDispatchSubject(e.target.value)}
+                  className="w-full h-8 px-2.5 bg-surface-raised border border-line rounded text-ink font-mono text-[11px] focus:outline-none focus:ring-1 focus:ring-signal"
                 />
               </div>
 
+              {/* Email Body */}
               <div>
-                <label className="font-mono text-[11px] text-ink-muted block mb-1">Email Body</label>
+                <label className="font-mono text-[11px] text-ink-muted block mb-1">Email Body (Double Opt-in Draft)</label>
                 <textarea
                   rows={6}
-                  readOnly
-                  value={`Hi ${selectedIntroForDispatch.person_a.name} & ${selectedIntroForDispatch.person_b.name},\n\nConnecting you both based on strong synergies in ${selectedIntroForDispatch.shared_context}.\n\n${selectedIntroForDispatch.suggested_intro}\n\nI will let you two take it from here!\n\nBest,\nNetworkOS Team`}
-                  className="w-full p-2.5 bg-surface-raised border border-line rounded text-ink font-mono text-[11px] leading-relaxed focus:outline-none resize-none"
+                  value={dispatchBody}
+                  onChange={e => setDispatchBody(e.target.value)}
+                  className="w-full p-2.5 bg-surface-raised border border-line rounded text-ink font-mono text-[11px] leading-relaxed focus:outline-none focus:ring-1 focus:ring-signal resize-y"
                 />
               </div>
             </div>
@@ -4750,16 +4827,16 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => {
-                    const text = `Subject: Intro: ${selectedIntroForDispatch.person_a.name} <> ${selectedIntroForDispatch.person_b.name}\n\nHi ${selectedIntroForDispatch.person_a.name} & ${selectedIntroForDispatch.person_b.name},\n\n${selectedIntroForDispatch.suggested_intro}\n\nBest,\nNetworkOS Team`;
-                    copyToClipboard(text, selectedIntroForDispatch.id);
+                    const fullText = `To: ${dispatchToEmail}\n${dispatchCcEmail ? `Cc: ${dispatchCcEmail}\n` : ''}${dispatchBccEmail ? `Bcc: ${dispatchBccEmail}\n` : ''}Subject: ${dispatchSubject}\n\n${dispatchBody}`;
+                    copyToClipboard(fullText, selectedIntroForDispatch.id);
                   }}
-                  className="min-h-[38px] px-3 text-xs bg-surface border border-line rounded-lg text-ink hover:bg-surface-muted transition-colors flex items-center gap-1.5"
-                  title="Copy email text to clipboard"
+                  className="min-h-[38px] px-3 text-xs bg-surface border border-line rounded-lg text-ink hover:bg-surface-muted transition-colors flex items-center gap-1.5 cursor-pointer"
+                  title="Copy full email text to clipboard"
                 >
                   {copiedIntroId === selectedIntroForDispatch.id ? (
                     <>
                       <Check className="w-3.5 h-3.5 text-signal" />
-                      <span className="text-signal font-medium">Copied Draft</span>
+                      <span className="text-signal font-medium">Copied Email</span>
                     </>
                   ) : (
                     <>
@@ -4771,14 +4848,14 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
                 {/* 1. Open in Gmail */}
                 <a
-                  href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(`${selectedIntroForDispatch.person_a.email || ''},${selectedIntroForDispatch.person_b.email || ''}`)}&su=${encodeURIComponent(`Intro: ${selectedIntroForDispatch.person_a.name} <> ${selectedIntroForDispatch.person_b.name}`)}&body=${encodeURIComponent(`Hi ${selectedIntroForDispatch.person_a.name} & ${selectedIntroForDispatch.person_b.name},\n\n${selectedIntroForDispatch.suggested_intro}\n\nBest,\nNetworkOS Team`)}`}
+                  href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(dispatchToEmail)}${dispatchCcEmail ? `&cc=${encodeURIComponent(dispatchCcEmail)}` : ''}${dispatchBccEmail ? `&bcc=${encodeURIComponent(dispatchBccEmail)}` : ''}&su=${encodeURIComponent(dispatchSubject)}&body=${encodeURIComponent(dispatchBody)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => {
                     setDispatchedIntroIds(prev => new Set(prev).add(selectedIntroForDispatch.id));
                   }}
-                  className="min-h-[38px] px-3.5 text-xs font-semibold bg-[#EA4335] hover:bg-[#D93025] text-white rounded-lg transition-colors shadow-2xs flex items-center gap-1.5"
-                  title="Open directly in Gmail web composer (opens in new tab)"
+                  className="min-h-[38px] px-3.5 text-xs font-semibold bg-[#EA4335] hover:bg-[#D93025] text-white rounded-lg transition-colors shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                  title="Open directly in Gmail web composer with To, Cc, Bcc pre-filled"
                 >
                   <Mail className="w-3.5 h-3.5" />
                   <span>Open in Gmail</span>
@@ -4786,11 +4863,16 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
                 {/* 2. Default Desktop Client / Outlook */}
                 <a
-                  href={`mailto:${selectedIntroForDispatch.person_a.email || ''},${selectedIntroForDispatch.person_b.email || ''}?subject=${encodeURIComponent(`Intro: ${selectedIntroForDispatch.person_a.name} <> ${selectedIntroForDispatch.person_b.name}`)}&body=${encodeURIComponent(`Hi ${selectedIntroForDispatch.person_a.name} & ${selectedIntroForDispatch.person_b.name},\n\n${selectedIntroForDispatch.suggested_intro}\n\nBest,\nNetworkOS Team`)}`}
+                  href={`mailto:${encodeURIComponent(dispatchToEmail)}?${[
+                    dispatchCcEmail ? `cc=${encodeURIComponent(dispatchCcEmail)}` : null,
+                    dispatchBccEmail ? `bcc=${encodeURIComponent(dispatchBccEmail)}` : null,
+                    `subject=${encodeURIComponent(dispatchSubject)}`,
+                    `body=${encodeURIComponent(dispatchBody)}`,
+                  ].filter(Boolean).join('&')}`}
                   onClick={() => {
                     setDispatchedIntroIds(prev => new Set(prev).add(selectedIntroForDispatch.id));
                   }}
-                  className="min-h-[38px] px-3 text-xs font-medium bg-surface-raised border border-line/80 hover:bg-surface-muted text-ink rounded-lg transition-colors shadow-2xs flex items-center gap-1.5"
+                  className="min-h-[38px] px-3 text-xs font-medium bg-surface-raised border border-line/80 hover:bg-surface-muted text-ink rounded-lg transition-colors shadow-2xs flex items-center gap-1.5 cursor-pointer"
                   title="Open in default desktop app (Outlook, Apple Mail, etc.)"
                 >
                   <Send className="w-3.5 h-3.5 text-ink-muted" />
