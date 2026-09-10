@@ -29,50 +29,50 @@ export default function ApplyPage() {
     setResult(null);
 
     try {
-      // 1. Send to live n8n Webhook (orchestrator triggers Render Pipeline + Slack Notification)
+      // Generate a single source_record_id to prevent duplicates across retry paths
+      const sourceRecordId = `applicant-web-${Date.now()}`;
+      const payload = {
+        source_record_id: sourceRecordId,
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        company: formData.company.trim() || undefined,
+        role_title: formData.role_title.trim() || undefined,
+        bio_notes: formData.bio_notes.trim() || undefined,
+        source: 'public_application_form',
+      };
 
       let data = null;
+      let n8nSucceeded = false;
+
+      // 1. Try n8n Webhook (orchestrator handles ingestion + Slack notification)
       try {
         const n8nRes = await fetch('https://n8n-render-utsav.onrender.com/webhook/new-offline-applicant', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            source_record_id: `applicant-web-${Date.now()}`,
-            name: formData.name.trim(),
-            email: formData.email.trim(),
-            company: formData.company.trim() || undefined,
-            role_title: formData.role_title.trim() || undefined,
-            bio_notes: formData.bio_notes.trim() || undefined,
-            source: 'public_application_form',
-          }),
+          body: JSON.stringify(payload),
         });
 
         if (n8nRes.ok) {
+          n8nSucceeded = true;
           const rawText = await n8nRes.text();
           if (rawText) {
             try {
               data = JSON.parse(rawText);
             } catch (_) {}
           }
+          // n8n succeeded — record is already created by the workflow pipeline
+          // Even if response body is empty, the record exists, so don't create another
         }
       } catch (n8nErr) {
-        console.warn('n8n webhook warning, falling back to direct pipeline:', n8nErr);
+        console.warn('Webhook unavailable, using direct pipeline:', n8nErr);
       }
 
-      // 2. If n8n response was empty or bypassed, ensure direct evaluation from Render Pipeline
-      if (!data || !data.fit_score) {
+      // 2. Only fall back to direct pipeline if n8n webhook actually failed
+      if (!n8nSucceeded) {
         const res = await fetch('https://offline-os.onrender.com/process-new-record', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            source_record_id: `applicant-web-${Date.now()}`,
-            name: formData.name.trim(),
-            email: formData.email.trim(),
-            company: formData.company.trim() || undefined,
-            role_title: formData.role_title.trim() || undefined,
-            bio_notes: formData.bio_notes.trim() || undefined,
-            source: 'public_application_form',
-          }),
+          body: JSON.stringify(payload),
         });
 
         if (!res.ok) {

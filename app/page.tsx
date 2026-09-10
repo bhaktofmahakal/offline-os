@@ -481,7 +481,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       ];
 
       if (data.auto_enriched && data.auto_enriched > 0) {
-        syncLogs.push(`⚡ Autonomous 360° AI enrichment triggered for ${data.auto_enriched} records (via TinyFish CLI & Tavily)`);
+        syncLogs.push(`⚡ Autonomous 360° AI enrichment triggered for ${data.auto_enriched} records`);
       }
 
       syncLogs.push('🎉 Sync complete! Live dashboard refreshed.');
@@ -676,7 +676,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to run Tavily search');
+      if (!res.ok) throw new Error(data.error || 'Failed to run search');
       setTavilySearchResults(data.results || []);
     } catch (err: any) {
       console.error('Search error:', err);
@@ -1145,7 +1145,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
           <span>Intelligence Lab</span>
         </div>
         <span className="text-[10px] uppercase tracking-wider font-mono font-bold px-1.5 py-0.5 rounded bg-signal/15 text-signal border border-signal/30">
-          TAVILY AI
+          AI ENGINE
         </span>
       </button>
     </div>
@@ -1298,7 +1298,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                     ? 'bg-signal text-surface font-semibold shadow-xs'
                     : 'text-ink-muted hover:text-ink'
                 }`}
-                title="View Live Ingested Records (Webhooks, CSVs, n8n)"
+                title="View Live Ingested Records (Webhooks, CSVs, Automations)"
               >
                 <Terminal className="w-3 h-3" />
                 <span className="hidden lg:inline">Live Workspace</span>
@@ -1608,7 +1608,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                                 <div className="font-semibold text-ink flex items-center justify-between">
                                   <span className="flex items-center gap-1.5">
                                     <Terminal className="w-3.5 h-3.5 text-signal" />
-                                    <span>Webhook Endpoint for n8n & Tally:</span>
+                                    <span>Webhook Endpoint for Automations:</span>
                                   </span>
                                   <button
                                     onClick={() => copyToClipboard('/api/v1/ingest', -1)}
@@ -2246,7 +2246,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
           </div>
         )}
 
-        {/* 2D. TAVILY DEEP INTELLIGENCE LAB */}
+        {/* 2D. DEEP INTELLIGENCE LAB */}
         {activeTab === 'intelligence' && (
           <div className="space-y-6 animate-in fade-in-50 duration-200">
             {/* Header & Capabilities Banner */}
@@ -2258,7 +2258,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                     Autonomous Intelligence Engine
                   </span>
                   <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-signal/15 text-signal border border-signal/30 font-semibold">
-                    @tavily/core v0.7+
+                    LIVE
                   </span>
                 </div>
                 <h2 className="text-xl font-bold text-ink tracking-tight">Deep Intelligence Lab</h2>
@@ -2328,7 +2328,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                         <span>Autonomous Deep Research Memo Generator</span>
                       </h3>
                       <p className="text-xs text-ink-muted mt-0.5">
-                        Tavily creates a multi-step query plan, executes comprehensive web searches, and compiles an exhaustive cited intelligence memo.
+                        Creates a multi-step query plan, executes comprehensive web searches, and compiles an exhaustive cited intelligence memo.
                       </p>
                     </div>
 
@@ -2412,7 +2412,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                         Autonomous Research in Progress...
                       </div>
                       <p className="text-xs text-ink-muted mt-1 max-w-md mx-auto">
-                        Tavily agent is executing real-time web searches, traversing primary sources, extracting full text, and synthesizing an executive report. (Typically takes 10-25 seconds).
+                        AI agent is executing real-time web searches, traversing primary sources, extracting full text, and synthesizing an executive report. (Typically takes 10-25 seconds).
                       </p>
                     </div>
                   </div>
@@ -2998,23 +2998,23 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                     ) : (
                       <div className="text-[11px] text-ink-muted italic flex items-center justify-between py-1">
                         <span>Click to scrape GitHub, funding signals & synthesize dossier.</span>
-                        <span className="font-mono text-[10px] text-signal font-semibold">Tavily • Firecrawl • Gemini</span>
+                        <span className="font-mono text-[10px] text-signal font-semibold">AI Powered</span>
                       </div>
                     )}
                   </div>
 
-                  {/* Tavily Autonomous Deep Memo Card */}
+                  {/* Autonomous Deep Memo Card */}
                   <div className="p-3.5 bg-surface-raised border border-line rounded-lg space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5 font-mono text-[11px] font-semibold text-signal uppercase">
                         <Globe className="w-3.5 h-3.5" />
-                        <span>Tavily Deep Intel Memo</span>
+                        <span>Deep Intel Memo</span>
                       </div>
                       <button
                         onClick={() => handleDrawerResearch(selectedPerson)}
                         disabled={drawerResearching}
                         className="px-2 py-1 bg-surface border border-signal/40 text-signal hover:bg-signal-soft text-[10px] font-mono font-semibold rounded flex items-center gap-1 disabled:opacity-50 transition-colors shadow-xs cursor-pointer"
-                        title="Generate autonomous executive research report using Tavily Research endpoint"
+                        title="Generate autonomous executive research report"
                       >
                         <RefreshCw className={`w-3 h-3 ${drawerResearching ? 'animate-spin' : ''}`} />
                         <span>{drawerResearching ? 'Synthesizing Memo...' : '🔬 Run Deep Memo'}</span>
@@ -3509,7 +3509,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                             <div>
                               <span className="font-medium text-ink">Autonomous 360° AI Enrichment</span>
                               <p className="text-[11px] text-ink-muted">
-                                Automatically query live web intelligence via TinyFish CLI & Tavily for deep thesis & executive summaries.
+                                Automatically query live web intelligence for deep thesis & executive summaries.
                               </p>
                             </div>
                           </label>
@@ -3527,7 +3527,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                           <span>Instant Push Webhook (Zero Latency)</span>
                         </div>
                         <p className="text-[11px] text-ink-muted leading-relaxed">
-                          Airtable Automations, Tally, Typeform, or n8n can stream submissions instantly into your live workspace.
+                          Airtable Automations, Tally, Typeform, or any webhook-based tool can stream submissions instantly into your live workspace.
                         </p>
                       </div>
 
