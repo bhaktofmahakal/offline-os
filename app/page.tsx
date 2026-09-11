@@ -77,6 +77,7 @@ interface Person {
   clean_summary?: string | null;
   ai_model?: string | null;
   ai_generated_at?: string | null;
+  source_payload?: any;
 }
 
 interface Introduction {
@@ -434,6 +435,9 @@ export default function OfflineCRM() {
   // 360° AI Enrichment State
   const [isEnrichingPerson, setIsEnrichingPerson] = useState(false);
   const [dossierCache, setDossierCache] = useState<Record<number, any>>({});
+  const [copiedEmail, setCopiedEmail] = useState(false);
+  const [isApplyingContact, setIsApplyingContact] = useState(false);
+  const [contactApplySuccess, setContactApplySuccess] = useState<string | null>(null);
 
   // Warm Intro Dispatcher Modal State
   const [selectedIntroForDispatch, setSelectedIntroForDispatch] = useState<Introduction | null>(null);
@@ -854,6 +858,56 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       alert('Enrichment notice: ' + err.message);
     } finally {
       setIsEnrichingPerson(false);
+    }
+  };
+
+  // Full-Stack Discovered Contact Persistence Handler
+  const handleApplyDiscoveredContact = async (personId: number, contact: any) => {
+    if (!contact) return;
+    setIsApplyingContact(true);
+    setContactApplySuccess(null);
+    try {
+      const updatePayload: Record<string, any> = { id: personId };
+      if (contact.discovered_email) {
+        updatePayload.email = contact.discovered_email;
+      }
+      const existingPerson = people.find(p => p.id === personId) || selectedPerson;
+      const existingPayload = existingPerson?.source_payload || {};
+      updatePayload.source_payload = {
+        ...existingPayload,
+        linkedin: contact.discovered_linkedin || existingPayload.linkedin,
+        website: contact.discovered_website || existingPayload.website,
+        twitter: contact.discovered_twitter || existingPayload.twitter,
+        verified_contact: contact,
+      };
+
+      const res = await fetch('/api/people', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatePayload),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Failed to update member contact');
+      }
+
+      const resData = await res.json();
+      const updatedMember = resData.updated?.[0];
+
+      if (updatedMember) {
+        setPeople(prev => prev.map(p => (p.id === personId ? { ...p, ...updatedMember } : p)));
+        if (selectedPerson?.id === personId) {
+          setSelectedPerson(prev => (prev ? { ...prev, ...updatedMember } : null));
+        }
+      }
+
+      setContactApplySuccess('Profile updated full-stack in database!');
+      setTimeout(() => setContactApplySuccess(null), 4000);
+    } catch (err: any) {
+      alert('Error updating contact: ' + err.message);
+    } finally {
+      setIsApplyingContact(false);
     }
   };
 
@@ -4029,15 +4083,29 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                           {selectedPerson.email_normalized || selectedPerson.email || 'No email provided'}
                         </span>
                         {(selectedPerson.email_normalized || selectedPerson.email) && (
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(selectedPerson.email_normalized || selectedPerson.email || '');
-                            }}
-                            className="p-0.5 text-ink-faint hover:text-ink transition-colors"
-                            title="Copy email address"
-                          >
-                            <Copy className="w-3 h-3" />
-                          </button>
+                          <div className="inline-flex items-center gap-1.5">
+                            <button
+                              onClick={() => {
+                                const emailToCopy = selectedPerson.email_normalized || selectedPerson.email || '';
+                                navigator.clipboard.writeText(emailToCopy);
+                                setCopiedEmail(true);
+                                setTimeout(() => setCopiedEmail(false), 2000);
+                              }}
+                              className="p-1 text-ink-faint hover:text-ink hover:bg-surface-raised rounded transition-colors inline-flex items-center gap-1 cursor-pointer"
+                              title="Copy email address"
+                            >
+                              {copiedEmail ? (
+                                <Check className="w-3.5 h-3.5 text-signal animate-in zoom-in duration-150" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                            {copiedEmail && (
+                              <span className="text-[10px] font-mono font-semibold text-signal bg-signal-soft px-1.5 py-0.5 rounded border border-signal/20 animate-in fade-in duration-150">
+                                Copied!
+                              </span>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -4082,48 +4150,140 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                       </button>
                     </div>
 
-                    {dossierCache[selectedPerson.id] ? (
-                      <div className="space-y-3 pt-1 text-xs animate-in fade-in-50 duration-200">
-                        {/* Executive Summary */}
-                        <div className="p-3 bg-surface rounded-lg border border-line text-xs text-ink leading-relaxed">
-                          <span className="text-signal font-semibold uppercase text-[10px] tracking-wider block mb-1.5">Executive Debrief</span>
-                          <p>{dossierCache[selectedPerson.id].executive_summary}</p>
-                        </div>
+                    {(() => {
+                      const activeDossier = dossierCache[selectedPerson.id] || selectedPerson.ai_classification?.dossier;
+                      if (!activeDossier) {
+                        return (
+                          <p className="text-xs text-ink-muted leading-relaxed pt-0.5">
+                            Scrape public footprint, verified traction, and generate an autonomous executive debrief.
+                          </p>
+                        );
+                      }
 
-                        {/* Traction Signals */}
-                        {dossierCache[selectedPerson.id].traction_signals?.length > 0 && (
-                          <div className="space-y-1.5">
-                            <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Verified Traction Signals</span>
-                            <div className="space-y-1">
-                              {dossierCache[selectedPerson.id].traction_signals.map((sig: string, sIdx: number) => (
-                                <div key={sIdx} className="flex items-center gap-2 text-xs text-ink bg-surface px-2.5 py-1.5 rounded border border-line/60">
-                                  <CheckCircle2 className="w-3.5 h-3.5 text-signal flex-shrink-0" />
-                                  <span>{sig}</span>
-                                </div>
-                              ))}
-                            </div>
+                      return (
+                        <div className="space-y-3 pt-1 text-xs animate-in fade-in-50 duration-200">
+                          {/* Executive Summary */}
+                          <div className="p-3 bg-surface rounded-lg border border-line text-xs text-ink leading-relaxed">
+                            <span className="text-signal font-semibold uppercase text-[10px] tracking-wider block mb-1.5">Executive Debrief</span>
+                            <p>{activeDossier.executive_summary}</p>
                           </div>
-                        )}
 
-                        {/* Tech Stack & Key Archetypes */}
-                        {dossierCache[selectedPerson.id].tech_stack?.length > 0 && (
-                          <div className="space-y-1.5">
-                            <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Detected Tech Stack</span>
-                            <div className="flex flex-wrap gap-1.5">
-                              {dossierCache[selectedPerson.id].tech_stack.map((tech: string, tIdx: number) => (
-                                <span key={tIdx} className="px-2 py-0.5 rounded text-xs font-mono bg-signal-soft text-signal border border-signal/20">
-                                  {tech}
+                          {/* Verified Contact Discovery & Identity Footprint */}
+                          {activeDossier.discovered_contact && (
+                            <div className="p-3 bg-surface rounded-lg border border-line space-y-2.5 text-xs">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-semibold text-signal uppercase tracking-wider flex items-center gap-1.5">
+                                  <Sparkles className="w-3 h-3 text-signal" />
+                                  Verified Contact Footprint
                                 </span>
-                              ))}
+                                <span className={`text-[10px] font-mono font-medium px-1.5 py-0.5 rounded border ${
+                                  activeDossier.discovered_contact.verification_status === 'verified'
+                                    ? 'bg-signal-soft text-signal border-signal/20'
+                                    : 'bg-surface-raised text-ink-muted border-line'
+                                }`}>
+                                  {activeDossier.discovered_contact.verification_status === 'verified' ? 'Verified Match' : 'Not Publicly Found'}
+                                </span>
+                              </div>
+
+                              <p className="text-[11px] text-ink-muted leading-relaxed">
+                                {activeDossier.discovered_contact.verification_notes || 'Cross-referenced against verified company and executive footprint.'}
+                              </p>
+
+                              {/* Discovered Fields Grid */}
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-0.5 font-mono text-[11px]">
+                                <div className="p-2 rounded bg-surface-raised border border-line/60">
+                                  <span className="text-[10px] uppercase text-ink-muted block mb-0.5">Discovered Email</span>
+                                  {activeDossier.discovered_contact.discovered_email ? (
+                                    <span className="text-ink font-medium select-all break-all">
+                                      {activeDossier.discovered_contact.discovered_email}
+                                    </span>
+                                  ) : (
+                                    <span className="text-ink-faint italic">Not publicly found</span>
+                                  )}
+                                </div>
+
+                                <div className="p-2 rounded bg-surface-raised border border-line/60">
+                                  <span className="text-[10px] uppercase text-ink-muted block mb-0.5">Verified LinkedIn</span>
+                                  {activeDossier.discovered_contact.discovered_linkedin ? (
+                                    <a
+                                      href={activeDossier.discovered_contact.discovered_linkedin}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-signal hover:underline break-all truncate block"
+                                    >
+                                      {activeDossier.discovered_contact.discovered_linkedin}
+                                    </a>
+                                  ) : (
+                                    <span className="text-ink-faint italic">Not publicly found</span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Full-Stack Update Prompt Banner if discovered details differ */}
+                              {((activeDossier.discovered_contact.discovered_email &&
+                                 activeDossier.discovered_contact.discovered_email.toLowerCase() !== (selectedPerson.email || '').toLowerCase()) ||
+                                (activeDossier.discovered_contact.discovered_linkedin &&
+                                 activeDossier.discovered_contact.discovered_linkedin !== (selectedPerson.source_payload?.linkedin || ''))) && (
+                                <div className="mt-2 p-2.5 bg-signal-soft/60 border border-signal/30 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+                                  <div className="min-w-0">
+                                    <span className="text-[11px] font-semibold text-ink block">
+                                      New verified contact credentials detected!
+                                    </span>
+                                    <span className="text-[10px] text-ink-muted block">
+                                      Click below to persist discovered contact info directly into database.
+                                    </span>
+                                  </div>
+                                  <button
+                                    onClick={() => handleApplyDiscoveredContact(selectedPerson.id, activeDossier.discovered_contact)}
+                                    disabled={isApplyingContact}
+                                    className="h-7 px-3 bg-signal hover:bg-signal/90 text-surface text-xs font-medium rounded flex items-center gap-1.5 transition-all shadow-xs cursor-pointer flex-shrink-0 disabled:opacity-50"
+                                  >
+                                    <Check className="w-3.5 h-3.5" />
+                                    <span>{isApplyingContact ? 'Updating DB...' : 'Apply & Update Profile'}</span>
+                                  </button>
+                                </div>
+                              )}
+
+                              {contactApplySuccess && (
+                                <div className="p-2 bg-signal-soft text-signal text-[11px] rounded border border-signal/30 flex items-center gap-1.5 animate-in fade-in">
+                                  <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
+                                  <span>{contactApplySuccess}</span>
+                                </div>
+                              )}
                             </div>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <p className="text-xs text-ink-muted leading-relaxed pt-0.5">
-                        Scrape public footprint, verified traction, and generate an autonomous executive debrief.
-                      </p>
-                    )}
+                          )}
+
+                          {/* Traction Signals */}
+                          {activeDossier.traction_signals?.length > 0 && (
+                            <div className="space-y-1.5">
+                              <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Verified Traction Signals</span>
+                              <div className="space-y-1">
+                                {activeDossier.traction_signals.map((sig: string, sIdx: number) => (
+                                  <div key={sIdx} className="flex items-center gap-2 text-xs text-ink bg-surface px-2.5 py-1.5 rounded border border-line/60">
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-signal flex-shrink-0" />
+                                    <span>{sig}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Tech Stack & Key Archetypes */}
+                          {activeDossier.tech_stack?.length > 0 && (
+                            <div className="space-y-1.5">
+                              <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Detected Tech Stack</span>
+                              <div className="flex flex-wrap gap-1.5">
+                                {activeDossier.tech_stack.map((tech: string, tIdx: number) => (
+                                  <span key={tIdx} className="px-2 py-0.5 rounded text-xs font-mono bg-signal-soft text-signal border border-signal/20">
+                                    {tech}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Autonomous Deep Memo Card */}
