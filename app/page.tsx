@@ -8566,7 +8566,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
               </div>
 
               {/* Modal Footer */}
-              <div className="p-4 border-t border-line flex items-center justify-between gap-3 shrink-0">
+              <div className="p-4 border-t border-line flex items-center justify-between gap-3 shrink-0 flex-wrap">
                 <button
                   type="button"
                   onClick={() => setIsDispatchModalOpen(false)}
@@ -8575,7 +8575,12 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   Close
                 </button>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <span className="text-[11px] font-mono text-signal bg-signal-soft/90 border border-signal/20 px-2.5 py-1 rounded-md inline-flex items-center gap-1.5 font-semibold">
+                    <ShieldCheck className="w-3.5 h-3.5 text-signal" />
+                    <span>Founder Safety Lock: Mock / Safe Sandbox Only</span>
+                  </span>
+
                   <button
                     type="button"
                     disabled={isDispatching}
