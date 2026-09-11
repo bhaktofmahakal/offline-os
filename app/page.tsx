@@ -137,14 +137,20 @@ function cleanWebSnippet(raw: string, maxLen = 320): string {
     .replace(/\[([^\]]+)\]/g, '$1')
     // Remove relative paths in parentheses e.g. (/companies/...)
     .replace(/\(\/[a-zA-Z0-9_\-\/]+\)/g, ' ')
-    // Remove markdown table syntax | ... |
-    .replace(/\|[^\n]+\|/g, ' ')
+    // Remove markdown table separator rows e.g. | --- | --- | or |:---:|
+    .replace(/\|?\s*[-:]+[-| :]{2,}\|?/g, ' ')
+    // Replace individual pipes | with spaces so table text is preserved!
     .replace(/\|/g, ' ')
     // Remove markdown headers
     .replace(/#{1,6}\s+/g, '')
+    // Strip fenced code block marks
+    .replace(/```[a-zA-Z0-9_-]*/g, ' ')
+    .replace(/```/g, ' ')
     // Remove markdown bold / italic / code ticks
     .replace(/`{1,3}/g, '')
     .replace(/(\*\*|__|\*|_)/g, '')
+    // Strip HTML pseudo tags e.g. <jobs>, <submit>, <div>
+    .replace(/<[^>]+>/g, ' ')
     // Strip standalone bracket artifacts
     .replace(/[\[\]]/g, '')
     // Strip ellipsis bracket leftovers
@@ -153,8 +159,11 @@ function cleanWebSnippet(raw: string, maxLen = 320): string {
     .replace(/\s+/g, ' ')
     .trim();
 
+  if (!cleaned) return 'No preview excerpt available.';
   if (cleaned.length > maxLen) {
-    cleaned = cleaned.slice(0, maxLen).trim() + '...';
+    const slice = cleaned.slice(0, maxLen);
+    const lastSpace = slice.lastIndexOf(' ');
+    cleaned = (lastSpace > maxLen * 0.7 ? slice.slice(0, lastSpace) : slice).trim() + '...';
   }
   return cleaned;
 }
@@ -172,7 +181,7 @@ function ExecutiveMarkdownViewer({
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(content);
+    navigator.clipboard.writeText(content || '');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -200,7 +209,7 @@ function ExecutiveMarkdownViewer({
             className="text-signal hover:underline inline-flex items-center gap-0.5 font-medium"
           >
             <span>{match[2]}</span>
-            <ExternalLink className="w-2.5 h-2.5 inline" />
+            <ExternalLink className="w-2.5 h-2.5 inline shrink-0" />
           </a>
         );
       } else if (match[4]) {
@@ -213,7 +222,7 @@ function ExecutiveMarkdownViewer({
       } else if (match[5]) {
         // Code `code`
         parts.push(
-          <code key={key++} className="px-1.5 py-0.5 rounded bg-surface border border-line font-mono text-[11px] text-signal">
+          <code key={key++} className="px-1.5 py-0.5 rounded bg-surface-raised border border-line font-mono text-[11px] text-signal">
             {match[5]}
           </code>
         );
@@ -226,21 +235,188 @@ function ExecutiveMarkdownViewer({
     return parts.length > 0 ? parts : text;
   };
 
-  const lines = content.split('\n');
+  // Structured Block Parser for Tables, Code Blocks, Headers, Lists & Paragraphs
+  const blocks: Array<{
+    type: 'hr' | 'h1' | 'h2' | 'h3' | 'boldHeader' | 'kv' | 'bullet' | 'number' | 'quote' | 'table' | 'code' | 'paragraph';
+    headers?: string[];
+    rows?: string[][];
+    language?: string;
+    code?: string;
+    text?: string;
+    key?: string;
+    value?: string;
+    num?: string;
+  }> = [];
+
+  const rawLines = (content || '').split('\n');
+  let i = 0;
+
+  const isTableSeparator = (l: string) => /^\|?\s*[-:]+[-| :]{2,}\|?$/.test(l.trim());
+  const parseCells = (l: string) => {
+    const t = l.trim();
+    let cells = t.split('|').map(c => c.trim());
+    if (t.startsWith('|') && cells.length > 0) cells.shift();
+    if (t.endsWith('|') && cells.length > 0) cells.pop();
+    return cells;
+  };
+
+  while (i < rawLines.length) {
+    const line = rawLines[i];
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      i++;
+      continue;
+    }
+
+    // 1. Fenced Code Block: ```lang
+    if (trimmed.startsWith('```')) {
+      const language = trimmed.slice(3).trim();
+      const codeLines: string[] = [];
+      i++;
+      while (i < rawLines.length && !rawLines[i].trim().startsWith('```')) {
+        codeLines.push(rawLines[i]);
+        i++;
+      }
+      if (i < rawLines.length && rawLines[i].trim().startsWith('```')) {
+        i++; // skip closing ```
+      }
+      blocks.push({
+        type: 'code',
+        language: language || 'text',
+        code: codeLines.join('\n'),
+      });
+      continue;
+    }
+
+    // 2. Markdown Table Detection
+    if (trimmed.includes('|') && (trimmed.startsWith('|') || trimmed.endsWith('|') || (i + 1 < rawLines.length && isTableSeparator(rawLines[i + 1])))) {
+      const tableLines: string[] = [];
+      while (i < rawLines.length && rawLines[i].trim().includes('|') && (rawLines[i].trim().startsWith('|') || rawLines[i].trim().endsWith('|') || isTableSeparator(rawLines[i]))) {
+        tableLines.push(rawLines[i]);
+        i++;
+      }
+
+      if (tableLines.length > 0) {
+        let headers: string[] = [];
+        let rows: string[][] = [];
+
+        const sepIdx = tableLines.findIndex(isTableSeparator);
+        if (sepIdx > 0) {
+          headers = parseCells(tableLines[0]);
+          for (let r = 1; r < tableLines.length; r++) {
+            if (r === sepIdx) continue;
+            const cells = parseCells(tableLines[r]);
+            if (cells.some(c => c.length > 0)) {
+              rows.push(cells);
+            }
+          }
+        } else {
+          for (const tl of tableLines) {
+            const cells = parseCells(tl);
+            if (cells.some(c => c.length > 0)) {
+              rows.push(cells);
+            }
+          }
+          if (rows.length > 0) {
+            headers = rows[0];
+            rows = rows.slice(1);
+          }
+        }
+
+        if (headers.some(h => h.length > 0) || rows.length > 0) {
+          blocks.push({
+            type: 'table',
+            headers,
+            rows,
+          });
+          continue;
+        }
+      }
+    }
+
+    // 3. Horizontal Rule
+    if (trimmed === '---' || trimmed === '***' || trimmed === '___') {
+      blocks.push({ type: 'hr' });
+      i++;
+      continue;
+    }
+
+    // 4. Headers
+    if (trimmed.startsWith('# ')) {
+      blocks.push({ type: 'h1', text: trimmed.replace(/^#\s+/, '') });
+      i++;
+      continue;
+    }
+    if (trimmed.startsWith('## ')) {
+      blocks.push({ type: 'h2', text: trimmed.replace(/^##\s+/, '') });
+      i++;
+      continue;
+    }
+    if (trimmed.startsWith('### ') || trimmed.startsWith('#### ')) {
+      blocks.push({ type: 'h3', text: trimmed.replace(/^#{3,4}\s+/, '') });
+      i++;
+      continue;
+    }
+
+    // 5. Bold section title: **Heading Title** or **Heading Title:**
+    const boldHeaderMatch = trimmed.match(/^\*\*(.+?)\*\*:?$/);
+    if (boldHeaderMatch) {
+      blocks.push({ type: 'boldHeader', text: boldHeaderMatch[1] });
+      i++;
+      continue;
+    }
+
+    // 6. Key-Value Attribute line: **Key:** Value
+    const kvMatch = trimmed.match(/^\*\*([^*:]+?):\*\*\s*(.+)$/);
+    if (kvMatch) {
+      blocks.push({ type: 'kv', key: kvMatch[1], value: kvMatch[2] });
+      i++;
+      continue;
+    }
+
+    // 7. Bullet item (- or * or •)
+    if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ')) {
+      blocks.push({ type: 'bullet', text: trimmed.replace(/^[-*•]\s+/, '') });
+      i++;
+      continue;
+    }
+
+    // 8. Numbered item
+    const numMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
+    if (numMatch) {
+      blocks.push({ type: 'number', num: numMatch[1], text: numMatch[2] });
+      i++;
+      continue;
+    }
+
+    // 9. Blockquote
+    if (trimmed.startsWith('> ')) {
+      blocks.push({ type: 'quote', text: trimmed.replace(/^>\s+/, '') });
+      i++;
+      continue;
+    }
+
+    // 10. Regular paragraph
+    blocks.push({ type: 'paragraph', text: trimmed });
+    i++;
+  }
+
+  const safeContent = content || '';
 
   return (
     <div className="bg-surface border border-line rounded-xl overflow-hidden shadow-xs">
       {/* Executive Sub-Header Bar */}
       <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 bg-surface-raised border-b border-line">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-signal animate-pulse" />
-          <span className="text-xs font-semibold text-ink font-mono uppercase tracking-wider">{title}</span>
-          <span className="text-[10px] font-mono text-ink-muted bg-surface px-2 py-0.5 rounded border border-line">
-            {content.length.toLocaleString()} chars
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="w-2 h-2 rounded-full bg-signal animate-pulse shrink-0" />
+          <span className="text-xs font-semibold text-ink font-mono uppercase tracking-wider truncate">{title}</span>
+          <span className="text-[10px] font-mono text-ink-muted bg-surface px-2 py-0.5 rounded border border-line shrink-0">
+            {safeContent.length.toLocaleString()} chars
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => setShowRaw(!showRaw)}
             className="px-2 py-1 text-[11px] font-mono rounded bg-surface border border-line text-ink-muted hover:text-ink hover:border-signal/50 transition-colors cursor-pointer"
@@ -254,12 +430,12 @@ function ExecutiveMarkdownViewer({
             {copied ? (
               <>
                 <Check className="w-3 h-3" />
-                <span>Copied Memo</span>
+                <span>Copied</span>
               </>
             ) : (
               <>
                 <Copy className="w-3 h-3" />
-                <span>Copy Memo</span>
+                <span>Copy</span>
               </>
             )}
           </button>
@@ -270,108 +446,141 @@ function ExecutiveMarkdownViewer({
       <div className={`p-4 sm:p-5 overflow-y-auto ${maxHeightClass} space-y-3`}>
         {showRaw ? (
           <pre className="text-xs font-mono text-ink-muted whitespace-pre-wrap leading-relaxed">
-            {content}
+            {safeContent}
           </pre>
         ) : (
           <div className="space-y-3 text-xs text-ink leading-relaxed font-sans">
-            {lines.map((line, idx) => {
-              const trimmed = line.trim();
-              if (!trimmed) return <div key={idx} className="h-1" />;
-
-              // Horizontal rule
-              if (trimmed === '---' || trimmed === '***' || trimmed === '___') {
+            {blocks.map((block, idx) => {
+              if (block.type === 'hr') {
                 return <hr key={idx} className="border-line/70 my-2.5" />;
               }
-
-              // Level 1 Header (# Heading)
-              if (trimmed.startsWith('# ')) {
+              if (block.type === 'h1') {
                 return (
                   <h2 key={idx} className="text-sm font-bold text-ink pt-2 pb-1 border-b border-line flex items-center gap-2">
                     <span className="w-1.5 h-3.5 bg-signal rounded-full flex-shrink-0" />
-                    <span>{trimmed.replace(/^#\s+/, '')}</span>
+                    <span>{block.text}</span>
                   </h2>
                 );
               }
-              // Level 2 Header (## Heading)
-              if (trimmed.startsWith('## ')) {
+              if (block.type === 'h2') {
                 return (
                   <h3 key={idx} className="text-xs font-bold text-ink pt-2 pb-1 border-l-2 border-signal pl-2 text-ink">
-                    {trimmed.replace(/^##\s+/, '')}
+                    {block.text}
                   </h3>
                 );
               }
-              // Level 3 Header (### Heading)
-              if (trimmed.startsWith('### ')) {
+              if (block.type === 'h3') {
                 return (
                   <h4 key={idx} className="text-xs font-semibold uppercase tracking-wider text-signal pt-1">
-                    {trimmed.replace(/^###\s+/, '')}
+                    {block.text}
                   </h4>
                 );
               }
-
-              // LLM bold section title: **Heading Title** or **Heading Title:**
-              const boldHeaderMatch = trimmed.match(/^\*\*(.+?)\*\*:?$/);
-              if (boldHeaderMatch) {
+              if (block.type === 'boldHeader') {
                 return (
                   <h3 key={idx} className="text-xs font-bold text-ink pt-2.5 pb-1 border-l-2 border-signal pl-2.5 flex items-center gap-2">
-                    <span>{boldHeaderMatch[1]}</span>
+                    <span>{block.text}</span>
                   </h3>
                 );
               }
-
-              // Key-Value Attribute line: **Key:** Value
-              const kvMatch = trimmed.match(/^\*\*([^*:]+?):\*\*\s*(.+)$/);
-              if (kvMatch) {
+              if (block.type === 'kv') {
                 return (
                   <div key={idx} className="flex flex-wrap items-baseline gap-2 py-0.5">
                     <span className="text-[10px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-surface-raised border border-line text-ink flex-shrink-0">
-                      {kvMatch[1]}
+                      {block.key}
                     </span>
                     <span className="text-xs text-ink leading-relaxed flex-1">
-                      {renderInline(kvMatch[2])}
+                      {renderInline(block.value || '')}
                     </span>
                   </div>
                 );
               }
-
-              // Bullet item (- or * or •)
-              if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ')) {
-                const bulletText = trimmed.replace(/^[-*•]\s+/, '');
+              if (block.type === 'bullet') {
                 return (
                   <div key={idx} className="flex items-start gap-2 pl-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-signal mt-1.5 flex-shrink-0" />
                     <div className="text-ink text-xs leading-relaxed flex-1">
-                      {renderInline(bulletText)}
+                      {renderInline(block.text || '')}
                     </div>
                   </div>
                 );
               }
-              // Numbered item
-              const numMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
-              if (numMatch) {
+              if (block.type === 'number') {
                 return (
                   <div key={idx} className="flex items-start gap-2 pl-1">
                     <span className="px-1.5 py-0.2 text-[10px] font-mono font-bold bg-surface-raised border border-line rounded text-ink flex-shrink-0">
-                      {numMatch[1]}
+                      {block.num}
                     </span>
                     <div className="text-ink text-xs leading-relaxed flex-1">
-                      {renderInline(numMatch[2])}
+                      {renderInline(block.text || '')}
                     </div>
                   </div>
                 );
               }
-              // Blockquote
-              if (trimmed.startsWith('> ')) {
+              if (block.type === 'quote') {
                 return (
                   <blockquote key={idx} className="border-l-2 border-signal/60 bg-signal-soft/20 p-2.5 rounded-r-lg text-ink-muted italic text-xs">
-                    {renderInline(trimmed.replace(/^>\s+/, ''))}
+                    {renderInline(block.text || '')}
                   </blockquote>
                 );
               }
-              // Regular paragraph
+              if (block.type === 'code') {
+                return (
+                  <div key={idx} className="my-2 rounded-lg border border-line bg-surface-raised overflow-hidden">
+                    <div className="flex items-center justify-between px-3 py-1 bg-surface border-b border-line text-[10px] font-mono text-ink-muted">
+                      <span className="uppercase font-semibold text-signal">{block.language || 'CODE'}</span>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(block.code || '');
+                        }}
+                        className="hover:text-ink transition-colors flex items-center gap-1 cursor-pointer"
+                        title="Copy Code"
+                      >
+                        <Copy className="w-2.5 h-2.5" />
+                        <span>Copy Code</span>
+                      </button>
+                    </div>
+                    <pre className="p-3 text-xs font-mono text-ink-muted overflow-x-auto whitespace-pre leading-relaxed">
+                      {block.code}
+                    </pre>
+                  </div>
+                );
+              }
+              if (block.type === 'table') {
+                const headers = block.headers || [];
+                const rows = block.rows || [];
+                return (
+                  <div key={idx} className="overflow-x-auto my-2.5 rounded-lg border border-line bg-surface shadow-2xs">
+                    <table className="w-full text-left text-xs border-collapse">
+                      {headers.length > 0 && (
+                        <thead className="bg-surface-raised border-b border-line text-ink-muted font-mono text-[11px] uppercase tracking-wider">
+                          <tr>
+                            {headers.map((h, hIdx) => (
+                              <th key={hIdx} className="py-2 px-3 font-semibold border-r border-line last:border-r-0 whitespace-nowrap">
+                                {renderInline(h)}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                      )}
+                      <tbody className="divide-y divide-line/70">
+                        {rows.map((row, rIdx) => (
+                          <tr key={rIdx} className="hover:bg-surface-muted/40 transition-colors">
+                            {row.map((cell, cIdx) => (
+                              <td key={cIdx} className="py-2 px-3 text-ink leading-relaxed border-r border-line/60 last:border-r-0">
+                                {renderInline(cell)}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              }
               return (
                 <p key={idx} className="text-xs text-ink leading-relaxed">
-                  {renderInline(trimmed)}
+                  {renderInline(block.text || '')}
                 </p>
               );
             })}
@@ -5161,17 +5370,18 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
                     {/* Quick suggestion chips */}
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[11px] font-mono text-ink-faint">Suggestions:</span>
+                      <span className="text-[11px] font-mono text-ink-faint">GTM & Strategy Presets:</span>
                       {[
-                        'AI Coding Agents & Autonomous Software in 2026',
-                        'Top AI Founders & Builders in Bangalore India',
-                        'Creatr DeepBuild Competitive Strategy & Enterprise Landscape',
-                        'Decoupling B2B CRM Architecture with Autonomous Scraping',
+                        'Enterprise AI Agent Adoption: 2026 Buyer Personas, Budget Allocation & Vendor Selection',
+                        'B2B GTM Outbound Playbook: Replacing Clay + Apollo with Custom Syndicate Networks',
+                        'Series A-to-B SaaS Valuations, Burn Multiples & Net Revenue Retention Standards 2026',
+                        'Private Founder Networks & Syndicates: Retention & Monetization Playbook (Chief, Offline, Tiger 21)',
+                        'GTM Engineering & Product-Led Sales Motions for AI Developer Tools',
                       ].map((chip, cIdx) => (
                         <button
                           key={cIdx}
                           onClick={() => setResearchPrompt(chip)}
-                          className="px-2 py-0.5 rounded text-[11px] bg-surface-raised border border-line hover:border-signal/50 text-ink-muted hover:text-ink transition-colors"
+                          className="px-2 py-0.5 rounded text-[11px] bg-surface-raised border border-line hover:border-signal/50 text-ink-muted hover:text-ink transition-colors cursor-pointer"
                         >
                           {chip}
                         </button>
@@ -5298,7 +5508,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                         type="url"
                         value={crawlInputUrl}
                         onChange={e => setCrawlInputUrl(e.target.value)}
-                        placeholder="https://example.com"
+                        placeholder="https://stripe.com/newsroom or https://ramp.com/blog"
                         className="w-full h-9 px-3 text-xs bg-surface-raised border border-line rounded text-ink font-mono"
                       />
                     </div>
@@ -5313,6 +5523,26 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                         className="w-full h-9 px-3 text-xs bg-surface-raised border border-line rounded text-ink font-mono"
                       />
                     </div>
+                  </div>
+
+                  {/* GTM Target Presets */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[11px] font-mono text-ink-faint">Company & GTM Targets:</span>
+                    {[
+                      { label: 'Stripe Newsroom (Product & GTM)', url: 'https://stripe.com/newsroom' },
+                      { label: 'Ramp Blog (Fintech GTM Playbook)', url: 'https://ramp.com/blog' },
+                      { label: 'Clay Blog (Automated GTM Outbound)', url: 'https://clay.com/blog' },
+                      { label: 'Attio Blog (Next-Gen CRM Strategy)', url: 'https://attio.com/blog' },
+                      { label: 'Databricks AI & Partner Co-Sell', url: 'https://www.databricks.com/blog' },
+                    ].map((preset, pIdx) => (
+                      <button
+                        key={pIdx}
+                        onClick={() => setCrawlInputUrl(preset.url)}
+                        className="px-2 py-0.5 rounded text-[11px] bg-surface-raised border border-line hover:border-signal/50 text-ink-muted hover:text-ink transition-colors cursor-pointer"
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
                   </div>
 
                   <div className="flex items-center justify-between pt-2 border-t border-line">
@@ -5358,7 +5588,6 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                     <div className="grid grid-cols-1 gap-4">
                       {crawlResults.map((item, idx) => {
                         const domain = extractDomain(item.url);
-                        const isRaw = !!rawViewResults[item.url || `crawl-${idx}`];
                         const charCount = (item.rawContent || '').length;
                         const wordCount = (item.rawContent || '').split(/\s+/).filter(Boolean).length;
 
@@ -5411,42 +5640,12 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                               </div>
                             </div>
 
-                            <div className="bg-surface-raised border border-line/70 rounded-lg p-3.5">
-                              {isRaw ? (
-                                <div className="space-y-2">
-                                  <div className="flex items-center justify-between text-[11px] font-mono text-ink-muted border-b border-line pb-1.5">
-                                    <span>Raw Scraped Markdown:</span>
-                                    <button
-                                      onClick={() => setRawViewResults(prev => ({ ...prev, [item.url || `crawl-${idx}`]: false }))}
-                                      className="text-signal hover:underline font-semibold"
-                                    >
-                                      Switch to Clean Preview
-                                    </button>
-                                  </div>
-                                  <pre className="text-xs font-mono text-ink-muted max-h-48 overflow-y-auto whitespace-pre-wrap leading-relaxed">
-                                    {item.rawContent}
-                                  </pre>
-                                </div>
-                              ) : (
-                                <div className="space-y-2">
-                                  <p className="text-xs text-ink leading-relaxed font-sans">
-                                    {cleanWebSnippet(item.rawContent, 380)}
-                                  </p>
-                                  <div className="flex items-center justify-between pt-1.5 border-t border-line/40">
-                                    <span className="text-[10px] font-mono text-ink-faint">
-                                      Sanitized Excerpt
-                                    </span>
-                                    <button
-                                      onClick={() => setRawViewResults(prev => ({ ...prev, [item.url || `crawl-${idx}`]: true }))}
-                                      className="text-[11px] font-mono text-ink-muted hover:text-signal transition-colors flex items-center gap-1 cursor-pointer"
-                                    >
-                                      <span>View Raw Markdown ({charCount.toLocaleString()} chars)</span>
-                                      <ChevronRight className="w-3 h-3" />
-                                    </button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
+                            {/* Rich Executive Markdown Viewer */}
+                            <ExecutiveMarkdownViewer
+                              content={item.rawContent || 'No extracted content.'}
+                              maxHeightClass="max-h-[380px]"
+                              title={`Page ${idx + 1}: ${domain}`}
+                            />
                           </div>
                         );
                       })}
@@ -5476,9 +5675,36 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                       rows={4}
                       value={extractUrlsInput}
                       onChange={e => setExtractUrlsInput(e.target.value)}
-                      placeholder="https://news.ycombinator.com&#10;https://github.com/bhaktofmahakal/offline-os"
+                      placeholder="https://clay.com/pricing&#10;https://attio.com/pricing&#10;https://www.apollo.io/pricing"
                       className="w-full p-3 text-xs bg-surface-raised border border-line rounded font-mono text-ink"
                     />
+                  </div>
+
+                  {/* Batch Tearsheet Presets */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[11px] font-mono text-ink-faint">Batch Company Tearsheets:</span>
+                    {[
+                      {
+                        label: 'CRM Pricing Teardown (Clay vs Attio vs Apollo)',
+                        urls: 'https://clay.com/pricing\nhttps://attio.com/pricing\nhttps://www.apollo.io/pricing',
+                      },
+                      {
+                        label: 'Fintech Corporate Card GTM (Ramp vs Brex)',
+                        urls: 'https://ramp.com/corporate-card\nhttps://www.brex.com/product/spend-management',
+                      },
+                      {
+                        label: 'AI Code Assistant Enterprise Terms (Cursor vs Cognition)',
+                        urls: 'https://www.cursor.com/pricing\nhttps://www.cognition.ai/blog',
+                      },
+                    ].map((preset, pIdx) => (
+                      <button
+                        key={pIdx}
+                        onClick={() => setExtractUrlsInput(preset.urls)}
+                        className="px-2 py-0.5 rounded text-[11px] bg-surface-raised border border-line hover:border-signal/50 text-ink-muted hover:text-ink transition-colors cursor-pointer"
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
                   </div>
 
                   <div className="flex justify-end pt-2 border-t border-line">
@@ -5508,7 +5734,6 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                     <div className="grid grid-cols-1 gap-4">
                       {extractResults.map((item, idx) => {
                         const domain = extractDomain(item.url);
-                        const isRaw = !!rawViewResults[item.url || `extract-${idx}`];
                         const charCount = (item.rawContent || '').length;
 
                         return (
@@ -5555,42 +5780,12 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                               </button>
                             </div>
 
-                            <div className="bg-surface-raised border border-line/70 rounded-lg p-3.5">
-                              {isRaw ? (
-                                <div className="space-y-2">
-                                  <div className="flex items-center justify-between text-[11px] font-mono text-ink-muted border-b border-line pb-1.5">
-                                    <span>Raw Scraped Content:</span>
-                                    <button
-                                      onClick={() => setRawViewResults(prev => ({ ...prev, [item.url || `extract-${idx}`]: false }))}
-                                      className="text-signal hover:underline font-semibold"
-                                    >
-                                      Switch to Clean Preview
-                                    </button>
-                                  </div>
-                                  <pre className="text-xs font-mono text-ink-muted max-h-48 overflow-y-auto whitespace-pre-wrap leading-relaxed">
-                                    {item.rawContent}
-                                  </pre>
-                                </div>
-                              ) : (
-                                <div className="space-y-2">
-                                  <p className="text-xs text-ink leading-relaxed font-sans">
-                                    {cleanWebSnippet(item.rawContent, 400)}
-                                  </p>
-                                  <div className="flex items-center justify-between pt-1.5 border-t border-line/40">
-                                    <span className="text-[10px] font-mono text-ink-faint">
-                                      Sanitized Excerpt • {charCount.toLocaleString()} chars
-                                    </span>
-                                    <button
-                                      onClick={() => setRawViewResults(prev => ({ ...prev, [item.url || `extract-${idx}`]: true }))}
-                                      className="text-[11px] font-mono text-ink-muted hover:text-signal transition-colors flex items-center gap-1 cursor-pointer"
-                                    >
-                                      <span>View Raw Markdown</span>
-                                      <ChevronRight className="w-3 h-3" />
-                                    </button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
+                            {/* Rich Executive Markdown Viewer */}
+                            <ExecutiveMarkdownViewer
+                              content={item.rawContent || 'No extracted content.'}
+                              maxHeightClass="max-h-[380px]"
+                              title={`Extracted: ${domain}`}
+                            />
                           </div>
                         );
                       })}
@@ -5621,7 +5816,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                         type="text"
                         value={tavilySearchInput}
                         onChange={e => setTavilySearchInput(e.target.value)}
-                        placeholder="Search for companies, founders, breakthroughs..."
+                        placeholder="e.g. Perplexity Enterprise GTM Strategy & B2B Sales Motion 2026"
                         className="w-full h-9 px-3 text-xs bg-surface-raised border border-line rounded text-ink"
                       />
                     </div>
@@ -5631,9 +5826,48 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                         type="text"
                         value={tavilySearchDomain}
                         onChange={e => setTavilySearchDomain(e.target.value)}
-                        placeholder="techcrunch.com, ycombinator.com"
+                        placeholder="theinformation.com, sacra.com, techcrunch.com"
                         className="w-full h-9 px-3 text-xs bg-surface-raised border border-line rounded text-ink font-mono"
                       />
+                    </div>
+                  </div>
+
+                  {/* Company & GTM Query Presets */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[11px] font-mono text-ink-faint">Company & GTM Queries:</span>
+                      {[
+                        'Perplexity Enterprise GTM Strategy & B2B Sales Motion 2026',
+                        'Ramp vs Brex Enterprise Pricing, ICP & Channel Teardown',
+                        'Q1 2026 Series A/B AI Infrastructure ARR Benchmarks & Funding',
+                        'Attio vs Clay Autonomous CRM Differentiation & Enterprise Churn',
+                        'Databricks Partner Co-Sell & Ecosystem Expansion Playbook',
+                      ].map((query, qIdx) => (
+                        <button
+                          key={qIdx}
+                          onClick={() => setTavilySearchInput(query)}
+                          className="px-2 py-0.5 rounded text-[11px] bg-surface-raised border border-line hover:border-signal/50 text-ink-muted hover:text-ink transition-colors cursor-pointer"
+                        >
+                          {query}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[11px] font-mono text-ink-faint">GTM Sources:</span>
+                      {[
+                        { label: 'Market & Tech Intelligence', domains: 'theinformation.com, sacra.com, techcrunch.com' },
+                        { label: 'Venture & Growth Signals', domains: 'bloomberg.com, reuters.com' },
+                        { label: 'Regulatory & SEC Filings', domains: 'sec.gov' },
+                      ].map((source, sIdx) => (
+                        <button
+                          key={sIdx}
+                          onClick={() => setTavilySearchDomain(source.domains)}
+                          className="px-2 py-0.5 rounded text-[10px] font-mono bg-surface-raised border border-line hover:border-signal/50 text-ink-muted hover:text-ink transition-colors cursor-pointer"
+                        >
+                          {source.label}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
@@ -5683,7 +5917,6 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                     <div className="grid grid-cols-1 gap-4">
                       {tavilySearchResults.map((result, idx) => {
                         const domain = extractDomain(result.url);
-                        const isRaw = !!rawViewResults[result.url || idx];
                         const matchPct = result.score ? Math.round(result.score * 100) : null;
                         const isHighMatch = matchPct ? matchPct >= 85 : false;
 
@@ -5787,43 +6020,12 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                               </a>
                             </div>
 
-                            {/* Clean Executive Excerpt */}
-                            <div className="bg-surface-raised border border-line/70 rounded-lg p-3.5">
-                              {isRaw ? (
-                                <div className="space-y-2">
-                                  <div className="flex items-center justify-between text-[11px] font-mono text-ink-muted border-b border-line pb-1.5">
-                                    <span>Raw Web Scrape Payload:</span>
-                                    <button
-                                      onClick={() => setRawViewResults(prev => ({ ...prev, [result.url || idx]: false }))}
-                                      className="text-signal hover:underline font-semibold"
-                                    >
-                                      Switch to Clean Summary
-                                    </button>
-                                  </div>
-                                  <pre className="text-xs font-mono text-ink-muted max-h-48 overflow-y-auto whitespace-pre-wrap leading-relaxed">
-                                    {result.content}
-                                  </pre>
-                                </div>
-                              ) : (
-                                <div className="space-y-2">
-                                  <p className="text-xs text-ink leading-relaxed font-sans">
-                                    {cleanWebSnippet(result.content, 360)}
-                                  </p>
-                                  <div className="flex items-center justify-between pt-1.5 border-t border-line/40">
-                                    <span className="text-[10px] font-mono text-ink-faint">
-                                      Sanitized AI Excerpt • {result.content?.length || 0} chars source
-                                    </span>
-                                    <button
-                                      onClick={() => setRawViewResults(prev => ({ ...prev, [result.url || idx]: true }))}
-                                      className="text-[11px] font-mono text-ink-muted hover:text-signal transition-colors flex items-center gap-1 cursor-pointer"
-                                    >
-                                      <span>View Raw Payload</span>
-                                      <ChevronRight className="w-3 h-3" />
-                                    </button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
+                            {/* Rich Executive Markdown Viewer */}
+                            <ExecutiveMarkdownViewer
+                              content={result.content || 'No content snippet available.'}
+                              maxHeightClass="max-h-[260px]"
+                              title={`Neural Intelligence: ${domain}`}
+                            />
                           </div>
                         );
                       })}
