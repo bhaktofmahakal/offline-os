@@ -61,7 +61,12 @@ import {
   Minimize2,
   ChevronsUpDown,
   ChevronsLeft,
-  ChevronsRight
+  ChevronsRight,
+  Award,
+  Calendar,
+  UserX,
+  UserCheck,
+  UserPlus
 } from 'lucide-react';
 
 interface Person {
@@ -581,6 +586,30 @@ export default function OfflineCRM() {
   const [seatingSearchQuery, setSeatingSearchQuery] = useState<string>('');
   const [seatingCollapseAiCards, setSeatingCollapseAiCards] = useState<boolean>(false);
   const [expandedBriefingTables, setExpandedBriefingTables] = useState<Set<number>>(new Set());
+
+  // VIP Dinner Operating System State (Blueprint 1 Deepening)
+  const [tableCaptains, setTableCaptains] = useState<Record<number, number>>({}); // tableNumber -> personId
+  const [droppedSeatIds, setDroppedSeatIds] = useState<Set<number>>(new Set()); // seat ids marked as flake / dropped
+  const [hotSwapTarget, setHotSwapTarget] = useState<{ tableNumber: number; seatId: number; seatNumber: number } | null>(null);
+  const [hotSwapSearchQuery, setHotSwapSearchQuery] = useState<string>('');
+  const [isHostDossierModalOpen, setIsHostDossierModalOpen] = useState<boolean>(false);
+  const [activeDossierTable, setActiveDossierTable] = useState<any | null>(null);
+  const [copiedDossierNum, setCopiedDossierNum] = useState<number | null>(null);
+  const [isDispatchModalOpen, setIsDispatchModalOpen] = useState<boolean>(false);
+  const [isDispatching, setIsDispatching] = useState<boolean>(false);
+  const [dispatchMethod, setDispatchMethod] = useState<'simulate' | 'resend' | 'n8n_webhook'>('simulate');
+  const [dispatchActiveTab, setDispatchActiveTab] = useState<'preview_attendees' | 'preview_captains' | 'audit_log'>('preview_attendees');
+  const [dispatchResult, setDispatchResult] = useState<any | null>(null);
+  const [copiedInviteRecipientId, setCopiedInviteRecipientId] = useState<number | null>(null);
+  const [eventDetails, setEventDetails] = useState({
+    eventTitle: 'Offline VIP Founder Dinner',
+    eventDate: 'Thursday, October 22, 2026',
+    eventTime: '7:30 PM PDT',
+    venueAddress: 'The Battery, 717 Battery St, San Francisco, CA 94111',
+    venueCode: 'OFFLINE-717',
+    dressCode: 'Smart Casual / No Suits',
+    notes: 'Strict Chatham House Rule. Off the record.',
+  });
 
   // Drawer research state
   const [drawerResearching, setDrawerResearching] = useState(false);
@@ -1725,6 +1754,19 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       setOptimizedSeatingResult(data);
       if (data.tables && data.tables.length > 0) {
         setActiveBriefingTableNumber(data.tables[0].tableNumber);
+        // Auto-nominate Table Captain for each table
+        const defaultCaptains: Record<number, number> = {};
+        data.tables.forEach((t: any) => {
+          const leader = t.seats.find((s: any) =>
+            s.seniority === 'c-level' ||
+            (s.roleTitle && (s.roleTitle.toLowerCase().includes('founder') || s.roleTitle.toLowerCase().includes('ceo')))
+          ) || t.seats[0];
+          if (leader) {
+            defaultCaptains[t.tableNumber] = leader.id;
+          }
+        });
+        setTableCaptains(defaultCaptains);
+        setDroppedSeatIds(new Set());
       }
     } catch (err: any) {
       console.error('Seating optimization failed:', err);
@@ -1799,6 +1841,156 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       else next.add(tableNumber);
       return next;
     });
+  };
+
+  // Table Captain & Host Dossier Handlers
+  const handleToggleCaptain = (tableNumber: number, personId: number) => {
+    setTableCaptains(prev => ({
+      ...prev,
+      [tableNumber]: personId,
+    }));
+  };
+
+  const handleOpenHostDossier = (table: any) => {
+    setActiveDossierTable(table);
+    setIsHostDossierModalOpen(true);
+  };
+
+  // Flake Management & Hot-Swap Handlers
+  const handleToggleFlake = (seatId: number) => {
+    setDroppedSeatIds(prev => {
+      const next = new Set(prev);
+      if (next.has(seatId)) next.delete(seatId);
+      else next.add(seatId);
+      return next;
+    });
+  };
+
+  const handleExecuteHotSwap = (tableNumber: number, oldSeatId: number, newMember: Person) => {
+    if (!optimizedSeatingResult || !optimizedSeatingResult.tables) return;
+    const updatedTables = optimizedSeatingResult.tables.map((table: any) => {
+      if (table.tableNumber !== tableNumber) return table;
+      const updatedSeats = table.seats.map((seat: any) => {
+        if (seat.id !== oldSeatId) return seat;
+        return {
+          ...seat,
+          id: newMember.id,
+          name: newMember.name,
+          email: newMember.email,
+          company: newMember.company,
+          roleTitle: newMember.role_title,
+          role_title: newMember.role_title,
+          roleType: newMember.role_type || 'founder',
+          seniority: newMember.seniority || 'senior',
+          sectorTags: newMember.sector_tags || [],
+          sector_tags: newMember.sector_tags || [],
+          fitScore: newMember.fit_score || 95,
+          fit_score: newMember.fit_score || 95,
+          bioNotes: newMember.clean_summary || newMember.bio_notes,
+        };
+      });
+      return {
+        ...table,
+        seats: updatedSeats,
+      };
+    });
+
+    setOptimizedSeatingResult({
+      ...optimizedSeatingResult,
+      tables: updatedTables,
+    });
+
+    // Remove from dropped set
+    setDroppedSeatIds(prev => {
+      const next = new Set(prev);
+      next.delete(oldSeatId);
+      return next;
+    });
+
+    setHotSwapTarget(null);
+    setHotSwapSearchQuery('');
+  };
+
+  // Chef & Venue Kitchen Manifest CSV Export
+  const handleExportChefDietaryCSV = () => {
+    if (!optimizedSeatingResult || !optimizedSeatingResult.tables) return;
+    const rows = [
+      ['Table #', 'Table Name', 'Seat #', 'Guest Name', 'Company', 'Title', 'Role / Captain', 'Dietary Restrictions & Allergies', 'Special Venue Notes']
+    ];
+
+    optimizedSeatingResult.tables.forEach((table: any) => {
+      const captainId = tableCaptains[table.tableNumber] || table.seats[0]?.id;
+      table.seats.forEach((seat: any) => {
+        const isDropped = droppedSeatIds.has(seat.id);
+        const isCaptain = seat.id === captainId;
+
+        let dietary = 'No Restrictions (Standard Tasting Menu)';
+        const bioLower = (seat.bioNotes || '').toLowerCase();
+        if (bioLower.includes('vegan')) dietary = 'Vegan / Plant-Based';
+        else if (bioLower.includes('vegetarian')) dietary = 'Vegetarian';
+        else if (bioLower.includes('gluten') || bioLower.includes('celiac')) dietary = 'Strict Gluten-Free (Celiac Safe)';
+        else if (bioLower.includes('pescatarian') || bioLower.includes('fish')) dietary = 'Pescatarian';
+        else if (bioLower.includes('dairy') || bioLower.includes('lactose')) dietary = 'Dairy-Free / Lactose Intolerant';
+        else if (bioLower.includes('nut') || bioLower.includes('peanut')) dietary = 'Severe Nut Allergy';
+
+        rows.push([
+          String(table.tableNumber),
+          table.tableName || `Table ${table.tableNumber}`,
+          String(seat.seatNumber),
+          isDropped ? `${seat.name} (CANCELLED / FLAKED)` : seat.name,
+          seat.company || 'Stealth',
+          seat.roleTitle || 'Founder',
+          isCaptain ? 'TABLE CAPTAIN (HOST)' : 'VIP Attendee',
+          isDropped ? 'CANCELLED - DO NOT PREPARE' : dietary,
+          isCaptain ? 'VIP Table Host - Priority Service' : ''
+        ]);
+      });
+    });
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + rows.map(r => r.map(escapeCSV).join(',')).join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `chef_venue_dietary_manifest_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // VIP Dinner Invites & Host Dossiers Dispatch Execution
+  const handleDispatchVIPInvites = async (overrideMethod?: 'simulate' | 'resend' | 'n8n_webhook') => {
+    if (!optimizedSeatingResult || !optimizedSeatingResult.tables) return;
+    const method = overrideMethod || dispatchMethod;
+    setIsDispatching(true);
+    try {
+      const res = await fetch('/api/seating/dispatch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...eventDetails,
+          tables: optimizedSeatingResult.tables.map((t: any) => ({
+            ...t,
+            seats: t.seats.filter((s: any) => !droppedSeatIds.has(s.id)),
+          })),
+          tableCaptains,
+          dispatchMethod: method,
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      setDispatchResult(data);
+      setDispatchActiveTab('audit_log');
+    } catch (err: any) {
+      console.error('Invite dispatch failed:', err);
+      alert('Invite dispatch failed: ' + err.message);
+    } finally {
+      setIsDispatching(false);
+    }
   };
 
   // Filtered Seating Tables (by active table chip or attendee/company search)
@@ -3717,12 +3909,30 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   </p>
                 </div>
 
-                {/* Top Action Buttons (CSV Export & Markdown Copy) */}
+                {/* Top Action Buttons (Dispatch, Chef Sheet, CSV Export & Markdown Copy) */}
                 {optimizedSeatingResult && optimizedSeatingResult.tables && (
                   <div className="flex items-center gap-2 flex-wrap">
                     <button
+                      onClick={() => setIsDispatchModalOpen(true)}
+                      className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-signal text-surface hover:bg-signal/90 transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+                      title="Open VIP dinner invitation dispatch & table host briefing engine"
+                    >
+                      <Mail className="w-3.5 h-3.5" />
+                      <span>Dispatch VIP Invites</span>
+                    </button>
+
+                    <button
+                      onClick={handleExportChefDietaryCSV}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface border border-line hover:border-copper/50 text-ink hover:text-copper transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                      title="Export chef kitchen briefing with dietary restrictions, allergies, and table assignments"
+                    >
+                      <Utensils className="w-3.5 h-3.5 text-copper" />
+                      <span>Chef Dietary Sheet</span>
+                    </button>
+
+                    <button
                       onClick={handleExportSeatingCSV}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface border border-line hover:border-signal/50 text-ink hover:text-signal transition-colors flex items-center gap-1.5 shadow-2xs"
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface border border-line hover:border-signal/50 text-ink hover:text-signal transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
                       title="Export full seating arrangement to CSV spreadsheet"
                     >
                       <Download className="w-3.5 h-3.5 text-signal" />
@@ -3731,7 +3941,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
                     <button
                       onClick={handleCopyAllTableBriefings}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface border border-line hover:border-signal/50 text-ink hover:text-signal transition-colors flex items-center gap-1.5 shadow-2xs"
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface border border-line hover:border-signal/50 text-ink hover:text-signal transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
                       title="Copy all table briefings and icebreakers as markdown"
                     >
                       {copiedTableCardNum === -1 ? (
@@ -4346,6 +4556,18 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                                     <ShieldCheck className="w-3 h-3" />
                                     Zero Rival Clashes
                                   </span>
+
+                                  {/* Table Captain Host Dossier Button */}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenHostDossier(activeTable)}
+                                    className="px-2.5 py-1 rounded text-xs font-medium bg-copper/10 hover:bg-copper/20 text-copper border border-copper/30 flex items-center gap-1.5 transition-colors cursor-pointer"
+                                    title="Open confidential Table Captain facilitation sheet"
+                                  >
+                                    <Award className="w-3.5 h-3.5 text-copper" />
+                                    <span>Host Dossier</span>
+                                  </button>
+
                                   <button
                                     type="button"
                                     onClick={() => {
@@ -4364,43 +4586,114 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
                               {/* Attendees Seating Grid */}
                               <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                {activeTable.seats.map((seat: any) => (
-                                  <div
-                                    key={seat.id}
-                                    className="p-3 bg-canvas border border-line/70 rounded-lg flex items-start gap-2.5"
-                                  >
-                                    <span className="w-6 h-6 rounded-full bg-surface-raised border border-line text-[11px] font-mono font-bold text-ink-muted flex items-center justify-center shrink-0 mt-0.5">
-                                      {seat.seatNumber}
-                                    </span>
-                                    <div className="min-w-0 flex-1 space-y-0.5">
-                                      <div className="flex items-center justify-between gap-1">
-                                        <div className="text-xs font-semibold text-ink truncate">
-                                          {seat.name}
+                                {activeTable.seats.map((seat: any) => {
+                                  const isCaptain = (tableCaptains[activeTable.tableNumber] || activeTable.seats[0]?.id) === seat.id;
+                                  const isDropped = droppedSeatIds.has(seat.id);
+
+                                  return (
+                                    <div
+                                      key={seat.id}
+                                      className={`p-3 border rounded-lg flex flex-col gap-2 transition-all ${
+                                        isDropped
+                                          ? 'bg-rose-500/5 border-rose-500/30'
+                                          : isCaptain
+                                          ? 'bg-amber-500/5 border-amber-500/30'
+                                          : 'bg-canvas border-line/70'
+                                      }`}
+                                    >
+                                      <div className="flex items-start gap-2.5">
+                                        <span className={`w-6 h-6 rounded-full border text-[11px] font-mono font-bold flex items-center justify-center shrink-0 mt-0.5 ${
+                                          isDropped
+                                            ? 'bg-rose-500/20 border-rose-500/40 text-rose-500'
+                                            : isCaptain
+                                            ? 'bg-amber-500/20 border-amber-500/40 text-amber-500'
+                                            : 'bg-surface-raised border-line text-ink-muted'
+                                        }`}>
+                                          {seat.seatNumber}
+                                        </span>
+
+                                        <div className="min-w-0 flex-1 space-y-0.5">
+                                          <div className="flex items-center justify-between gap-1">
+                                            <div className="flex items-center gap-1.5 min-w-0">
+                                              <span className={`text-xs font-semibold truncate ${isDropped ? 'line-through text-ink-muted' : 'text-ink'}`}>
+                                                {seat.name}
+                                              </span>
+                                              {isCaptain && (
+                                                <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-semibold bg-amber-500/20 text-amber-600 border border-amber-500/30 shrink-0 flex items-center gap-0.5">
+                                                  <Award className="w-2.5 h-2.5" /> Host
+                                                </span>
+                                              )}
+                                            </div>
+
+                                            {/* Seat Actions: Captain Toggle + Flake Toggle */}
+                                            <div className="flex items-center gap-1 shrink-0">
+                                              <button
+                                                type="button"
+                                                onClick={() => handleToggleCaptain(activeTable.tableNumber, seat.id)}
+                                                className={`p-1 rounded transition-colors ${
+                                                  isCaptain
+                                                    ? 'bg-amber-500/20 text-amber-500 border border-amber-500/40'
+                                                    : 'text-ink-muted hover:text-ink hover:bg-surface-raised'
+                                                }`}
+                                                title={isCaptain ? 'Designated Table Captain' : 'Nominate as Table Captain'}
+                                              >
+                                                <Award className="w-3.5 h-3.5" />
+                                              </button>
+
+                                              <button
+                                                type="button"
+                                                onClick={() => handleToggleFlake(seat.id)}
+                                                className={`p-1 rounded transition-colors ${
+                                                  isDropped
+                                                    ? 'bg-rose-500/20 text-rose-500 border border-rose-500/40'
+                                                    : 'text-ink-muted hover:text-rose-500 hover:bg-surface-raised'
+                                                }`}
+                                                title={isDropped ? 'Restore Guest (Cancel Flake)' : 'Mark as Last-Minute Flake'}
+                                              >
+                                                {isDropped ? <UserCheck className="w-3.5 h-3.5" /> : <UserX className="w-3.5 h-3.5" />}
+                                              </button>
+                                            </div>
+                                          </div>
+
+                                          <div className="text-[11px] text-ink-muted truncate">
+                                            {seat.roleTitle || 'Founder'} at <strong className="text-ink">{seat.company || 'Stealth'}</strong>
+                                          </div>
+
+                                          {seat.sectorTags && seat.sectorTags.length > 0 && (
+                                            <div className="flex items-center gap-1 flex-wrap pt-1">
+                                              {seat.sectorTags.slice(0, 4).map((tag: string) => (
+                                                <span
+                                                  key={tag}
+                                                  className="text-[9px] font-mono px-1 py-0.2 rounded bg-surface-raised text-ink-muted border border-line/60"
+                                                >
+                                                  {tag}
+                                                </span>
+                                              ))}
+                                            </div>
+                                          )}
                                         </div>
-                                        {seat.seniority && (
-                                          <span className="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-surface border border-line text-ink-muted shrink-0">
-                                            {seat.seniority}
+                                      </div>
+
+                                      {/* Flaked State Alert & Hot-Swap Trigger */}
+                                      {isDropped && (
+                                        <div className="pt-2 border-t border-rose-500/20 flex items-center justify-between gap-2">
+                                          <span className="text-[10px] font-mono font-semibold text-rose-500 uppercase">
+                                            Cancelled / No-Show
                                           </span>
-                                        )}
-                                      </div>
-                                      <div className="text-[11px] text-ink-muted truncate">
-                                        {seat.roleTitle || 'Founder'} at <strong className="text-ink">{seat.company || 'Stealth'}</strong>
-                                      </div>
-                                      {seat.sectorTags && seat.sectorTags.length > 0 && (
-                                        <div className="flex items-center gap-1 flex-wrap pt-1">
-                                          {seat.sectorTags.slice(0, 4).map((tag: string) => (
-                                            <span
-                                              key={tag}
-                                              className="text-[9px] font-mono px-1 py-0.2 rounded bg-surface-raised text-ink-muted border border-line/60"
-                                            >
-                                              {tag}
-                                            </span>
-                                          ))}
+                                          <button
+                                            type="button"
+                                            onClick={() => setHotSwapTarget({ tableNumber: activeTable.tableNumber, seatId: seat.id, seatNumber: seat.seatNumber })}
+                                            className="px-2.5 py-1 rounded bg-signal text-surface text-xs font-semibold hover:bg-signal/90 transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+                                            title="Hot-swap an unseated founder into this empty seat"
+                                          >
+                                            <RefreshCw className="w-3 h-3" />
+                                            <span>Hot-Swap Seat</span>
+                                          </button>
                                         </div>
                                       )}
                                     </div>
-                                  </div>
-                                ))}
+                                  );
+                                })}
                               </div>
 
                               {/* AI Table Conversation Card */}
@@ -4470,6 +4763,17 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                                       Zero Rivalry
                                     </span>
 
+                                    {/* Table Captain Host Dossier Button */}
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenHostDossier(table)}
+                                      className="px-2 py-0.5 rounded text-[10px] font-mono bg-copper/10 hover:bg-copper/20 text-copper border border-copper/30 font-medium flex items-center gap-1 transition-colors cursor-pointer"
+                                      title="Open confidential Table Captain facilitation sheet"
+                                    >
+                                      <Award className="w-3 h-3 text-copper" />
+                                      <span>Host Dossier</span>
+                                    </button>
+
                                     {table.conversationCard && (
                                       <button
                                         type="button"
@@ -4490,43 +4794,114 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
                                 {/* Attendees Seating Grid (Compact) */}
                                 <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                  {table.seats.map((seat: any) => (
-                                    <div
-                                      key={seat.id}
-                                      className="p-2 bg-canvas border border-line/70 rounded-md flex items-start gap-2"
-                                    >
-                                      <span className="w-4 h-4 rounded-full bg-surface-raised border border-line text-[9px] font-mono font-bold text-ink-muted flex items-center justify-center shrink-0 mt-0.5">
-                                        {seat.seatNumber}
-                                      </span>
-                                      <div className="min-w-0 flex-1 space-y-0.2">
-                                        <div className="flex items-center justify-between gap-1">
-                                          <div className="text-[11px] font-semibold text-ink truncate">
-                                            {seat.name}
+                                  {table.seats.map((seat: any) => {
+                                    const isCaptain = (tableCaptains[table.tableNumber] || table.seats[0]?.id) === seat.id;
+                                    const isDropped = droppedSeatIds.has(seat.id);
+
+                                    return (
+                                      <div
+                                        key={seat.id}
+                                        className={`p-2 border rounded-md flex flex-col gap-1.5 transition-all ${
+                                          isDropped
+                                            ? 'bg-rose-500/5 border-rose-500/30'
+                                            : isCaptain
+                                            ? 'bg-amber-500/5 border-amber-500/30'
+                                            : 'bg-canvas border-line/70'
+                                        }`}
+                                      >
+                                        <div className="flex items-start gap-2">
+                                          <span className={`w-4 h-4 rounded-full border text-[9px] font-mono font-bold flex items-center justify-center shrink-0 mt-0.5 ${
+                                            isDropped
+                                              ? 'bg-rose-500/20 border-rose-500/40 text-rose-500'
+                                              : isCaptain
+                                              ? 'bg-amber-500/20 border-amber-500/40 text-amber-500'
+                                              : 'bg-surface-raised border-line text-ink-muted'
+                                          }`}>
+                                            {seat.seatNumber}
+                                          </span>
+
+                                          <div className="min-w-0 flex-1 space-y-0.2">
+                                            <div className="flex items-center justify-between gap-1">
+                                              <div className="flex items-center gap-1 min-w-0">
+                                                <span className={`text-[11px] font-semibold truncate ${isDropped ? 'line-through text-ink-muted' : 'text-ink'}`}>
+                                                  {seat.name}
+                                                </span>
+                                                {isCaptain && (
+                                                  <span className="px-1 py-0.1 rounded text-[8px] font-mono font-bold bg-amber-500/20 text-amber-600 border border-amber-500/30 shrink-0">
+                                                    Host
+                                                  </span>
+                                                )}
+                                              </div>
+
+                                              {/* Seat Action Buttons */}
+                                              <div className="flex items-center gap-0.5 shrink-0">
+                                                <button
+                                                  type="button"
+                                                  onClick={() => handleToggleCaptain(table.tableNumber, seat.id)}
+                                                  className={`p-0.5 rounded transition-colors ${
+                                                    isCaptain
+                                                      ? 'bg-amber-500/20 text-amber-500 border border-amber-500/40'
+                                                      : 'text-ink-muted hover:text-ink hover:bg-surface-raised'
+                                                  }`}
+                                                  title={isCaptain ? 'Designated Table Captain' : 'Nominate as Table Captain'}
+                                                >
+                                                  <Award className="w-3 h-3" />
+                                                </button>
+
+                                                <button
+                                                  type="button"
+                                                  onClick={() => handleToggleFlake(seat.id)}
+                                                  className={`p-0.5 rounded transition-colors ${
+                                                    isDropped
+                                                      ? 'bg-rose-500/20 text-rose-500 border border-rose-500/40'
+                                                      : 'text-ink-muted hover:text-rose-500 hover:bg-surface-raised'
+                                                  }`}
+                                                  title={isDropped ? 'Restore Guest' : 'Mark as Flake / Drop'}
+                                                >
+                                                  {isDropped ? <UserCheck className="w-3 h-3" /> : <UserX className="w-3 h-3" />}
+                                                </button>
+                                              </div>
+                                            </div>
+
+                                            <div className="text-[10px] text-ink-muted truncate">
+                                              {seat.roleTitle || 'Founder'} &bull; <strong className="text-ink">{seat.company || 'Stealth'}</strong>
+                                            </div>
+
+                                            {seat.sectorTags && seat.sectorTags.length > 0 && (
+                                              <div className="flex items-center gap-1 flex-wrap pt-0.5">
+                                                {seat.sectorTags.slice(0, 2).map((tag: string) => (
+                                                  <span
+                                                    key={tag}
+                                                    className="text-[8px] font-mono px-1 py-0.1 rounded bg-surface-raised text-ink-muted border border-line/60"
+                                                  >
+                                                    {tag}
+                                                  </span>
+                                                ))}
+                                              </div>
+                                            )}
                                           </div>
-                                          {seat.seniority && (
-                                            <span className="text-[8px] font-mono uppercase px-1 py-0.1 rounded bg-surface border border-line text-ink-muted shrink-0">
-                                              {seat.seniority}
+                                        </div>
+
+                                        {/* Flaked Alert & Hot-Swap Trigger */}
+                                        {isDropped && (
+                                          <div className="pt-1 border-t border-rose-500/20 flex items-center justify-between gap-1">
+                                            <span className="text-[8px] font-mono font-semibold text-rose-500 uppercase">
+                                              Flaked / Open Seat
                                             </span>
-                                          )}
-                                        </div>
-                                        <div className="text-[10px] text-ink-muted truncate">
-                                          {seat.roleTitle || 'Founder'} &bull; <strong className="text-ink">{seat.company || 'Stealth'}</strong>
-                                        </div>
-                                        {seat.sectorTags && seat.sectorTags.length > 0 && (
-                                          <div className="flex items-center gap-1 flex-wrap pt-0.5">
-                                            {seat.sectorTags.slice(0, 2).map((tag: string) => (
-                                              <span
-                                                key={tag}
-                                                className="text-[8px] font-mono px-1 py-0.1 rounded bg-surface-raised text-ink-muted border border-line/60"
-                                              >
-                                                {tag}
-                                              </span>
-                                            ))}
+                                            <button
+                                              type="button"
+                                              onClick={() => setHotSwapTarget({ tableNumber: table.tableNumber, seatId: seat.id, seatNumber: seat.seatNumber })}
+                                              className="px-1.5 py-0.5 rounded bg-signal text-surface text-[9px] font-semibold hover:bg-signal/90 transition-all flex items-center gap-1 shadow-2xs cursor-pointer"
+                                              title="Hot-swap an available alternate founder into this seat"
+                                            >
+                                              <RefreshCw className="w-2.5 h-2.5" />
+                                              <span>Hot-Swap</span>
+                                            </button>
                                           </div>
                                         )}
                                       </div>
-                                    </div>
-                                  ))}
+                                    );
+                                  })}
                                 </div>
 
                                 {/* AI Table Conversation Card (Collapsible Accordion) */}
@@ -7195,6 +7570,664 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
           </div>
         </div>
       )}
+
+      {/* 7. VIP DINNER INVITATIONS & HOST DOSSIERS DISPATCH MODAL */}
+      {isDispatchModalOpen && optimizedSeatingResult && optimizedSeatingResult.tables && (() => {
+        const confirmedAttendees = optimizedSeatingResult.tables.flatMap((t: any) =>
+          t.seats
+            .filter((s: any) => !droppedSeatIds.has(s.id))
+            .map((s: any) => {
+              const captainId = tableCaptains[t.tableNumber] || t.seats[0]?.id;
+              const captainSeat = t.seats.find((cs: any) => cs.id === captainId) || t.seats[0];
+              const isCaptain = s.id === captainId;
+              const otherPeers = t.seats
+                .filter((cs: any) => cs.id !== s.id && !droppedSeatIds.has(cs.id))
+                .map((cs: any) => `${cs.name} (${cs.company || 'Stealth'})`);
+
+              return {
+                ...s,
+                tableNumber: t.tableNumber,
+                tableName: t.tableName,
+                captainName: captainSeat?.name || 'Assigned Host',
+                isCaptain,
+                otherPeers,
+                email: s.email || `${s.name.toLowerCase().replace(/[^a-z0-9]/g, '.')}@member.offline.club`,
+              };
+            })
+        );
+
+        const flakedCount = droppedSeatIds.size;
+
+        return (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+            <div className="bg-surface border border-line rounded-xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-150 my-auto">
+              {/* Modal Header */}
+              <div className="p-4 sm:p-5 border-b border-line flex items-center justify-between gap-3 shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-signal/10 text-signal flex items-center justify-center">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm sm:text-base font-semibold text-ink">
+                      VIP Dinner Invitations & Host Dossiers Dispatcher
+                    </h3>
+                    <p className="text-xs text-ink-muted">
+                      Confirmed seating notifications, secret door codes, and confidential host briefing sheets
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsDispatchModalOpen(false)}
+                  className="p-1 rounded hover:bg-surface-muted text-ink-muted hover:text-ink cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Scrollable Content Body */}
+              <div className="p-4 sm:p-5 overflow-y-auto space-y-4 text-xs">
+                {/* Event Details Grid */}
+                <div className="p-3.5 bg-surface-raised border border-line rounded-xl space-y-3">
+                  <div className="text-[11px] font-mono font-semibold uppercase text-ink flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-signal" />
+                    <span>Event Metadata & Venue Protocols</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                    <div>
+                      <label className="text-[10px] font-mono text-ink-muted uppercase block mb-0.5">Event Title</label>
+                      <input
+                        type="text"
+                        value={eventDetails.eventTitle}
+                        onChange={e => setEventDetails({ ...eventDetails, eventTitle: e.target.value })}
+                        className="w-full h-7 px-2 bg-surface border border-line rounded text-xs text-ink font-medium focus:ring-1 focus:ring-signal"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-mono text-ink-muted uppercase block mb-0.5">Date</label>
+                      <input
+                        type="text"
+                        value={eventDetails.eventDate}
+                        onChange={e => setEventDetails({ ...eventDetails, eventDate: e.target.value })}
+                        className="w-full h-7 px-2 bg-surface border border-line rounded text-xs text-ink font-medium focus:ring-1 focus:ring-signal"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-mono text-ink-muted uppercase block mb-0.5">Time</label>
+                      <input
+                        type="text"
+                        value={eventDetails.eventTime}
+                        onChange={e => setEventDetails({ ...eventDetails, eventTime: e.target.value })}
+                        className="w-full h-7 px-2 bg-surface border border-line rounded text-xs text-ink font-medium focus:ring-1 focus:ring-signal"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="text-[10px] font-mono text-ink-muted uppercase block mb-0.5">Venue Address</label>
+                      <input
+                        type="text"
+                        value={eventDetails.venueAddress}
+                        onChange={e => setEventDetails({ ...eventDetails, venueAddress: e.target.value })}
+                        className="w-full h-7 px-2 bg-surface border border-line rounded text-xs text-ink font-medium focus:ring-1 focus:ring-signal"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-mono text-ink-muted uppercase block mb-0.5">Secret Door Code</label>
+                      <input
+                        type="text"
+                        value={eventDetails.venueCode}
+                        onChange={e => setEventDetails({ ...eventDetails, venueCode: e.target.value })}
+                        className="w-full h-7 px-2 bg-surface border border-line rounded text-xs text-ink font-mono font-bold text-signal focus:ring-1 focus:ring-signal"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-mono text-ink-muted uppercase block mb-0.5">Dress Code</label>
+                      <input
+                        type="text"
+                        value={eventDetails.dressCode}
+                        onChange={e => setEventDetails({ ...eventDetails, dressCode: e.target.value })}
+                        className="w-full h-7 px-2 bg-surface border border-line rounded text-xs text-ink font-medium focus:ring-1 focus:ring-signal"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="text-[10px] font-mono text-ink-muted uppercase block mb-0.5">Protocol / Notes</label>
+                      <input
+                        type="text"
+                        value={eventDetails.notes}
+                        onChange={e => setEventDetails({ ...eventDetails, notes: e.target.value })}
+                        className="w-full h-7 px-2 bg-surface border border-line rounded text-xs text-ink font-medium focus:ring-1 focus:ring-signal"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recipient Count Pill */}
+                <div className="flex items-center justify-between bg-surface-raised border border-line px-3 py-2 rounded-lg text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-signal" />
+                    <span className="text-ink font-medium">
+                      Target Audience: <strong className="text-signal">{confirmedAttendees.length} Confirmed Guests</strong> across {optimizedSeatingResult.tables.length} tables
+                    </span>
+                  </div>
+                  {flakedCount > 0 && (
+                    <span className="text-[10px] font-mono text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded font-semibold border border-rose-500/20">
+                      {flakedCount} Flakes Excluded
+                    </span>
+                  )}
+                </div>
+
+                {/* Segmented View Tabs */}
+                <div className="flex items-center border-b border-line gap-4 text-xs font-medium">
+                  <button
+                    type="button"
+                    onClick={() => setDispatchActiveTab('preview_attendees')}
+                    className={`pb-2 transition-colors border-b-2 ${
+                      dispatchActiveTab === 'preview_attendees'
+                        ? 'border-signal text-signal font-semibold'
+                        : 'border-transparent text-ink-muted hover:text-ink'
+                    }`}
+                  >
+                    Attendee Invites Preview ({confirmedAttendees.length})
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDispatchActiveTab('preview_captains')}
+                    className={`pb-2 transition-colors border-b-2 ${
+                      dispatchActiveTab === 'preview_captains'
+                        ? 'border-signal text-signal font-semibold'
+                        : 'border-transparent text-ink-muted hover:text-ink'
+                    }`}
+                  >
+                    Table Captain Dossiers ({optimizedSeatingResult.tables.length})
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDispatchActiveTab('audit_log')}
+                    className={`pb-2 transition-colors border-b-2 ${
+                      dispatchActiveTab === 'audit_log'
+                        ? 'border-signal text-signal font-semibold'
+                        : 'border-transparent text-ink-muted hover:text-ink'
+                    }`}
+                  >
+                    Dispatch Audit & Logs {dispatchResult ? '• Completed' : ''}
+                  </button>
+                </div>
+
+                {/* Tab 1: Attendee Invites Preview */}
+                {dispatchActiveTab === 'preview_attendees' && (
+                  <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                    {confirmedAttendees.map((att: any) => {
+                      const subject = `Exclusive Invitation: ${eventDetails.eventTitle} — Table ${att.tableNumber} (${att.tableName})`;
+                      const previewBody = `Dear ${att.name},\n\nYou are officially confirmed for the ${eventDetails.eventTitle}.\n\nEVENT DETAILS:\n- Date: ${eventDetails.eventDate} at ${eventDetails.eventTime}\n- Venue: ${eventDetails.venueAddress}\n- Secret Door Code: ${eventDetails.venueCode}\n- Dress Code: ${eventDetails.dressCode}\n- Seating: Table ${att.tableNumber} (${att.tableName}), Seat #${att.seatNumber}\n- Table Captain: ${att.captainName}${att.isCaptain ? ' (You)' : ''}\n\nDINING PEERS:\n${att.otherPeers.map((p: string) => `  • ${p}`).join('\n')}\n\nStrict Chatham House Rule. Arrive 15 minutes early for welcome drinks.\n\nWarm regards,\nAparna Pande | Offline Experiences`;
+
+                      const isCopied = copiedInviteRecipientId === att.id;
+
+                      return (
+                        <div key={att.id} className="p-3 bg-surface-raised border border-line rounded-lg space-y-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs font-semibold text-ink">{att.name}</span>
+                                <span className="text-[10px] text-ink-muted font-mono">({att.company || 'Stealth'})</span>
+                                {att.isCaptain && (
+                                  <span className="text-[9px] font-mono bg-amber-500/20 text-amber-600 px-1.5 py-0.2 rounded font-semibold border border-amber-500/30">
+                                    Table Captain
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[10px] font-mono text-ink-faint truncate">
+                                To: {att.email} &bull; Table {att.tableNumber}, Seat #{att.seatNumber}
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText(`Subject: ${subject}\n\n${previewBody}`);
+                                setCopiedInviteRecipientId(att.id);
+                                setTimeout(() => setCopiedInviteRecipientId(null), 2000);
+                              }}
+                              className="px-2 py-1 rounded bg-surface border border-line hover:border-signal/40 text-[11px] font-medium text-ink flex items-center gap-1 shrink-0 transition-colors cursor-pointer"
+                            >
+                              {isCopied ? <Check className="w-3 h-3 text-signal" /> : <Copy className="w-3 h-3 text-ink-muted" />}
+                              <span>{isCopied ? 'Copied' : 'Copy Email'}</span>
+                            </button>
+                          </div>
+
+                          <div className="p-2 bg-surface border border-line/60 rounded text-[11px] font-mono text-ink-muted whitespace-pre-line leading-relaxed max-h-24 overflow-y-auto">
+                            {previewBody}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Tab 2: Table Captain Dossiers Preview */}
+                {dispatchActiveTab === 'preview_captains' && (
+                  <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                    {optimizedSeatingResult.tables.map((table: any) => {
+                      const captainId = tableCaptains[table.tableNumber] || table.seats[0]?.id;
+                      const captainSeat = table.seats.find((s: any) => s.id === captainId) || table.seats[0];
+                      const peers = table.seats.filter((s: any) => s.id !== captainSeat?.id && !droppedSeatIds.has(s.id));
+
+                      return (
+                        <div key={table.tableNumber} className="p-3 bg-surface-raised border border-line rounded-lg space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="text-xs font-semibold text-ink flex items-center gap-1.5">
+                                <Award className="w-3.5 h-3.5 text-amber-500" />
+                                <span>Table {table.tableNumber}: {table.tableName}</span>
+                              </div>
+                              <div className="text-[10px] font-mono text-ink-muted">
+                                Captain: <strong className="text-ink">{captainSeat?.name}</strong> ({captainSeat?.company || 'Stealth'}) &bull; {peers.length} Dining Peers
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => handleOpenHostDossier(table)}
+                              className="px-2 py-1 rounded bg-copper/10 hover:bg-copper/20 text-copper border border-copper/30 text-[11px] font-medium flex items-center gap-1 cursor-pointer"
+                            >
+                              <Award className="w-3 h-3" />
+                              <span>Full Dossier View</span>
+                            </button>
+                          </div>
+
+                          {table.conversationCard && (
+                            <div className="p-2 bg-surface border-l-2 border-copper rounded-r text-[11px] italic font-serif text-ink leading-relaxed">
+                              &ldquo;{table.conversationCard.icebreakerPrompt}&rdquo;
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Tab 3: Dispatch Engine & Audit Log */}
+                {dispatchActiveTab === 'audit_log' && (
+                  <div className="space-y-3">
+                    <div className="p-3.5 bg-surface-raised border border-line rounded-lg space-y-2">
+                      <div className="text-xs font-semibold text-ink">Choose Execution Delivery Method</div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        {[
+                          { id: 'simulate', title: 'Simulated Preview', desc: 'Zero dependencies. Generates audit preview.' },
+                          { id: 'resend', title: 'Resend API (Live)', desc: 'Sends via server-side RESEND_API_KEY.' },
+                          { id: 'n8n_webhook', title: 'n8n Webhook', desc: 'Triggers event workflow in n8n.' },
+                        ].map(m => (
+                          <button
+                            key={m.id}
+                            type="button"
+                            onClick={() => setDispatchMethod(m.id as any)}
+                            className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
+                              dispatchMethod === m.id
+                                ? 'bg-signal-soft border-signal text-signal font-semibold shadow-xs'
+                                : 'bg-surface border-line hover:border-line-strong text-ink'
+                            }`}
+                          >
+                            <div className="text-xs font-semibold">{m.title}</div>
+                            <div className="text-[10px] text-ink-muted">{m.desc}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {dispatchResult && (
+                      <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl space-y-2 text-xs">
+                        <div className="flex items-center gap-2 font-semibold text-emerald-600">
+                          <CheckCircle2 className="w-4 h-4" />
+                          <span>Dispatch Execution Completed</span>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-[11px] text-ink-muted">
+                          <div>Method: <strong className="text-ink">{dispatchResult.dispatchMethod}</strong></div>
+                          <div>Total Invites: <strong className="text-ink">{dispatchResult.totalAttendees}</strong></div>
+                          <div>Host Dossiers: <strong className="text-ink">{dispatchResult.totalCaptains}</strong></div>
+                          <div>Live Sent: <strong className="text-ink">{dispatchResult.liveSentCount}</strong></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-4 border-t border-line flex items-center justify-between gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsDispatchModalOpen(false)}
+                  className="px-3.5 py-1.5 rounded-lg border border-line bg-surface hover:bg-surface-raised text-ink text-xs font-medium cursor-pointer"
+                >
+                  Close
+                </button>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={isDispatching}
+                    onClick={() => handleDispatchVIPInvites()}
+                    className="px-4 py-1.5 rounded-lg bg-signal text-surface text-xs font-semibold hover:bg-signal/90 transition-all flex items-center gap-1.5 shadow-xs disabled:opacity-50 cursor-pointer"
+                  >
+                    {isDispatching ? (
+                      <>
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        <span>Dispatching...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-3.5 h-3.5" />
+                        <span>Dispatch {confirmedAttendees.length} VIP Invites ({dispatchMethod})</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* 8. CONFIDENTIAL TABLE CAPTAIN HOST DOSSIER MODAL */}
+      {isHostDossierModalOpen && activeDossierTable && (() => {
+        const captainId = tableCaptains[activeDossierTable.tableNumber] || activeDossierTable.seats[0]?.id;
+        const captainSeat = activeDossierTable.seats.find((s: any) => s.id === captainId) || activeDossierTable.seats[0];
+        const peers = activeDossierTable.seats.filter((s: any) => s.id !== captainSeat?.id && !droppedSeatIds.has(s.id));
+
+        const dossierMarkdown = `# CONFIDENTIAL TABLE CAPTAIN BRIEFING
+Host: ${captainSeat?.name} (${captainSeat?.company || 'Stealth'})
+Event: ${eventDetails.eventTitle} (${eventDetails.eventDate} at ${eventDetails.eventTime})
+Table: #${activeDossierTable.tableNumber} — "${activeDossierTable.tableName}"
+
+DEAR ${captainSeat?.name?.toUpperCase()},
+Thank you for anchoring Table ${activeDossierTable.tableNumber}. Your role is not to speak most, but to facilitate high-vulnerability, off-the-record discourse and draw out quiet brilliance.
+
+UNIFYING DISCUSSION SPARK:
+${activeDossierTable.conversationCard?.unifyingTopic || 'Curated peer cohort exploring cross-sector scaling bottlenecks and executive decision-making.'}
+
+PROVOCATIVE CURATOR ICEBREAKER:
+"${activeDossierTable.conversationCard?.icebreakerPrompt || 'What is the single hardest decision you made in the last quarter that you would make differently today?'}"
+
+HOST RULES:
+1. Enforce strict Chatham House Rule: nothing said leaves this table.
+2. If someone starts pitching their company, gently steer them back to operational realities.
+3. If anyone is quiet for more than 15 minutes, invite their perspective on the current topic.
+
+PEER DOSSIER CHEAT-SHEET:
+${peers.map((p: any) => `• ${p.name} (${p.roleTitle || 'Founder'} at ${p.company || 'Stealth'})
+  Sectors: ${(p.sectorTags || []).join(', ') || 'N/A'}
+  Background: ${p.bioNotes || 'High-conviction tech builder'}`).join('\n\n')}
+
+Warmly,
+Aparna Pande`;
+
+        const isCopied = copiedDossierNum === activeDossierTable.tableNumber;
+
+        return (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+            <div className="bg-surface border border-line rounded-xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-150 my-auto">
+              {/* Header */}
+              <div className="p-4 sm:p-5 border-b border-line flex items-center justify-between gap-3 shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                    <Award className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm sm:text-base font-semibold text-ink">
+                      Confidential Table Captain Briefing Sheet
+                    </h3>
+                    <p className="text-xs text-ink-muted">
+                      Table #{activeDossierTable.tableNumber} &bull; Host: <strong className="text-ink">{captainSeat?.name}</strong> ({captainSeat?.company || 'Stealth'})
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsHostDossierModalOpen(false)}
+                  className="p-1 rounded hover:bg-surface-muted text-ink-muted hover:text-ink cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-4 sm:p-5 overflow-y-auto space-y-4 text-xs">
+                {/* Host Facilitation Guidelines */}
+                <div className="p-3 bg-surface-raised border border-line rounded-lg space-y-1.5">
+                  <div className="text-[11px] font-mono font-semibold uppercase text-ink flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-signal" />
+                    <span>Host Facilitation Protocol</span>
+                  </div>
+                  <ul className="space-y-1 text-ink-muted text-[11px] leading-relaxed">
+                    <li>&bull; <strong className="text-ink">Chatham House Rule:</strong> Complete confidentiality. No names attributed outside this table.</li>
+                    <li>&bull; <strong className="text-ink">No Sales Pitches:</strong> If discourse becomes promotional, steer focus to real operational bottlenecks.</li>
+                    <li>&bull; <strong className="text-ink">Draw Out Quiet Brilliance:</strong> Bring in quieter founders with direct perspective inquiries.</li>
+                  </ul>
+                </div>
+
+                {/* Curator Icebreaker */}
+                {activeDossierTable.conversationCard && (
+                  <div className="p-3.5 bg-surface border-l-2 border-copper rounded-r space-y-1.5">
+                    <div className="text-[10px] font-mono font-semibold uppercase text-copper">
+                      Provocative Curator Icebreaker (Host Prompt)
+                    </div>
+                    <div className="text-xs italic font-serif text-ink leading-relaxed">
+                      &ldquo;{activeDossierTable.conversationCard.icebreakerPrompt}&rdquo;
+                    </div>
+                  </div>
+                )}
+
+                {/* Peer Dossiers */}
+                <div className="space-y-2">
+                  <div className="text-[11px] font-mono font-semibold uppercase text-ink flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-signal" />
+                    <span>Confidential Peer Cheat-Sheet ({peers.length} Dining Peers)</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {peers.map((peer: any) => (
+                      <div key={peer.id} className="p-3 bg-surface-raised border border-line rounded-lg space-y-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="font-semibold text-ink text-xs">
+                            {peer.name} &bull; <span className="text-ink-muted font-normal">{peer.roleTitle || 'Founder'} at {peer.company || 'Stealth'}</span>
+                          </div>
+                          {peer.seniority && (
+                            <span className="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-surface border border-line text-ink-muted">
+                              {peer.seniority}
+                            </span>
+                          )}
+                        </div>
+                        {peer.bioNotes && (
+                          <p className="text-[11px] text-ink-muted leading-relaxed">
+                            {peer.bioNotes}
+                          </p>
+                        )}
+                        {peer.sectorTags && peer.sectorTags.length > 0 && (
+                          <div className="flex items-center gap-1 flex-wrap pt-0.5">
+                            {peer.sectorTags.map((t: string) => (
+                              <span key={t} className="text-[8px] font-mono px-1 py-0.1 rounded bg-surface border border-line text-ink-muted">
+                                {t}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 border-t border-line flex items-center justify-between gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsHostDossierModalOpen(false)}
+                  className="px-3.5 py-1.5 rounded-lg border border-line bg-surface hover:bg-surface-raised text-ink text-xs font-medium cursor-pointer"
+                >
+                  Close
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(dossierMarkdown);
+                    setCopiedDossierNum(activeDossierTable.tableNumber);
+                    setTimeout(() => setCopiedDossierNum(null), 2000);
+                  }}
+                  className="px-3.5 py-1.5 rounded-lg bg-signal text-surface text-xs font-semibold hover:bg-signal/90 transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+                >
+                  {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{isCopied ? 'Dossier Copied!' : 'Copy Dossier Markdown'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* 9. FLAKE HOT-SWAP REPLACEMENT SELECTOR MODAL */}
+      {hotSwapTarget && optimizedSeatingResult && (() => {
+        const targetTable = optimizedSeatingResult.tables.find((t: any) => t.tableNumber === hotSwapTarget.tableNumber);
+        const allSeatedIds = new Set(
+          optimizedSeatingResult.tables.flatMap((t: any) =>
+            t.seats.filter((s: any) => s.id !== hotSwapTarget.seatId && !droppedSeatIds.has(s.id)).map((s: any) => s.id)
+          )
+        );
+
+        const candidates = people.filter(p => !allSeatedIds.has(p.id) && p.id !== hotSwapTarget.seatId);
+        const filteredCandidates = candidates.filter(c => {
+          if (!hotSwapSearchQuery.trim()) return true;
+          const q = hotSwapSearchQuery.toLowerCase().trim();
+          return (
+            (c.name || '').toLowerCase().includes(q) ||
+            (c.company || '').toLowerCase().includes(q) ||
+            (c.role_title || '').toLowerCase().includes(q) ||
+            (c.bio_notes || '').toLowerCase().includes(q)
+          );
+        });
+
+        return (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+            <div className="bg-surface border border-line rounded-xl w-full max-w-xl max-h-[85vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-150 my-auto">
+              {/* Header */}
+              <div className="p-4 border-b border-line flex items-center justify-between gap-3 shrink-0">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-signal/10 text-signal flex items-center justify-center">
+                    <RefreshCw className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-ink">
+                      Hot-Swap Seat #{hotSwapTarget.seatNumber} at Table {hotSwapTarget.tableNumber}
+                    </h3>
+                    <p className="text-xs text-ink-muted">
+                      Select an available alternate founder. Instant conflict checking active.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setHotSwapTarget(null)}
+                  className="p-1 rounded hover:bg-surface-muted text-ink-muted hover:text-ink cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Search Bar */}
+              <div className="p-3 border-b border-line bg-surface-raised">
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-ink-muted absolute left-2.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={hotSwapSearchQuery}
+                    onChange={e => setHotSwapSearchQuery(e.target.value)}
+                    placeholder="Search alternate founders or company..."
+                    className="w-full h-8 pl-8 pr-3 text-xs bg-surface border border-line rounded-lg text-ink focus:ring-1 focus:ring-signal focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Candidate List */}
+              <div className="p-3 overflow-y-auto space-y-2 max-h-80 text-xs">
+                {filteredCandidates.length === 0 ? (
+                  <div className="p-6 text-center text-ink-muted text-xs">
+                    No unseated candidates found matching &ldquo;{hotSwapSearchQuery}&rdquo;.
+                  </div>
+                ) : (
+                  filteredCandidates.map(c => {
+                    // Check competitor clash with other diners at this table
+                    const conflictWith = targetTable?.seats.find((s: any) =>
+                      s.id !== hotSwapTarget.seatId &&
+                      !droppedSeatIds.has(s.id) &&
+                      s.company &&
+                      c.company &&
+                      s.company.toLowerCase().trim() === c.company.toLowerCase().trim()
+                    );
+
+                    return (
+                      <div
+                        key={c.id}
+                        className={`p-3 border rounded-lg flex items-center justify-between gap-3 transition-all ${
+                          conflictWith
+                            ? 'bg-rose-500/5 border-rose-500/30'
+                            : 'bg-surface-raised border-line hover:border-signal/40'
+                        }`}
+                      >
+                        <div className="min-w-0 space-y-0.5">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-semibold text-ink">{c.name}</span>
+                            <span className="text-[11px] text-ink-muted font-medium truncate">
+                              &bull; {c.role_title || 'Founder'} at <strong className="text-ink">{c.company || 'Stealth'}</strong>
+                            </span>
+                          </div>
+
+                          {conflictWith ? (
+                            <div className="text-[10px] font-mono text-rose-500 font-semibold flex items-center gap-1">
+                              <AlertTriangle className="w-3 h-3 shrink-0" />
+                              <span>Direct Conflict with {conflictWith.name} ({conflictWith.company})</span>
+                            </div>
+                          ) : (
+                            <div className="text-[10px] font-mono text-emerald-600 flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3 shrink-0" />
+                              <span>Conflict-Free Replacement</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleExecuteHotSwap(hotSwapTarget.tableNumber, hotSwapTarget.seatId, c)}
+                          className="px-3 py-1.5 rounded-lg bg-signal text-surface text-xs font-semibold hover:bg-signal/90 transition-all shrink-0 cursor-pointer shadow-xs"
+                        >
+                          Seat Guest
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="p-3 border-t border-line flex items-center justify-between shrink-0">
+                <span className="text-[11px] font-mono text-ink-muted">
+                  {filteredCandidates.length} standby candidates available
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setHotSwapTarget(null)}
+                  className="px-3 py-1 rounded-lg border border-line text-xs font-medium text-ink hover:bg-surface-raised cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
