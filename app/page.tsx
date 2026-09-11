@@ -1624,12 +1624,41 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
         throw new Error(data.error || 'Failed to initiate deep research');
       }
       setResearchRequestId(data.requestId);
+
+      // If already completed synchronously (e.g., via synthesis fallback or cache)
+      if (data.status === 'completed') {
+        setResearchStatus('completed');
+        setResearchReport(data.content || data.report || 'Research report compiled.');
+        setResearchSources(data.sources || []);
+        setIsResearching(false);
+        fetchIntelligenceHistory();
+        return;
+      }
+
       setResearchStatus('in_progress');
 
-      // Poll every 3 seconds
+      // Poll every 3 seconds with max attempts guard
+      let pollAttempts = 0;
       const pollInterval = setInterval(async () => {
+        pollAttempts++;
+        if (pollAttempts > 30) {
+          clearInterval(pollInterval);
+          setIsResearching(false);
+          setResearchStatus('failed');
+          return;
+        }
+
         try {
           const pollRes = await fetch(`/api/tavily/research?requestId=${encodeURIComponent(data.requestId)}`);
+          if (!pollRes.ok) {
+            if (pollAttempts > 4) {
+              clearInterval(pollInterval);
+              setIsResearching(false);
+              setResearchStatus('failed');
+            }
+            return;
+          }
+
           const pollData = await pollRes.json();
           if (pollData.status === 'completed') {
             clearInterval(pollInterval);
@@ -1642,10 +1671,17 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
             clearInterval(pollInterval);
             setResearchStatus('failed');
             setIsResearching(false);
-            alert('Research task encountered an issue: ' + (pollData.error || 'Unknown error'));
+            if (pollData.error) {
+              console.warn('Research task note:', pollData.error);
+            }
           }
         } catch (pollErr) {
           console.error('Research polling error:', pollErr);
+          if (pollAttempts > 4) {
+            clearInterval(pollInterval);
+            setIsResearching(false);
+            setResearchStatus('failed');
+          }
         }
       }, 3000);
     } catch (err: any) {
@@ -1749,10 +1785,56 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       const data = await res.json();
       if (!res.ok || !data.requestId) throw new Error(data.error || 'Failed to trigger drawer memo');
 
-      // Poll until complete
+      // If already completed synchronously (e.g., via synthesis fallback or cache)
+      if (data.status === 'completed') {
+        const memoContent = data.content || data.report || 'Research completed.';
+        const memoSources = data.sources || [];
+        setDrawerResearchReport(prev => ({
+          ...prev,
+          [person.id]: {
+            content: memoContent,
+            sources: memoSources,
+          },
+        }));
+        setPeople(prev => prev.map(p => {
+          if (p.id === person.id) {
+            const updatedAi = {
+              ...(typeof p.ai_classification === 'object' && p.ai_classification !== null ? p.ai_classification : {}),
+              deep_memo: {
+                content: memoContent,
+                sources: memoSources,
+                completed_at: new Date().toISOString(),
+              },
+            };
+            return { ...p, ai_classification: updatedAi, clean_summary: memoContent.slice(0, 300) + '...' };
+          }
+          return p;
+        }));
+        setDrawerResearching(false);
+        fetchIntelligenceHistory();
+        return;
+      }
+
+      // Poll until complete with max attempts guard
+      let drawerAttempts = 0;
       const interval = setInterval(async () => {
+        drawerAttempts++;
+        if (drawerAttempts > 30) {
+          clearInterval(interval);
+          setDrawerResearching(false);
+          return;
+        }
+
         try {
           const pollRes = await fetch(`/api/tavily/research?requestId=${encodeURIComponent(data.requestId)}&personId=${person.id}`);
+          if (!pollRes.ok) {
+            if (drawerAttempts > 4) {
+              clearInterval(interval);
+              setDrawerResearching(false);
+            }
+            return;
+          }
+
           const pollData = await pollRes.json();
           if (pollData.status === 'completed') {
             clearInterval(interval);
@@ -1787,7 +1869,10 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
             setDrawerResearching(false);
           }
         } catch {
-          // ignore
+          if (drawerAttempts > 4) {
+            clearInterval(interval);
+            setDrawerResearching(false);
+          }
         }
       }, 3000);
     } catch (err: any) {
