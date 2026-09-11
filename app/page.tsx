@@ -1497,13 +1497,15 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       // Status Filter
       let matchStatus = true;
       if (statusFilter === 'CANONICAL') matchStatus = p.is_duplicate_of === null;
-      if (statusFilter === 'DUPLICATES') matchStatus = p.is_duplicate_of !== null;
+      if (statusFilter === 'DUPLICATES') matchStatus = p.is_duplicate_of !== null && p.review_status !== 'merged' && !mergedIds.has(p.id);
+      if (statusFilter === 'MERGED') matchStatus = p.is_duplicate_of !== null && (p.review_status === 'merged' || mergedIds.has(p.id));
+      if (statusFilter === 'ALL_DUPLICATES') matchStatus = p.is_duplicate_of !== null;
       if (statusFilter === 'INCOMPLETE') matchStatus = p.is_incomplete;
       if (statusFilter === 'HIGH_FIT') matchStatus = p.fit_score !== null && p.fit_score >= 80;
 
       return matchSearch && matchRole && matchSector && matchStatus;
     });
-  }, [activePeople, searchQuery, roleFilter, sectorFilter, statusFilter]);
+  }, [activePeople, searchQuery, roleFilter, sectorFilter, statusFilter, mergedIds]);
 
   // Duplicate Pairs
   const duplicatePairs = useMemo(() => {
@@ -2157,7 +2159,9 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                 >
                   <option value="ALL">All Records</option>
                   <option value="CANONICAL">Canonical Only</option>
-                  <option value="DUPLICATES">Flagged Duplicates</option>
+                  <option value="DUPLICATES">Pending Duplicates</option>
+                  <option value="MERGED">Merged Records</option>
+                  <option value="ALL_DUPLICATES">All Duplicates (Pending & Merged)</option>
                   <option value="INCOMPLETE">Incomplete Profiles</option>
                   <option value="HIGH_FIT">High Fit (80+)</option>
                 </select>
@@ -2244,7 +2248,9 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   >
                     <option value="ALL">All Records</option>
                     <option value="CANONICAL">Canonical Only</option>
-                    <option value="DUPLICATES">Flagged Duplicates</option>
+                    <option value="DUPLICATES">Pending Duplicates</option>
+                    <option value="MERGED">Merged Records</option>
+                    <option value="ALL_DUPLICATES">All Duplicates (Pending & Merged)</option>
                     <option value="INCOMPLETE">Incomplete Profiles</option>
                     <option value="HIGH_FIT">High Fit (80+)</option>
                   </select>
@@ -2432,9 +2438,15 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                           </td>
                           <td className="py-3 px-4">
                             {isDup ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-warning-soft text-warning border border-warning/30">
-                                <AlertTriangle className="w-3 h-3" /> Duplicate of #{person.is_duplicate_of}
-                              </span>
+                              person.review_status === 'merged' || mergedIds.has(person.id) ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-surface-raised text-ink-muted border border-line" title={`Consolidated into canonical member #${person.is_duplicate_of}`}>
+                                  <CheckCircle2 className="w-3 h-3 text-signal" /> Merged with #{person.is_duplicate_of}
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-warning-soft text-warning border border-warning/30" title={`Pending operator review: Duplicate of #${person.is_duplicate_of}`}>
+                                  <AlertTriangle className="w-3 h-3" /> Duplicate of #{person.is_duplicate_of}
+                                </span>
+                              )
                             ) : person.is_incomplete ? (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-danger-soft text-danger border border-danger/30">
                                 Incomplete ({person.missing_fields?.length || 0})
@@ -2540,9 +2552,15 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                       <div className="flex items-center justify-between pt-2 border-t border-line text-xs">
                         <div className="flex items-center gap-1.5">
                           {isDup ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-warning-soft text-warning border border-warning/30">
-                              <AlertTriangle className="w-3 h-3" /> Duplicate of #{person.is_duplicate_of}
-                            </span>
+                            person.review_status === 'merged' || mergedIds.has(person.id) ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-surface-raised text-ink-muted border border-line">
+                                <CheckCircle2 className="w-3 h-3 text-signal" /> Merged with #{person.is_duplicate_of}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-warning-soft text-warning border border-warning/30">
+                                <AlertTriangle className="w-3 h-3" /> Duplicate of #{person.is_duplicate_of}
+                              </span>
+                            )
                           ) : person.is_incomplete ? (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-danger-soft text-danger border border-danger/30">
                               Incomplete
@@ -3920,6 +3938,21 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                 <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface border border-line text-ink-muted">
                   #{selectedPerson.id}
                 </span>
+                {selectedPerson.is_duplicate_of !== null ? (
+                  selectedPerson.review_status === 'merged' || mergedIds.has(selectedPerson.id) ? (
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-raised border border-line text-ink-muted inline-flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3 text-signal" /> Merged with #{selectedPerson.is_duplicate_of}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-warning-soft border border-warning/30 text-warning inline-flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" /> Duplicate of #{selectedPerson.is_duplicate_of}
+                    </span>
+                  )
+                ) : (
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-signal-soft border border-signal/20 text-signal inline-flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" /> Canonical
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-1.5 flex-shrink-0">
                 {!isEditingMember && (
