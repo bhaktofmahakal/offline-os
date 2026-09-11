@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import {
   Users,
@@ -14,6 +14,8 @@ import {
   AlertTriangle,
   ExternalLink,
   ChevronRight,
+  ChevronLeft,
+  ChevronDown,
   Info,
   Layers,
   Database,
@@ -379,6 +381,20 @@ export default function OfflineCRM() {
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [activeTooltipId, setActiveTooltipId] = useState<number | null>(null);
   const [copiedIntroId, setCopiedIntroId] = useState<number | null>(null);
+
+  // HubSpot-Style CRM Table Pagination State
+  const [pageSize, setPageSize] = useState<number>(25);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [isPageSizeMenuOpen, setIsPageSizeMenuOpen] = useState(false);
+  const directoryTableContainerRef = useRef<HTMLDivElement>(null);
+  const directoryMobileContainerRef = useRef<HTMLDivElement>(null);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    directoryTableContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    directoryMobileContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const [darkMode, setDarkMode] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [mergedIds, setMergedIds] = useState<Set<number>>(new Set());
@@ -1528,6 +1544,20 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
     });
   }, [activePeople, searchQuery, roleFilter, sectorFilter, statusFilter, mergedIds]);
 
+  // Auto-reset pagination to page 1 whenever any search or filter criteria change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, roleFilter, sectorFilter, statusFilter, pageSize]);
+
+  // HubSpot CRM Pagination Calculations
+  const totalPages = Math.max(1, Math.ceil(filteredPeople.length / pageSize));
+  const validCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (validCurrentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, filteredPeople.length);
+  const paginatedPeople = useMemo(() => {
+    return filteredPeople.slice(startIndex, endIndex);
+  }, [filteredPeople, startIndex, endIndex]);
+
   // Duplicate Pairs
   const duplicatePairs = useMemo(() => {
     const peopleMap = new Map(activePeople.map(p => [p.id, p]));
@@ -2202,7 +2232,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
               <div className="hidden md:flex items-center gap-3">
                 <div className="text-xs font-mono text-ink-muted tabular-nums">
-                  Showing {filteredPeople.length} of {activePeople.length} members
+                  Showing <span className="text-ink font-semibold">{filteredPeople.length > 0 ? `${startIndex + 1}–${endIndex}` : '0'}</span> of <span className="text-ink font-semibold">{filteredPeople.length}</span> members
                 </div>
                 <div className="flex items-center gap-1.5 border-l border-line pl-3">
                   <a
@@ -2280,7 +2310,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
             )}
 
             {/* 1. DESKTOP DATA TABLE (md+) */}
-            <div className="hidden md:block flex-1 overflow-auto">
+            <div ref={directoryTableContainerRef} className="hidden md:block flex-1 overflow-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead className="sticky top-0 bg-surface-raised border-b border-line text-ink-muted font-mono text-[11px] uppercase tracking-wider z-10">
                   <tr>
@@ -2365,7 +2395,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                       </td>
                     </tr>
                   ) : (
-                    filteredPeople.map(person => {
+                    paginatedPeople.map(person => {
                       const isDup = person.is_duplicate_of !== null;
                       return (
                         <tr
@@ -2510,7 +2540,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
             </div>
 
             {/* 2. MOBILE CARD STACK LAYOUT (<md) */}
-            <div className="block md:hidden flex-1 overflow-auto p-3 sm:p-4 space-y-3">
+            <div ref={directoryMobileContainerRef} className="block md:hidden flex-1 overflow-auto p-3 sm:p-4 space-y-3">
               {loading ? (
                 <div className="py-12 text-center text-ink-muted font-mono text-xs">
                   Loading database records from Supabase...
@@ -2520,7 +2550,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   No members match your current filter query.
                 </div>
               ) : (
-                filteredPeople.map(person => {
+                paginatedPeople.map(person => {
                   const isDup = person.is_duplicate_of !== null;
                   return (
                     <div
@@ -2620,6 +2650,129 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   );
                 })
               )}
+            </div>
+
+            {/* HubSpot-Style CRM Table Pagination Footer Bar */}
+            <div className="border-t border-line bg-surface px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs select-none">
+              {/* Left: Range Summary */}
+              <div className="text-xs font-mono text-ink-muted tabular-nums flex items-center gap-2">
+                <span>
+                  Showing <strong className="text-ink font-semibold">{filteredPeople.length > 0 ? startIndex + 1 : 0}–{endIndex}</strong> of <strong className="text-ink font-semibold">{filteredPeople.length}</strong> members
+                </span>
+                {filteredPeople.length > 0 && (
+                  <span className="hidden sm:inline text-ink-faint">
+                    &bull; Page {validCurrentPage} of {totalPages}
+                  </span>
+                )}
+              </div>
+
+              {/* Right: Controls (< Prev  [1, 2, 3..]  Next >  [25 per page ▾]) */}
+              <div className="flex items-center gap-2 sm:gap-3 relative">
+                {/* Prev Button */}
+                <button
+                  onClick={() => handlePageChange(Math.max(1, validCurrentPage - 1))}
+                  disabled={validCurrentPage <= 1}
+                  className="h-8 px-2.5 sm:px-3 rounded border border-line bg-surface hover:bg-surface-raised disabled:opacity-40 disabled:pointer-events-none text-ink text-xs font-medium inline-flex items-center gap-1 transition-all shadow-xs"
+                  title="Previous Page"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <span>Prev</span>
+                </button>
+
+                {/* Numeric Page Pills (for quick jump) */}
+                <div className="hidden sm:flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(p => p === 1 || p === totalPages || Math.abs(p - validCurrentPage) <= 1)
+                    .reduce<(number | string)[]>((acc, p, idx, arr) => {
+                      if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1) {
+                        acc.push('...');
+                      }
+                      acc.push(p);
+                      return acc;
+                    }, [])
+                    .map((p, idx) => {
+                      if (p === '...') {
+                        return <span key={`ellipsis-${idx}`} className="px-1 text-ink-muted font-mono">…</span>;
+                      }
+                      const isCurrent = p === validCurrentPage;
+                      return (
+                        <button
+                          key={`page-${p}`}
+                          onClick={() => handlePageChange(Number(p))}
+                          className={`min-w-[28px] h-8 px-2 rounded text-xs font-mono font-medium transition-all ${
+                            isCurrent
+                              ? 'bg-signal text-white font-bold shadow-xs'
+                              : 'text-ink-muted hover:text-ink hover:bg-surface-raised border border-transparent hover:border-line'
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      );
+                    })}
+                </div>
+
+                {/* Next Button */}
+                <button
+                  onClick={() => handlePageChange(Math.min(totalPages, validCurrentPage + 1))}
+                  disabled={validCurrentPage >= totalPages}
+                  className="h-8 px-2.5 sm:px-3 rounded border border-line bg-surface hover:bg-surface-raised disabled:opacity-40 disabled:pointer-events-none text-ink text-xs font-medium inline-flex items-center gap-1 transition-all shadow-xs"
+                  title="Next Page"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+
+                {/* HubSpot-Style Per Page Popover Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setIsPageSizeMenuOpen(prev => !prev)}
+                    className="h-8 px-2.5 sm:px-3 rounded border border-line bg-surface hover:bg-surface-raised text-ink text-xs font-medium inline-flex items-center gap-1.5 transition-all shadow-xs focus:ring-1 focus:ring-signal"
+                    title="Select records per page"
+                  >
+                    <span>{pageSize} per page</span>
+                    <ChevronDown className="w-3.5 h-3.5 text-ink-muted" />
+                  </button>
+
+                  {/* HubSpot Popover Dropdown Menu */}
+                  {isPageSizeMenuOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setIsPageSizeMenuOpen(false)}
+                      />
+                      <div className="absolute right-0 bottom-full mb-2.5 w-40 bg-surface-raised border border-line-strong rounded-xl shadow-xl z-50 py-1.5 text-xs animate-in fade-in zoom-in-95 duration-100">
+                        {/* Popover Arrow Pointer pointing down to button */}
+                        <div className="absolute -bottom-1.5 right-6 w-3 h-3 bg-surface-raised border-r border-b border-line-strong rotate-45" />
+
+                        <div className="px-3 py-1 text-[10px] font-mono text-ink-muted uppercase border-b border-line mb-1">
+                          Records per page
+                        </div>
+                        {[25, 50, 100].map(size => {
+                          const isSelected = pageSize === size;
+                          return (
+                            <button
+                              key={size}
+                              onClick={() => {
+                                setPageSize(size);
+                                handlePageChange(1);
+                                setIsPageSizeMenuOpen(false);
+                              }}
+                              className={`w-full px-3 py-2 text-left flex items-center justify-between transition-colors ${
+                                isSelected
+                                  ? 'bg-signal-soft text-signal font-semibold'
+                                  : 'text-ink hover:bg-surface-muted'
+                              }`}
+                            >
+                              <span>{size} per page</span>
+                              {isSelected && <Check className="w-3.5 h-3.5 text-signal" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}
