@@ -175,52 +175,70 @@ function cleanWebSnippet(raw: string, maxLen = 320): string {
 
 function normalizeScrapedContent(raw: string): string {
   if (!raw) return '';
-  const lines = raw.split('\n');
+  let content = raw;
+
+  // 1. Repair multi-line markdown links where [text \n\n text](url) spans multiple lines
+  content = content.replace(/\[([\s\S]*?)\]\((https?:\/\/[^\s)]+|\/[^\s)]+|#[^\s)]*)\)/g, (fullMatch, linkText, linkUrl) => {
+    if (linkText.includes('\n') || /#+\s/.test(linkText)) {
+      const cleanInner = linkText.trim();
+      return cleanInner;
+    }
+    if (linkUrl.startsWith('#') || linkText.toLowerCase().includes('skip to content')) {
+      return '';
+    }
+    return `[${linkText.trim()}](${linkUrl})`;
+  });
+
+  // 2. Unwrap nested headers inside brackets: [### Heading] -> ### Heading
+  content = content.replace(/\[\s*(#{1,6}\s+[^\]\n]+)\s*\]/g, '$1');
+
+  // 3. Clean up dangling link endings: e.g. text](/path)
+  content = content.replace(/([^\n\[]+)\]\((https?:\/\/[^\s)]+|\/[^\s)]+)\)/g, (match, prefix, url) => {
+    if (prefix.includes('[')) return match;
+    return prefix.trim();
+  });
+
+  // 4. Clean up isolated opening brackets on lines: e.g. "^[Article - 3 min read$"
+  content = content.replace(/^\[([^\]\n]*)$/gm, (match, inner) => inner.trim());
+
+  // 5. Clean up isolated brackets on list items: e.g. "• [" or "* ["
+  content = content.replace(/^(\s*[-*•]\s*)\[\s*$/gm, '');
+
+  // 6. Clean up adjacent jammed links: e.g. ](/path)[Next](/next) -> ](/path) [Next](/next)
+  content = content.replace(/\)\s*\[/g, ') [');
+
+  // 7. Clean up single bracket artifacts on their own line: e.g. "["
+  content = content.replace(/^\s*\[\s*$/gm, '');
+
+  const lines = content.split('\n');
   const result: string[] = [];
 
   for (let i = 0; i < lines.length; i++) {
-    let line = lines[i].trim();
-    if (!line) {
+    let line = lines[i].trimEnd();
+    const trimmed = line.trim();
+
+    if (!trimmed) {
       if (result.length > 0 && result[result.length - 1] !== '') result.push('');
       continue;
     }
 
-    // Skip empty pipe frames: | | | | or | --- | --- |
-    if (/^\|[\s|:-]*\|$/.test(line)) continue;
+    // Skip empty pipe frames: | | | | (do not skip valid table separators with dashes)
+    if (/^\|[\s|:-]*\|$/.test(trimmed) && !trimmed.includes('-')) continue;
 
     // Skip boilerplate guidelines / terms / privacy / login lines
-    if (/^\[Guidelines\]\(.*?\)\s*\|\s*\[FAQ\]/i.test(line)) continue;
-    if (/^\[Privacy Policy\]\(.*?\)\s*\|\s*\[Terms\]/i.test(line)) continue;
-    if (/^\[Apply to YC\]\(.*?\)\s*\|\s*\[Contact\]/i.test(line)) continue;
+    if (/^\[?Guidelines\]?\(.*?\)\s*\|\s*\[?FAQ\]?/i.test(trimmed)) continue;
+    if (/^\[?Privacy Policy\]?\(.*?\)\s*\|\s*\[?Terms\]?/i.test(trimmed)) continue;
+    if (/^\[?Apply to YC\]?\(.*?\)\s*\|\s*\[?Contact\]?/i.test(trimmed)) continue;
+    if (/^(Skip to content|Sign in ContactContact sales Download)$/i.test(trimmed)) continue;
 
     // Remove empty/badge image markdown ![...](...)
-    line = line.replace(/!\[.*?\]\(.*?\)/g, '').trim();
-    if (!line) continue;
+    line = line.replace(/!\[.*?\]\(.*?\)/g, '').trimEnd();
+    if (!line.trim()) continue;
 
     // Remove anchor jump links like [Product](#)
-    line = line.replace(/\[([^\]]+)\]\(#\)/g, '$1').trim();
+    line = line.replace(/\[([^\]]+)\]\(#[^\)]*\)/g, '$1');
 
-    // Remove standalone dashed separator lines that aren't hr
-    if (/^[-:|\s]{3,}$/.test(line) && !/^-{3,}$/.test(line)) continue;
-
-    // Clean up scraped table artifacts where | --- | is embedded
-    line = line.replace(/\|?\s*---\s*\|?/g, ' ').replace(/\|\s*\|\s*/g, ' | ').trim();
-
-    // If line starts and ends with | but is a scraped HTML row (e.g. | 1. | [Story](url) | (domain) |)
-    // convert into a clean, readable text line or numbered list item:
-    if (line.startsWith('|') && line.endsWith('|') && !(/^\|?\s*[-:]+[-| :]{2,}\|?$/.test(line))) {
-      const cells = line.split('|').map(c => c.trim()).filter(Boolean);
-      if (cells.length > 0) {
-        if (/^\d+\./.test(cells[0])) {
-          line = `${cells[0]} ${cells.slice(1).join(' • ')}`;
-        } else if (cells.length === 1) {
-          line = cells[0];
-        } else {
-          line = cells.join(' • ');
-        }
-      }
-    }
-
+    // PRESERVE markdown tables! Never collapse tables into bullet lines with •
     result.push(line);
   }
 
@@ -412,18 +430,14 @@ function TelemetryGraphicCard({ data }: { data: TelemetryChartData }) {
                   {item.label}
                 </div>
 
-                {/* Shaded Visual Bar with Brackets & Stippled Dot Track */}
+                {/* Shaded Visual Bar with Brackets & Filled Green Track */}
                 <div className="flex items-center gap-1 flex-1 min-w-0">
                   <span className="text-xs font-mono text-ink-muted/70 select-none">[</span>
                   <div
-                    className="flex-1 h-5.5 rounded border border-line/80 relative overflow-hidden bg-surface-raised flex items-center"
-                    style={{
-                      backgroundImage: 'radial-gradient(circle, currentColor 0.75px, transparent 0.75px)',
-                      backgroundSize: '4px 4px',
-                    }}
+                    className="flex-1 h-5 rounded border border-line bg-surface-muted/60 relative overflow-hidden flex items-center px-0.5 shadow-2xs"
                   >
                     <div
-                      className="h-full bg-slate-700 dark:bg-slate-300 group-hover:bg-signal transition-all duration-500 ease-out"
+                      className="h-3.5 bg-signal rounded-xs shadow-2xs group-hover:bg-signal/90 transition-all duration-500 ease-out"
                       style={{ width: `${Math.max(item.avgPercent, 3)}%` }}
                     />
                   </div>
@@ -470,15 +484,23 @@ function ExecutiveMarkdownViewer({
 
   // Helper to parse inline markdown: bold, code, links
   const renderInline = (text: string) => {
+    if (!text) return '';
+    let sanitized = text;
+    // Fix odd number of ** so trailing raw asterisks don't leak
+    const starMatches = sanitized.match(/\*\*/g);
+    if (starMatches && starMatches.length % 2 !== 0) {
+      sanitized = sanitized.replace(/\*\*$/, '');
+    }
+
     const parts = [];
     const regex = /(\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*|`([^`]+)`)/g;
     let match;
     let lastIdx = 0;
     let key = 0;
 
-    while ((match = regex.exec(text)) !== null) {
+    while ((match = regex.exec(sanitized)) !== null) {
       if (match.index > lastIdx) {
-        parts.push(text.substring(lastIdx, match.index));
+        parts.push(sanitized.substring(lastIdx, match.index));
       }
       if (match[2] && match[3]) {
         // Link [Anchor](url)
@@ -511,15 +533,15 @@ function ExecutiveMarkdownViewer({
       }
       lastIdx = regex.lastIndex;
     }
-    if (lastIdx < text.length) {
-      parts.push(text.substring(lastIdx));
+    if (lastIdx < sanitized.length) {
+      parts.push(sanitized.substring(lastIdx));
     }
-    return parts.length > 0 ? parts : text;
+    return parts.length > 0 ? parts : sanitized;
   };
 
   // Structured Block Parser for Tables, Code Blocks, Headers, Lists & Paragraphs
   const blocks: Array<{
-    type: 'hr' | 'h1' | 'h2' | 'h3' | 'boldHeader' | 'kv' | 'bullet' | 'number' | 'quote' | 'table' | 'code' | 'chart' | 'paragraph';
+    type: 'hr' | 'h1' | 'h2' | 'h3' | 'boldHeader' | 'kv' | 'bullet' | 'number' | 'quote' | 'table' | 'code' | 'diagram' | 'chart' | 'paragraph';
     headers?: string[];
     rows?: string[][];
     language?: string;
@@ -552,7 +574,7 @@ function ExecutiveMarkdownViewer({
       continue;
     }
 
-    // 1. Fenced Code Block: ```lang (also detects Telemetry Charts)
+    // 1. Fenced Code Block: ```lang (also detects Telemetry Charts & Architecture Diagrams)
     if (trimmed.startsWith('```')) {
       const language = trimmed.slice(3).trim();
       const codeLines: string[] = [];
@@ -572,9 +594,10 @@ function ExecutiveMarkdownViewer({
           chartData: chart,
         });
       } else {
+        const isDiagram = /[┌┐└┘│─▼▲]/.test(rawCode) || /──>/.test(rawCode) || /\+---/.test(rawCode);
         blocks.push({
-          type: 'code',
-          language: language || 'text',
+          type: isDiagram ? 'diagram' : 'code',
+          language: isDiagram ? 'DIAGRAM' : (language || 'text'),
           code: rawCode,
         });
       }
@@ -826,6 +849,31 @@ function ExecutiveMarkdownViewer({
               if (block.type === 'chart' && block.chartData) {
                 return (
                   <TelemetryGraphicCard key={idx} data={block.chartData} />
+                );
+              }
+              if (block.type === 'diagram') {
+                return (
+                  <div key={idx} className="my-3 rounded-xl border border-line bg-[#141614] text-[#E0E2DC] overflow-hidden shadow-2xs">
+                    <div className="flex items-center justify-between px-3.5 py-1.5 bg-[#1B1F1B] border-b border-[#2B342D] text-[10px] font-mono text-[#A2AAA2]">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-signal" />
+                        <span className="uppercase font-bold tracking-wider text-[#A7C7A0]">Architecture Flow</span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(block.code || '');
+                        }}
+                        className="hover:text-white transition-colors flex items-center gap-1 cursor-pointer text-[#A2AAA2]"
+                        title="Copy Diagram"
+                      >
+                        <Copy className="w-2.5 h-2.5" />
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                    <pre className="p-4 text-[11px] font-mono leading-relaxed text-[#E0E2DC] overflow-x-auto whitespace-pre select-text">
+                      {block.code}
+                    </pre>
+                  </div>
                 );
               }
               if (block.type === 'code') {
