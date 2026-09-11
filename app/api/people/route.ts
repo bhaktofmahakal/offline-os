@@ -126,6 +126,11 @@ export async function PATCH(request: Request) {
     if (updateFields.ai_model !== undefined) updatePayload.ai_model = updateFields.ai_model;
     if (updateFields.ai_generated_at !== undefined) updatePayload.ai_generated_at = updateFields.ai_generated_at;
 
+    // Socials & Source payload persistence (linkedin, twitter, website, etc.)
+    if (updateFields.source_payload !== undefined) {
+      updatePayload.source_payload = updateFields.source_payload;
+    }
+
     // Update timestamp
     updatePayload.updated_at = new Date().toISOString();
 

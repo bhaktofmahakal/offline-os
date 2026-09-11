@@ -78,6 +78,9 @@ interface Person {
   ai_model?: string | null;
   ai_generated_at?: string | null;
   source_payload?: any;
+  linkedin?: string | null;
+  twitter?: string | null;
+  website?: string | null;
 }
 
 interface Introduction {
@@ -412,7 +415,7 @@ export default function OfflineCRM() {
 
   // CRUD: Edit Member in Drawer state
   const [isEditingMember, setIsEditingMember] = useState(false);
-  const [editFormData, setEditFormData] = useState<Partial<Person>>({});
+  const [editFormData, setEditFormData] = useState<Partial<Person> & { linkedin?: string; twitter?: string; website?: string }>({});
   const [sectorTagsInput, setSectorTagsInput] = useState('');
   const [savingMember, setSavingMember] = useState(false);
   const [deletingMember, setDeletingMember] = useState(false);
@@ -438,6 +441,7 @@ export default function OfflineCRM() {
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [isApplyingContact, setIsApplyingContact] = useState(false);
   const [contactApplySuccess, setContactApplySuccess] = useState<string | null>(null);
+  const [selectedCandidateEmail, setSelectedCandidateEmail] = useState<string | null>(null);
 
   // Warm Intro Dispatcher Modal State
   const [selectedIntroForDispatch, setSelectedIntroForDispatch] = useState<Introduction | null>(null);
@@ -861,24 +865,26 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
     }
   };
 
-  // Full-Stack Discovered Contact Persistence Handler
-  const handleApplyDiscoveredContact = async (personId: number, contact: any) => {
+  // Full-Stack Discovered Contact & Socials Persistence Handler
+  const handleApplyDiscoveredContact = async (personId: number, contact: any, selectedEmailOverride?: string) => {
     if (!contact) return;
     setIsApplyingContact(true);
     setContactApplySuccess(null);
     try {
       const updatePayload: Record<string, any> = { id: personId };
-      if (contact.discovered_email) {
-        updatePayload.email = contact.discovered_email;
+      const emailToApply = selectedEmailOverride || contact.discovered_email;
+      if (emailToApply) {
+        updatePayload.email = emailToApply;
       }
       const existingPerson = people.find(p => p.id === personId) || selectedPerson;
       const existingPayload = existingPerson?.source_payload || {};
       updatePayload.source_payload = {
         ...existingPayload,
-        linkedin: contact.discovered_linkedin || existingPayload.linkedin,
-        website: contact.discovered_website || existingPayload.website,
-        twitter: contact.discovered_twitter || existingPayload.twitter,
+        linkedin: contact.discovered_linkedin || existingPayload.linkedin || null,
+        website: contact.discovered_website || existingPayload.website || null,
+        twitter: contact.discovered_twitter || existingPayload.twitter || null,
         verified_contact: contact,
+        candidate_emails: contact.candidate_emails || existingPayload.candidate_emails || [],
       };
 
       const res = await fetch('/api/people', {
@@ -902,7 +908,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
         }
       }
 
-      setContactApplySuccess('Profile updated full-stack in database!');
+      setContactApplySuccess('Profile, verified email & socials updated full-stack in Supabase!');
       setTimeout(() => setContactApplySuccess(null), 4000);
     } catch (err: any) {
       alert('Error updating contact: ' + err.message);
@@ -1297,7 +1303,13 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
   // CRUD: Open Edit Mode in Drawer
   const handleStartEditMember = () => {
     if (!selectedPerson) return;
-    setEditFormData({ ...selectedPerson });
+    const existingPayload = selectedPerson.source_payload || {};
+    setEditFormData({
+      ...selectedPerson,
+      linkedin: existingPayload.linkedin || '',
+      twitter: existingPayload.twitter || '',
+      website: existingPayload.website || '',
+    });
     setSectorTagsInput((selectedPerson.sector_tags || []).join(', '));
     setIsEditingMember(true);
   };
@@ -1316,6 +1328,14 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
         .map(s => s.trim().toLowerCase())
         .filter(s => s.length > 0);
 
+      const existingPayload = selectedPerson.source_payload || {};
+      const updatedSourcePayload = {
+        ...existingPayload,
+        linkedin: (editFormData as any).linkedin?.trim() || null,
+        twitter: (editFormData as any).twitter?.trim() || null,
+        website: (editFormData as any).website?.trim() || null,
+      };
+
       const payload = {
         id: selectedPerson.id,
         name: editFormData.name.trim(),
@@ -1327,6 +1347,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
         seniority: editFormData.seniority || 'senior',
         sector_tags: parsedSectors,
         fit_score: editFormData.fit_score !== undefined && editFormData.fit_score !== null ? Number(editFormData.fit_score) : null,
+        source_payload: updatedSourcePayload,
       };
 
       const res = await fetch('/api/people', {
@@ -4035,6 +4056,40 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                     />
                   </div>
 
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="text-[11px] font-mono text-ink-muted block mb-1">LinkedIn Profile URL</label>
+                      <input
+                        type="url"
+                        placeholder="https://linkedin.com/in/username"
+                        value={(editFormData as any).linkedin || ''}
+                        onChange={e => setEditFormData({ ...editFormData, linkedin: e.target.value } as any)}
+                        className="w-full h-8 px-2.5 text-xs bg-surface-raised border border-line rounded text-ink focus:outline-none focus:ring-1 focus:ring-signal font-mono text-[11px]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-mono text-ink-muted block mb-1">Twitter / X Handle or URL</label>
+                      <input
+                        type="text"
+                        placeholder="@handle or https://x.com/..."
+                        value={(editFormData as any).twitter || ''}
+                        onChange={e => setEditFormData({ ...editFormData, twitter: e.target.value } as any)}
+                        className="w-full h-8 px-2.5 text-xs bg-surface-raised border border-line rounded text-ink focus:outline-none focus:ring-1 focus:ring-signal font-mono text-[11px]"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-mono text-ink-muted block mb-1">Company / Personal Website</label>
+                    <input
+                      type="url"
+                      placeholder="https://company.ai"
+                      value={(editFormData as any).website || ''}
+                      onChange={e => setEditFormData({ ...editFormData, website: e.target.value } as any)}
+                      className="w-full h-8 px-2.5 text-xs bg-surface-raised border border-line rounded text-ink focus:outline-none focus:ring-1 focus:ring-signal font-mono text-[11px]"
+                    />
+                  </div>
+
                   <div className="grid grid-cols-2 gap-2.5">
                     <div>
                       <label className="text-[11px] font-mono text-ink-muted block mb-1">Role Type</label>
@@ -4141,6 +4196,57 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                           </div>
                         )}
                       </div>
+
+                      {/* Social & Web Footprint Badges */}
+                      {(() => {
+                        const activeDossier = dossierCache[selectedPerson.id] || selectedPerson.ai_classification?.dossier;
+                        const lk = selectedPerson.source_payload?.linkedin || activeDossier?.discovered_contact?.discovered_linkedin;
+                        const tw = selectedPerson.source_payload?.twitter || activeDossier?.discovered_contact?.discovered_twitter;
+                        const wb = selectedPerson.source_payload?.website || activeDossier?.discovered_contact?.discovered_website;
+
+                        if (!lk && !tw && !wb) return null;
+
+                        return (
+                          <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                            {lk && (
+                              <a
+                                href={lk}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-[#0A66C2]/10 text-[#0A66C2] hover:bg-[#0A66C2]/20 border border-[#0A66C2]/30 transition-colors"
+                                title="Open verified LinkedIn profile"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                                <span>LinkedIn</span>
+                              </a>
+                            )}
+                            {tw && (
+                              <a
+                                href={tw.startsWith('http') ? tw : `https://x.com/${tw.replace('@', '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-black/5 dark:bg-white/10 text-ink hover:bg-surface-raised border border-line transition-colors"
+                                title="Open verified X / Twitter profile"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                                <span>X (Twitter)</span>
+                              </a>
+                            )}
+                            {wb && (
+                              <a
+                                href={wb}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-surface-raised text-ink-muted hover:text-signal border border-line transition-colors"
+                                title="Open verified website"
+                              >
+                                <Globe className="w-3 h-3" />
+                                <span>Website</span>
+                              </a>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
 
@@ -4203,13 +4309,13 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
                           {/* Verified Contact Discovery & Identity Footprint */}
                           {activeDossier.discovered_contact && (
-                            <div className="p-3 bg-surface rounded-lg border border-line space-y-2.5 text-xs">
+                            <div className="p-3.5 bg-surface rounded-xl border border-line space-y-3 text-xs shadow-2xs">
                               <div className="flex items-center justify-between">
                                 <span className="text-[10px] font-semibold text-signal uppercase tracking-wider flex items-center gap-1.5">
                                   <Sparkles className="w-3 h-3 text-signal" />
-                                  Verified Contact Footprint
+                                  Verified Contact & Socials Footprint
                                 </span>
-                                <span className={`text-[10px] font-mono font-medium px-1.5 py-0.5 rounded border ${
+                                <span className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded border ${
                                   activeDossier.discovered_contact.verification_status === 'verified'
                                     ? 'bg-signal-soft text-signal border-signal/20'
                                     : 'bg-surface-raised text-ink-muted border-line'
@@ -4222,64 +4328,170 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                                 {activeDossier.discovered_contact.verification_notes || 'Cross-referenced against verified company and executive footprint.'}
                               </p>
 
-                              {/* Discovered Fields Grid */}
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-0.5 font-mono text-[11px]">
-                                <div className="p-2 rounded bg-surface-raised border border-line/60">
-                                  <span className="text-[10px] uppercase text-ink-muted block mb-0.5">Discovered Email</span>
-                                  {activeDossier.discovered_contact.discovered_email ? (
-                                    <span className="text-ink font-medium select-all break-all">
-                                      {activeDossier.discovered_contact.discovered_email}
-                                    </span>
-                                  ) : (
-                                    <span className="text-ink-faint italic">Not publicly found</span>
-                                  )}
-                                </div>
-
-                                <div className="p-2 rounded bg-surface-raised border border-line/60">
-                                  <span className="text-[10px] uppercase text-ink-muted block mb-0.5">Verified LinkedIn</span>
+                              {/* Discovered Socials & Web Grid */}
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 font-mono text-[11px]">
+                                <div className="p-2 rounded-lg bg-surface-raised border border-line/60">
+                                  <span className="text-[10px] uppercase text-ink-muted block mb-0.5">LinkedIn Profile</span>
                                   {activeDossier.discovered_contact.discovered_linkedin ? (
                                     <a
                                       href={activeDossier.discovered_contact.discovered_linkedin}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="text-signal hover:underline break-all truncate block"
+                                      className="text-[#0A66C2] hover:underline break-all truncate block"
                                     >
-                                      {activeDossier.discovered_contact.discovered_linkedin}
+                                      {activeDossier.discovered_contact.discovered_linkedin.replace('https://www.linkedin.com/in/', 'in/')}
                                     </a>
                                   ) : (
-                                    <span className="text-ink-faint italic">Not publicly found</span>
+                                    <span className="text-ink-faint italic font-sans text-xs">Not found</span>
+                                  )}
+                                </div>
+
+                                <div className="p-2 rounded-lg bg-surface-raised border border-line/60">
+                                  <span className="text-[10px] uppercase text-ink-muted block mb-0.5">Twitter / X</span>
+                                  {activeDossier.discovered_contact.discovered_twitter ? (
+                                    <a
+                                      href={activeDossier.discovered_contact.discovered_twitter.startsWith('http') ? activeDossier.discovered_contact.discovered_twitter : `https://x.com/${activeDossier.discovered_contact.discovered_twitter.replace('@', '')}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-ink hover:text-signal hover:underline break-all truncate block"
+                                    >
+                                      {activeDossier.discovered_contact.discovered_twitter.replace('https://x.com/', '@').replace('https://twitter.com/', '@')}
+                                    </a>
+                                  ) : (
+                                    <span className="text-ink-faint italic font-sans text-xs">Not found</span>
+                                  )}
+                                </div>
+
+                                <div className="p-2 rounded-lg bg-surface-raised border border-line/60">
+                                  <span className="text-[10px] uppercase text-ink-muted block mb-0.5">Company / Web</span>
+                                  {activeDossier.discovered_contact.discovered_website ? (
+                                    <a
+                                      href={activeDossier.discovered_contact.discovered_website}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-signal hover:underline break-all truncate block"
+                                    >
+                                      {activeDossier.discovered_contact.discovered_website.replace('https://', '').replace('http://', '')}
+                                    </a>
+                                  ) : (
+                                    <span className="text-ink-faint italic font-sans text-xs">Not found</span>
                                   )}
                                 </div>
                               </div>
 
-                              {/* Full-Stack Update Prompt Banner if discovered details differ */}
-                              {((activeDossier.discovered_contact.discovered_email &&
-                                 activeDossier.discovered_contact.discovered_email.toLowerCase() !== (selectedPerson.email || '').toLowerCase()) ||
-                                (activeDossier.discovered_contact.discovered_linkedin &&
-                                 activeDossier.discovered_contact.discovered_linkedin !== (selectedPerson.source_payload?.linkedin || ''))) && (
-                                <div className="mt-2 p-2.5 bg-signal-soft/60 border border-signal/30 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
-                                  <div className="min-w-0">
-                                    <span className="text-[11px] font-semibold text-ink block">
-                                      New verified contact credentials detected!
+                              {/* Multi-Email Deliverability & Freshness Matrix */}
+                              {activeDossier.discovered_contact.candidate_emails && activeDossier.discovered_contact.candidate_emails.length > 0 && (
+                                <div className="space-y-2 pt-2 border-t border-line/60">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[10px] uppercase font-semibold text-ink-muted tracking-wider flex items-center gap-1">
+                                      <CheckCircle2 className="w-3 h-3 text-signal" />
+                                      Email Deliverability & Freshness Verification
                                     </span>
-                                    <span className="text-[10px] text-ink-muted block">
-                                      Click below to persist discovered contact info directly into database.
+                                    <span className="text-[10px] font-mono text-ink-faint">
+                                      {activeDossier.discovered_contact.candidate_emails.length} candidates analyzed
+                                    </span>
+                                  </div>
+
+                                  <div className="space-y-1.5">
+                                    {activeDossier.discovered_contact.candidate_emails.map((candidate: any, cIdx: number) => {
+                                      const isChosen = (selectedCandidateEmail || activeDossier.discovered_contact.discovered_email) === candidate.email;
+                                      const isCurrent = (selectedPerson.email || '').toLowerCase() === candidate.email.toLowerCase();
+
+                                      return (
+                                        <div
+                                          key={cIdx}
+                                          onClick={() => setSelectedCandidateEmail(candidate.email)}
+                                          className={`p-2.5 rounded-lg border transition-all cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 ${
+                                            isChosen
+                                              ? 'bg-signal-soft/40 border-signal shadow-2xs'
+                                              : 'bg-surface-raised border-line/70 hover:border-line'
+                                          }`}
+                                        >
+                                          <div className="flex items-start gap-2.5 min-w-0">
+                                            <input
+                                              type="radio"
+                                              name="candidateEmailSelect"
+                                              checked={isChosen}
+                                              onChange={() => setSelectedCandidateEmail(candidate.email)}
+                                              className="mt-0.5 text-signal focus:ring-signal"
+                                            />
+                                            <div className="min-w-0 space-y-0.5">
+                                              <div className="flex items-center gap-2 flex-wrap">
+                                                <span className="font-mono text-xs font-semibold text-ink break-all select-all">
+                                                  {candidate.email}
+                                                </span>
+                                                {candidate.is_recommended && (
+                                                  <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-signal text-surface uppercase tracking-wider">
+                                                    Recommended
+                                                  </span>
+                                                )}
+                                                {isCurrent && (
+                                                  <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-medium bg-surface border border-line text-ink-muted">
+                                                    Current CRM Email
+                                                  </span>
+                                                )}
+                                              </div>
+                                              <p className="text-[10px] text-ink-muted leading-tight">
+                                                {candidate.reasoning}
+                                              </p>
+                                            </div>
+                                          </div>
+
+                                          <div className="flex items-center gap-1.5 flex-shrink-0 self-end sm:self-center">
+                                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-medium flex items-center gap-1 border ${
+                                              candidate.deliverable
+                                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                                                : 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20'
+                                            }`} title={candidate.mx_reason || ''}>
+                                              {candidate.deliverable ? (
+                                                <>
+                                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                                  <span>MX Active</span>
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                                                  <span>Undeliverable</span>
+                                                </>
+                                              )}
+                                            </span>
+
+                                            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-surface border border-line text-ink tabular-nums">
+                                              {candidate.confidence}% fit
+                                            </span>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Full-Stack Update & Sync Button */}
+                              {activeDossier.discovered_contact.verification_status === 'verified' && (
+                                <div className="mt-2.5 p-3 bg-signal-soft/60 border border-signal/30 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                                  <div className="min-w-0 space-y-0.5">
+                                    <span className="text-xs font-semibold text-ink block">
+                                      Persist Verified Contact & Socials to Database
+                                    </span>
+                                    <span className="text-[11px] text-ink-muted block">
+                                      Full-stack syncs selected email, verified LinkedIn, X/Twitter, and website into Supabase.
                                     </span>
                                   </div>
                                   <button
-                                    onClick={() => handleApplyDiscoveredContact(selectedPerson.id, activeDossier.discovered_contact)}
+                                    onClick={() => handleApplyDiscoveredContact(selectedPerson.id, activeDossier.discovered_contact, selectedCandidateEmail || undefined)}
                                     disabled={isApplyingContact}
-                                    className="h-7 px-3 bg-signal hover:bg-signal/90 text-surface text-xs font-medium rounded flex items-center gap-1.5 transition-all shadow-xs cursor-pointer flex-shrink-0 disabled:opacity-50"
+                                    className="h-8 px-3.5 bg-signal hover:bg-signal/90 text-surface text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all shadow-xs cursor-pointer flex-shrink-0 disabled:opacity-50"
                                   >
                                     <Check className="w-3.5 h-3.5" />
-                                    <span>{isApplyingContact ? 'Updating DB...' : 'Apply & Update Profile'}</span>
+                                    <span>{isApplyingContact ? 'Syncing DB...' : 'Apply & Sync Profile'}</span>
                                   </button>
                                 </div>
                               )}
 
                               {contactApplySuccess && (
-                                <div className="p-2 bg-signal-soft text-signal text-[11px] rounded border border-signal/30 flex items-center gap-1.5 animate-in fade-in">
-                                  <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
+                                <div className="p-2.5 bg-signal-soft text-signal text-xs rounded-lg border border-signal/30 flex items-center gap-1.5 animate-in fade-in">
+                                  <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
                                   <span>{contactApplySuccess}</span>
                                 </div>
                               )}
