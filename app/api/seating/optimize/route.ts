@@ -101,8 +101,20 @@ export async function POST(request: Request) {
 
     const parsedTableSize = Math.max(2, Math.min(20, parseInt(tableSize, 10) || 8));
 
-    if (!memberIds || !Array.isArray(memberIds) || memberIds.length === 0) {
-      return NextResponse.json({ error: 'Please provide a valid list of member IDs to seat.' }, { status: 400 });
+    let targetMemberIds: number[] = Array.isArray(memberIds) ? memberIds : [];
+
+    // If no explicit member IDs provided, dynamically fetch canonical members
+    if (targetMemberIds.length === 0 && supabase) {
+      const { data: canonicals } = await supabase
+        .from('people')
+        .select('id')
+        .is('is_duplicate_of', null)
+        .limit(64);
+      targetMemberIds = (canonicals || []).map(c => c.id);
+    }
+
+    if (targetMemberIds.length === 0) {
+      return NextResponse.json({ error: 'Please provide a valid list of member IDs to seat or ingest canonical members.' }, { status: 400 });
     }
 
     // 1. Fetch attendee profiles
@@ -111,7 +123,7 @@ export async function POST(request: Request) {
       const { data, error } = await supabase
         .from('people')
         .select('id, name, email, company, role_title, role_type, seniority, sector_tags, skills, needs, bio_notes, fit_score, clean_summary')
-        .in('id', memberIds);
+        .in('id', targetMemberIds);
 
       if (error) {
         throw new Error('Supabase fetch failed: ' + error.message);
