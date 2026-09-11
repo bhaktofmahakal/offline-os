@@ -113,6 +113,9 @@ A dedicated intelligence workspace accessible directly from the dashboard naviga
    * Real-time semantic web queries with domain filtering and relevance percentage scoring.
 5. **Slide-Over Drawer 1-Click Research Memo**:
    * Generates instant executive background briefs on any member's ventures, investments, and footprint.
+6. **📜 Persistent Intelligence Audit Ledger**:
+   * All autonomous intelligence runs, deep web searches, scraped datasets, and research memos are permanently stored in Supabase PostgreSQL (`public.intelligence_records`).
+   * Operators can restore any previous search results or cited research reports into the live viewer in 1-click with **zero token cost**.
 
 ### 3. Entity Resolution & Deduplication Queue
 * **Hybrid RapidFuzz + LLM Matching**:
@@ -213,6 +216,7 @@ offline-os/
 │   │   │   ├── research/       # Autonomous research task initiator & polling
 │   │   │   └── search/         # Neural web search engine
 │   │   ├── export/             # RFC-4180 CSV & JSON export engine with UTF-8 BOM
+│   │   ├── intelligence/       # Persistent Intelligence Audit Ledger (GET, POST, DELETE)
 │   │   ├── introductions/      # Intro approval, dismissal, and retrieval
 │   │   ├── people/             # Member CRUD & 360° AI enrichment
 │   │   ├── v1/ingest/          # Universal webhook receiver (Typeform/Tally/n8n)

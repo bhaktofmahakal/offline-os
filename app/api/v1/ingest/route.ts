@@ -111,20 +111,58 @@ export async function POST(request: Request) {
 
     // Clean normalized email
     const emailNorm = extracted.email ? extracted.email.toLowerCase().trim() : null;
+    const sourceRecordId = rawBody.source_record_id || rawBody.record_id || null;
 
-    // Check for obvious duplicate by email
+    // Idempotency check 1: Exact source_record_id match
+    if (sourceRecordId) {
+      const { data: existingBySourceId } = await supabase
+        .from('people')
+        .select('*')
+        .eq('source_record_id', String(sourceRecordId).trim())
+        .maybeSingle();
+
+      if (existingBySourceId) {
+        return NextResponse.json({
+          success: true,
+          message: 'Applicant already ingested (idempotent replay)',
+          record: existingBySourceId,
+          duplicate_detected: Boolean(existingBySourceId.is_duplicate_of),
+          idempotent_replay: true,
+        });
+      }
+    }
+
+    // Check for duplicate or rapid concurrent retry by email
     let is_dup_of: number | null = null;
     let dup_confidence: number | null = null;
 
     if (emailNorm) {
-      const { data: existingMatch } = await supabase
+      const { data: existingMatches } = await supabase
         .from('people')
-        .select('id, name, email')
+        .select('*')
         .eq('email_normalized', emailNorm)
-        .limit(1)
-        .maybeSingle();
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      const existingMatch = existingMatches && existingMatches.length > 0 ? existingMatches[0] : null;
 
       if (existingMatch) {
+        const createdAtMs = new Date(existingMatch.created_at).getTime();
+        const ageSeconds = (Date.now() - createdAtMs) / 1000;
+
+        // If the exact same email was ingested within the last 120 seconds (accounting for DB clock skew), treat as concurrent/retry submission
+        if (Math.abs(ageSeconds) < 120) {
+          console.log(`[INGEST IDEMPOTENCY] Suppressing duplicate row for ${emailNorm}. Reusing record #${existingMatch.id} created ${Math.round(ageSeconds)}s ago.`);
+          return NextResponse.json({
+            success: true,
+            message: 'Applicant already ingested recently (deduplicated retry)',
+            record: existingMatch,
+            duplicate_detected: Boolean(existingMatch.is_duplicate_of),
+            deduplicated: true,
+          });
+        }
+
+        // For older records (>120s ago), flag as legitimate duplicate of existing canonical
         is_dup_of = existingMatch.id;
         dup_confidence = 1.0;
       }
@@ -137,9 +175,9 @@ export async function POST(request: Request) {
     if (extracted.bio_notes.length > 50) calculatedFit += 5;
     calculatedFit = Math.min(calculatedFit, 96);
 
-    const recordId = `ingest_${Date.now()}`;
+    const finalRecordId = sourceRecordId ? String(sourceRecordId).trim() : `ingest_${Date.now()}`;
     const newPerson = {
-      source_record_id: recordId,
+      source_record_id: finalRecordId,
       name: extracted.name,
       email: extracted.email || null,
       email_normalized: emailNorm,

@@ -113,32 +113,40 @@ flowchart TD
 ---
 
 ### Subsystem C: Deep Intelligence & Autonomous Research (`@tavily/core`)
-NetworkOS integrates the complete **Tavily AI Core Suite** as an autonomous intelligence subsystem:
+NetworkOS integrates the complete **Tavily AI Core Suite** as an autonomous intelligence subsystem with **100% database persistence**:
 1. **Asynchronous Deep Research Task (`/api/tavily/research`)**:
    * Dispatches long-form research tasks using `client.research(input, { model: 'mini' | 'pro' })`.
    * Returns an immediate `requestId`.
    * Frontend polls `GET /api/tavily/research?requestId=...` until `status === 'completed'`.
-   * Outputs an exhaustive Markdown report citing verified primary sources with direct URLs.
+   * Automatically persists the resulting markdown intelligence report and verified primary sources to `public.intelligence_records` (and to `people.ai_classification.deep_memo` when executed from a member's profile drawer).
 2. **Recursive Site Crawler (`/api/tavily/crawl`)**:
    * Recursively traverses target domains with configurable limit (1–50 pages), max depth, and breadth.
-   * Extracts clean, structured LLM-ready markdown content.
+   * Extracts clean, structured LLM-ready markdown content and logs completed crawls to `public.intelligence_records`.
 3. **Multi-URL Clean Extractor (`/api/tavily/extract`)**:
-   * Batch extracts markdown content from up to 20 URLs concurrently.
+   * Batch extracts markdown content from up to 20 URLs concurrently with persistence to Supabase.
 4. **Neural Web Search Engine (`/api/tavily/search`)**:
-   * Executes LLM-targeted semantic searches with domain filtering and relevance scores.
+   * Executes LLM-targeted semantic searches with domain filtering and relevance scores, automatically storing citations and query parameters in `public.intelligence_records`.
+5. **Persistent Intelligence Audit Ledger (`/api/intelligence`)**:
+   * Provides historical query inspection, record filtering by type, and 1-click **Restore to View** functionality that repopulates previous search or crawl datasets with zero additional API tokens.
 
 ---
 
-### Subsystem D: 360° AI Enrichment Fusion Engine
+### Subsystem D: 360° AI Enrichment & Dossier Persistence Engine
 * Located in [`app/api/people/enrich/route.ts`](file:///u:/offline-os/app/api/people/enrich/route.ts).
 * **Fusion Logic**:
-  * Step 1: Spawns **TinyFish CLI** to scrape the founder's GitHub, personal website, or company domain.
-  * Step 2: Queries **Tavily Search** for venture funding rounds, accelerators (Y Combinator, Techstars), and press mentions.
-  * Step 3: **Gemini 2.5 Flash** synthesizes raw signals into:
-    * Executive Debrief
-    * Verified Traction Signals
-    * Detected Tech Stack
-  * Step 4: Results are stored in local and Supabase cache, displayed in the slide-over details drawer.
+  * Step 1: Queries **Tavily Advanced Search** for founder background, venture funding rounds, accelerators (Y Combinator, Techstars), and recent press coverage.
+  * Step 2: **Gemini 2.5 Flash** synthesizes raw web evidence into a high-density structured JSON 360° Founder Dossier:
+    * `executive_summary`: Concise 2-sentence executive summary highlighting domain depth and current company focus.
+    * `traction_signals`: Specific factual traction indicators and leadership background.
+    * `tech_stack`: Detected domain specializations and core technology stack.
+    * `target_synergies`: Ideal co-founder and strategic connection archetypes.
+    * `verified_confidence`: Confidence score (80–95%).
+  * Step 3: **Permanent Database Persistence**:
+    * Writes the full dossier into `people.ai_classification.dossier` in Supabase PostgreSQL.
+    * Updates `people.clean_summary`, `people.ai_model = 'gemini-2.5-flash'`, and `people.ai_generated_at = now()`.
+    * Automatically updates `people.community_fit_tags` with `'360_enriched'` and `#<tech>` tags.
+  * Step 4: **Zero-Data-Loss Hydration**:
+    * On initial page load or browser refresh, `fetchData()` hydrates `dossierCache` and `drawerResearchReport` directly from each member's `ai_classification` column, guaranteeing that generated dossiers never vanish across sessions.
 
 ---
 
@@ -206,3 +214,69 @@ NetworkOS integrates the complete **Tavily AI Core Suite** as an autonomous inte
 * **RFC-4180 Compliance & UTF-8 BOM**: Server-side exports in `/api/export` enforce RFC 5987/6266 headers and prepend a `\uFEFF` Byte Order Mark, preventing encoding corruption in Microsoft Excel and Apple Numbers.
 * **Rate-Limit Resilience**: Ingestion and synchronization loops enforce backoff and retry mechanisms to prevent 429 throttling across external APIs.
 * **Reversible Governance**: Duplicate merges are non-destructive and retain full parent record pointers (`is_duplicate_of`).
+
+---
+
+## 5. Strategic Future Roadmap & Ecosystem Playbooks
+
+Derived from the **Offline Founder's Office Master Playbook**, these architectural blueprints address the operational ceiling of the 5-person executive team (Utsav Somani, Sahil Talwar, Sharon Pereira, Aparna Pande, Fabiola Monteiro) as the community expands from 300 to 1,000+ members.
+
+```mermaid
+flowchart LR
+    subgraph EXPANSION["FOUNDER'S OFFICE AUTOMATION SUITE"]
+        B1["1. Seating Optimizer\n(Aparna: 8-Person Tables)"]
+        B2["2. Superpower Matrix\n(Sahil: Reciprocal Intros)"]
+        B3["3. Churn Telemetry\n(Sharon: 30/60/90d Radar)"]
+        B4["4. TinyFish Waterfall\n(Enrichment: Stealth/GitHub)"]
+        B5["5. Slack VIP Concierge\n(Utsav: 1-Click Mobile Flow)"]
+        B6["6. Two-Stage Retrieval\n(10k+ Scale: HNSW + LLM)"]
+    end
+```
+
+### 💡 Blueprint 1: Retreats & VIP Dinners "Algorithmic Seating Optimizer"
+* **Stakeholder**: **Aparna Pande** (Member Experiences Lead), who curates high-stakes retreats and 8-person private dinner seating arrangements across 50+ unicorn & scaling founders.
+* **Platform Capability**:
+  * Operator selects: *"Dinner for 48 Founders (6 Tables of 8)"*.
+  * Automated constraint-satisfaction algorithm enforces 3 strict business heuristics:
+    1. **Zero Direct Competitors**: Conflicting founders (e.g., two quick-commerce or two crypto exchange operators) are mathematically isolated onto distinct tables.
+    2. **Balanced Seniority & Stage Distribution**: Each table enforces a curated ratio: 2 exited/unicorn founders + 4 scaling Series A/B founders + 2 deep-tech/infrastructure specialists.
+    3. **AI Table Conversation Cards**: Generates a custom 1-page briefing card per table detailing shared latent interests, complementary operational bottlenecks, and provocative off-the-record discussion prompts.
+
+### 💡 Blueprint 2: Member Superpower & Bottleneck Reciprocal Matrix
+* **Stakeholder**: **Sahil Talwar** (Community & Partnerships Lead), who brokers high-leverage peer introductions.
+* **Platform Capability**:
+  * Moves beyond unilateral tagging by maintaining a dynamic **Bilateral Synergy Index**.
+  * Matches **Founder A's Superpower** (e.g., *Scale GTM, US Enterprise Sales*) with **Founder B's Bottleneck** (*Struggling with US outbound expansion*), while simultaneously matching **Founder B's Superpower** (*Autonomous Agent Infra*) with **Founder A's Bottleneck** (*LLM pipeline reliability*).
+  * Automatically surfaces high-conviction reciprocal introductions that eliminate one-sided networking fatigue.
+
+### 💡 Blueprint 3: Member Engagement & Churn Early-Warning Telemetry
+* **Stakeholder**: **Sharon Pereira** (Member Success Lead), who maintains personal concierge touchpoints across the entire private membership.
+* **Platform Capability**:
+  * **Inactivity Radar**: Tracks member interactions across pod sessions, retreat attendances, and introduction responses. Automatically flags members with 45+ days of silence: *"Sharon: Member X has not engaged in 45 days. Recommended action: Propose 2 curated intros with newly joined founders."*
+  * **Automated 'Year-in-Review' Concierge**: 30 days prior to annual membership renewal (₹1.5L–₹3L/yr), compiles a bespoke executive dossier highlighting all peer connections made, mutual value exchanged, and confidential off-the-record insights unlocked through Offline.
+
+### 💡 Blueprint 4: Multi-Provider Waterfall Enrichment & TinyFish Scraper
+* **Stakeholder**: Founder's Office Ingestion Pipeline.
+* **Platform Capability**:
+  * Solves the **"1-Line Stealth Bio"** bottleneck where high-profile founders submit minimalist bios (*"Founder at stealth, ex-Google"*).
+  * **Tiered Waterfall Pipeline**:
+    1. **TinyFish Autonomous Scraper**: Headless, anti-fingerprinting crawler targeting the founder's personal domain, GitHub repositories, and open-source contributions.
+    2. **Tavily Neural Web Search**: Real-time cross-referencing against SEC filings, funding announcements, AngelList syndicate memos, and tech press.
+    3. **Gemini 2.5 Flash Synthesis**: Consolidates scraped web crumbs into a structured 360° executive profile before human review.
+
+### 💡 Blueprint 5: Real-Time Slack VIP Intake Concierge Bot (`#offline-vip-intake`)
+* **Stakeholder**: **Utsav Somani** (Founder & CEO), enabling sub-minute executive approvals directly from mobile.
+* **Platform Capability**:
+  * When a high-conviction applicant scores **Fit Score > 85/100**, n8n immediately pushes an interactive Block-Kit notification to `#offline-vip-intake`.
+  * Features interactive inline action buttons:
+    * `[🟢 Approve & Welcome]`: Dispatches member onboarding sequence.
+    * `[🤝 Suggest Intro]`: Links to candidate matchmaker.
+    * `[🔬 Deep Research Dossier]`: Opens the Tavily autonomous intelligence briefing.
+
+### 💡 Blueprint 6: Two-Stage Hybrid Vector Retrieval at 10,000+ Scale
+* **Stakeholder**: Core Database & Recommendation Infrastructure.
+* **Platform Capability**:
+  * Prevents $O(N^2)$ Cartesian explosion when evaluating millions of pairwise member combinations:
+    1. **Stage 1 (Coarse-Grained Spatial Filtering)**: Supabase `pgvector` HNSW index combined with SQL metadata filtering (sector, stage, geography) extracts top 20 nearest neighbors in **<15ms**.
+    2. **Stage 2 (Fine-Grained Contextual Synergy)**: Gemini evaluates only the top 20 pre-filtered pairs, generating bespoke double-opt-in icebreakers with near-zero latency and minimal token consumption.
+

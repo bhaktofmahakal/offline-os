@@ -51,7 +51,7 @@ export default function ApplyPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
-          signal: AbortSignal.timeout(8000),
+          signal: AbortSignal.timeout(15000),
         });
 
         if (n8nRes.ok) {
@@ -77,30 +77,16 @@ export default function ApplyPage() {
           }
         }
       } catch (n8nErr) {
-        console.warn('Webhook unavailable, using direct pipeline:', n8nErr);
+        console.warn('Webhook unavailable or timed out, using direct pipeline:', n8nErr);
       }
 
-      // 2. Only fall back to direct pipeline if n8n webhook actually failed
+      // 2. Resilient direct ingest fallback if n8n webhook failed
       if (!n8nSucceeded) {
-        let res = null;
-        try {
-          const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || 'https://offline-os.onrender.com').trim();
-          res = await fetch(`${backendUrl}/process-new-record`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-            signal: AbortSignal.timeout(6000),
-          });
-        } catch (_) {}
-
-        if (!res || !res.ok) {
-          // Local resilient fallback
-          res = await fetch('/api/v1/ingest', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-          });
-        }
+        const res = await fetch('/api/v1/ingest', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
 
         if (!res.ok) {
           throw new Error(`Server returned status ${res.status}`);
