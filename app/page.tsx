@@ -1566,7 +1566,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
     }
   };
 
-  // Live Merge duplicate in Supabase (with confirmation modal flow)
+  // Live Merge duplicate in Supabase (with full-stack data consolidation)
   const handleConfirmMergeExecution = async () => {
     if (!candidateToMerge) return;
     const { duplicate, canonical } = candidateToMerge;
@@ -1578,17 +1578,59 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
         next.add(duplicate.id);
         return next;
       });
+
+      // Optimistic update of state
       setPeople(prev =>
-        prev.map(p => (p.id === duplicate.id ? { ...p, is_duplicate_of: canonical.id, duplicate_confidence: 1.0, review_status: 'merged' } : p))
+        prev.map(p => {
+          if (p.id === duplicate.id) {
+            return { ...p, is_duplicate_of: canonical.id, duplicate_confidence: 1.0, review_status: 'merged' };
+          }
+          if (p.id === canonical.id) {
+            const mergedTags = Array.from(new Set([...(canonical.sector_tags || []), ...(duplicate.sector_tags || [])]));
+            return {
+              ...p,
+              sector_tags: mergedTags,
+              fit_score: Math.max(canonical.fit_score ?? 0, duplicate.fit_score ?? 0),
+              bio_notes: canonical.bio_notes || duplicate.bio_notes || p.bio_notes,
+            };
+          }
+          return p;
+        })
       );
-      await fetch('/api/people', {
-        method: 'PATCH',
+
+      // Execute full-stack atomic merge on server
+      const res = await fetch('/api/people/merge', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: duplicate.id, is_duplicate_of: canonical.id, duplicate_confidence: 1.0, review_status: 'merged' })
+        body: JSON.stringify({ canonicalId: canonical.id, duplicateId: duplicate.id })
       });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      if (data.canonical && data.duplicate) {
+        // Sync full-stack updated canonical & duplicate into frontend state
+        setPeople(prev =>
+          prev.map(p => {
+            if (p.id === data.duplicate.id) return data.duplicate;
+            if (p.id === data.canonical.id) return data.canonical;
+            return p;
+          })
+        );
+        if (selectedPerson?.id === canonical.id) {
+          setSelectedPerson(data.canonical);
+        } else if (selectedPerson?.id === duplicate.id) {
+          setSelectedPerson(data.duplicate);
+        }
+      }
+
       setCandidateToMerge(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error merging duplicate record:', err);
+      alert(`Failed to merge records: ${err.message || String(err)}`);
     } finally {
       setMergingInProgress(false);
     }
@@ -1827,12 +1869,24 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
       // Status Filter
       let matchStatus = true;
-      if (statusFilter === 'CANONICAL') matchStatus = p.is_duplicate_of === null;
-      if (statusFilter === 'DUPLICATES') matchStatus = p.is_duplicate_of !== null && p.review_status !== 'merged' && !mergedIds.has(p.id);
-      if (statusFilter === 'MERGED') matchStatus = p.is_duplicate_of !== null && (p.review_status === 'merged' || mergedIds.has(p.id));
-      if (statusFilter === 'ALL_DUPLICATES') matchStatus = p.is_duplicate_of !== null;
-      if (statusFilter === 'INCOMPLETE') matchStatus = p.is_incomplete;
-      if (statusFilter === 'HIGH_FIT') matchStatus = p.fit_score !== null && p.fit_score >= 80;
+      if (statusFilter === 'ALL') {
+        // Active members view: automatically archive/hide consolidated duplicates
+        matchStatus = p.review_status !== 'merged' && !mergedIds.has(p.id);
+      } else if (statusFilter === 'CANONICAL') {
+        matchStatus = p.is_duplicate_of === null;
+      } else if (statusFilter === 'DUPLICATES') {
+        matchStatus = p.is_duplicate_of !== null && p.review_status !== 'merged' && !mergedIds.has(p.id);
+      } else if (statusFilter === 'MERGED') {
+        matchStatus = p.is_duplicate_of !== null && (p.review_status === 'merged' || mergedIds.has(p.id));
+      } else if (statusFilter === 'ALL_DUPLICATES') {
+        matchStatus = p.is_duplicate_of !== null;
+      } else if (statusFilter === 'ALL_WITH_MERGED') {
+        matchStatus = true;
+      } else if (statusFilter === 'INCOMPLETE') {
+        matchStatus = p.is_incomplete;
+      } else if (statusFilter === 'HIGH_FIT') {
+        matchStatus = p.fit_score !== null && p.fit_score >= 80;
+      }
 
       // HubSpot Quick View Tab Filter
       let matchViewTab = true;
@@ -3081,11 +3135,11 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   onChange={e => setStatusFilter(e.target.value)}
                   className="h-8 px-2 bg-surface border border-line rounded text-xs text-ink focus:outline-none focus:ring-1 focus:ring-signal"
                 >
-                  <option value="ALL">All Records</option>
+                  <option value="ALL">All Active Members</option>
                   <option value="CANONICAL">Canonical Only</option>
                   <option value="DUPLICATES">Pending Duplicates</option>
-                  <option value="MERGED">Merged Records</option>
-                  <option value="ALL_DUPLICATES">All Duplicates</option>
+                  <option value="MERGED">Merged Records (Archive)</option>
+                  <option value="ALL_WITH_MERGED">All Records (Include Merged)</option>
                   <option value="INCOMPLETE">Incomplete Profiles</option>
                   <option value="HIGH_FIT">High Fit (80+)</option>
                 </select>
@@ -3193,11 +3247,11 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                     onChange={e => setStatusFilter(e.target.value)}
                     className="w-full min-h-[44px] px-3 bg-surface-raised border border-line rounded text-xs text-ink"
                   >
-                    <option value="ALL">All Records</option>
+                    <option value="ALL">All Active Members</option>
                     <option value="CANONICAL">Canonical Only</option>
                     <option value="DUPLICATES">Pending Duplicates</option>
-                    <option value="MERGED">Merged Records</option>
-                    <option value="ALL_DUPLICATES">All Duplicates (Pending & Merged)</option>
+                    <option value="MERGED">Merged Records (Archive)</option>
+                    <option value="ALL_WITH_MERGED">All Records (Include Merged)</option>
                     <option value="INCOMPLETE">Incomplete Profiles</option>
                     <option value="HIGH_FIT">High Fit (80+)</option>
                   </select>
@@ -3318,7 +3372,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                       </td>
                     </tr>
                   ) : (
-                    paginatedPeople.map(person => {
+                    paginatedPeople.map((person, pIdx) => {
                       const isDup = person.is_duplicate_of !== null;
                       return (
                         <tr
@@ -3395,7 +3449,11 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                                 <span className="text-[10px] font-normal opacity-70">/100</span>
 
                                 {activeTooltipId === person.id && (
-                                  <div className="absolute left-0 bottom-full mb-2 w-72 p-3 bg-surface-raised border border-line-strong rounded-lg shadow-xl text-xs z-30 pointer-events-none text-ink font-sans">
+                                  <div
+                                    className={`absolute left-0 ${
+                                      pIdx < 2 ? 'top-full mt-2' : 'bottom-full mb-2'
+                                    } w-72 p-3 bg-surface-raised border border-line-strong rounded-lg shadow-2xl text-xs z-50 pointer-events-none text-ink font-sans`}
+                                  >
                                     <div className="font-semibold text-ink border-b border-line pb-1 mb-1.5 flex justify-between items-center">
                                       <span>Fit Score Breakdown</span>
                                       <span className="font-mono text-signal">{person.fit_score}/100</span>
@@ -6984,9 +7042,17 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
             {/* Modal Body: Side-by-side verification */}
             <div className="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs">
-              <div className="p-3.5 bg-surface-raised border border-line/80 rounded-xl text-ink leading-relaxed">
-                You are about to merge <strong>Duplicate #{candidateToMerge.duplicate.id}</strong> ({candidateToMerge.duplicate.name}) into <strong>Canonical Primary #{candidateToMerge.canonical.id}</strong> ({candidateToMerge.canonical.name}).
-                All relationship mappings and intros will consolidate to the Canonical profile.
+              <div className="p-3.5 bg-surface-raised border border-line/80 rounded-xl text-ink leading-relaxed space-y-1.5">
+                <div>
+                  You are about to merge <strong>Duplicate #{candidateToMerge.duplicate.id}</strong> ({candidateToMerge.duplicate.name}) into <strong>Canonical Primary #{candidateToMerge.canonical.id}</strong> ({candidateToMerge.canonical.name}).
+                </div>
+                <div className="text-[11px] text-ink-muted flex items-center gap-1.5 flex-wrap pt-1 border-t border-line/60">
+                  <span className="font-mono text-signal font-semibold">Consolidation Engine Guarantees:</span>
+                  <span>• Sector tags union</span>
+                  <span>• Missing bio/contact enrichment</span>
+                  <span>• Max fit score preservation</span>
+                  <span>• Auto-archive duplicate from active views</span>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -7001,13 +7067,22 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                     <div className="text-xs text-ink-muted">{candidateToMerge.canonical.role_title} at {candidateToMerge.canonical.company || 'Independent'}</div>
                     <div className="text-[11px] font-mono text-ink-muted break-all">{candidateToMerge.canonical.email || candidateToMerge.canonical.email_normalized || 'No email'}</div>
                     <div className="text-[11px] text-ink italic pt-1">&ldquo;{candidateToMerge.canonical.bio_notes || 'No bio'}&rdquo;</div>
+                    {candidateToMerge.canonical.sector_tags && candidateToMerge.canonical.sector_tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {candidateToMerge.canonical.sector_tags.map((t, idx) => (
+                          <span key={idx} className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-surface text-ink-muted border border-line">
+                            #{t}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Duplicate Preview */}
                 <div className="p-4 bg-warning-soft/20 border border-warning/30 rounded-xl space-y-2">
                   <div className="text-[11px] font-mono font-semibold text-warning uppercase flex items-center justify-between">
-                    <span>Duplicate Candidate (Merged)</span>
+                    <span>Duplicate Candidate (Absorbed)</span>
                     <span>#{candidateToMerge.duplicate.id}</span>
                   </div>
                   <div className="space-y-1">
@@ -7015,6 +7090,15 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                     <div className="text-xs text-ink-muted">{candidateToMerge.duplicate.role_title} at {candidateToMerge.duplicate.company || 'Independent'}</div>
                     <div className="text-[11px] font-mono text-ink-muted break-all">{candidateToMerge.duplicate.email || candidateToMerge.duplicate.email_normalized || 'No email'}</div>
                     <div className="text-[11px] text-ink italic pt-1">&ldquo;{candidateToMerge.duplicate.bio_notes || 'No bio'}&rdquo;</div>
+                    {candidateToMerge.duplicate.sector_tags && candidateToMerge.duplicate.sector_tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {candidateToMerge.duplicate.sector_tags.map((t, idx) => (
+                          <span key={idx} className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-surface text-ink-muted border border-line">
+                            #{t}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
