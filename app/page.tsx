@@ -609,6 +609,7 @@ export default function OfflineCRM() {
     venueCode: 'OFFLINE-717',
     dressCode: 'Smart Casual / No Suits',
     notes: 'Strict Chatham House Rule. Off the record.',
+    testRecipientEmail: 'moviesf14@gmail.com',
   });
 
   // Drawer research state
@@ -7878,10 +7879,31 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                           </button>
                         ))}
                       </div>
+
+                      {/* Founder Safety Guard Banner */}
+                      <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg space-y-1.5 text-xs">
+                        <div className="flex items-center gap-1.5 font-semibold text-amber-600">
+                          <ShieldCheck className="w-3.5 h-3.5" />
+                          <span>Strict Founder Safety Guard (Test Protocol)</span>
+                        </div>
+                        <p className="text-[11px] text-ink-muted leading-relaxed">
+                          Real community founders are <strong>never</strong> messaged or emailed during testing. Live delivery via Resend sandbox is strictly routed to the operator's authorized test address.
+                        </p>
+                        <div className="flex items-center gap-2 pt-1">
+                          <label className="text-[10px] font-mono text-ink-muted uppercase shrink-0">Test Recipient:</label>
+                          <input
+                            type="email"
+                            value={eventDetails.testRecipientEmail}
+                            onChange={e => setEventDetails({ ...eventDetails, testRecipientEmail: e.target.value })}
+                            className="h-7 px-2 bg-surface border border-line rounded text-xs font-mono text-ink max-w-xs focus:ring-1 focus:ring-signal"
+                            placeholder="moviesf14@gmail.com"
+                          />
+                        </div>
+                      </div>
                     </div>
 
                     {dispatchResult && (
-                      <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl space-y-2 text-xs">
+                      <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl space-y-2.5 text-xs">
                         <div className="flex items-center gap-2 font-semibold text-emerald-600">
                           <CheckCircle2 className="w-4 h-4" />
                           <span>Dispatch Execution Completed</span>
@@ -7890,8 +7912,32 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                           <div>Method: <strong className="text-ink">{dispatchResult.dispatchMethod}</strong></div>
                           <div>Total Invites: <strong className="text-ink">{dispatchResult.totalAttendees}</strong></div>
                           <div>Host Dossiers: <strong className="text-ink">{dispatchResult.totalCaptains}</strong></div>
-                          <div>Live Sent: <strong className="text-ink">{dispatchResult.liveSentCount}</strong></div>
+                          <div>Live Delivered: <strong className="text-signal">{dispatchResult.liveSentCount}</strong></div>
                         </div>
+
+                        {dispatchResult.resendDeliveryDetails && (
+                          <div className="p-2.5 bg-surface border border-line rounded font-mono text-[10px] space-y-1">
+                            <div className="text-ink font-semibold flex items-center gap-1">
+                              <span>Resend Delivery Receipt:</span>
+                              <span className="text-emerald-500 font-bold">{dispatchResult.resendDeliveryDetails.status}</span>
+                            </div>
+                            {dispatchResult.resendDeliveryDetails.id && (
+                              <div className="text-ink-muted">
+                                Delivery ID: <strong className="text-ink">{dispatchResult.resendDeliveryDetails.id}</strong>
+                              </div>
+                            )}
+                            {dispatchResult.resendDeliveryDetails.recipient && (
+                              <div className="text-ink-muted">
+                                Sent To: <strong className="text-ink">{dispatchResult.resendDeliveryDetails.recipient}</strong> (Sample guest: {dispatchResult.resendDeliveryDetails.intendedRecipient})
+                              </div>
+                            )}
+                            {dispatchResult.resendDeliveryDetails.error && (
+                              <div className="text-rose-500 font-semibold">
+                                Notice: {dispatchResult.resendDeliveryDetails.error}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

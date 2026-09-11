@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { Resend } from 'resend';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -179,33 +180,94 @@ Aparna Pande`;
     let liveSentCount = 0;
     let webhookDispatched = false;
 
+    let resendDeliveryDetails: any = null;
+
     // 3. Live Dispatch Execution (if Resend API Key or n8n Webhook URL is configured)
     const resendApiKey = (process.env.RESEND_API_KEY || '').trim();
     const n8nWebhookUrl = (process.env.N8N_WEBHOOK_URL || '').trim();
 
     if (dispatchMethod === 'resend' && resendApiKey) {
       try {
-        const resendBatch = attendeeInvites.slice(0, 10).map(inv => ({
-          from: 'Offline Experiences <dinners@offline.club>',
-          to: [inv.recipientEmail],
-          subject: inv.subject,
-          text: inv.body,
-        }));
+        const resend = new Resend(resendApiKey);
 
-        const resendRes = await fetch('https://api.resend.com/emails/batch', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${resendApiKey}`,
-          },
-          body: JSON.stringify(resendBatch),
-        });
+        // SAFETY: Never email real founders during development/testing
+        // Free tier sandbox sends to authorized account owner
+        const safeRecipient = (body.testRecipientEmail || process.env.TEST_EMAIL_RECIPIENT || 'antidov11@gmail.com').trim();
 
-        if (resendRes.ok) {
-          liveSentCount = resendBatch.length;
+        // Dispatch first attendee invitation sample with rich executive HTML
+        const sampleInvite = attendeeInvites[0];
+        if (sampleInvite) {
+          const attendeeHtml = `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #0c0d0e; color: #f2f3f5; border: 1px solid #24272a; border-radius: 12px; padding: 32px;">
+              <div style="font-size: 11px; font-family: monospace; color: #E05A47; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">VIP RETREATS & DINNERS • CONFIRMED INVITATION</div>
+              <h1 style="font-size: 22px; font-weight: 700; color: #ffffff; margin-top: 0; margin-bottom: 16px;">${eventTitle}</h1>
+              
+              <p style="font-size: 14px; line-height: 1.6; color: #b3b7bd;">
+                Dear ${sampleInvite.recipientName},<br><br>
+                You are officially confirmed for the upcoming intimate founder dinner. Below is your bespoke seating placement, synthesized with zero direct competitors and latent peer alignment.
+              </p>
+
+              <div style="background: #16181a; border: 1px solid #2a2d30; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                  <tr>
+                    <td style="padding: 6px 0; color: #8a8f98;">Table Placement:</td>
+                    <td style="padding: 6px 0; color: #ffffff; font-weight: 600; text-align: right;">Table ${sampleInvite.tableNumber} (${sampleInvite.tableName})</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 6px 0; color: #8a8f98;">Seat Number:</td>
+                    <td style="padding: 6px 0; color: #ffffff; font-weight: 600; text-align: right;">Seat #${sampleInvite.seatNumber}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 6px 0; color: #8a8f98;">Secret Door Code:</td>
+                    <td style="padding: 6px 0; color: #E05A47; font-family: monospace; font-weight: 700; text-align: right;">${venueCode}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 6px 0; color: #8a8f98;">Date & Time:</td>
+                    <td style="padding: 6px 0; color: #ffffff; text-align: right;">${eventDate} at ${eventTime}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 6px 0; color: #8a8f98;">Venue:</td>
+                    <td style="padding: 6px 0; color: #ffffff; text-align: right;">${venueAddress}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 6px 0; color: #8a8f98;">Dress Code:</td>
+                    <td style="padding: 6px 0; color: #ffffff; text-align: right;">${dressCode}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <div style="font-size: 12px; color: #8a8f98; border-top: 1px solid #24272a; padding-top: 16px; margin-top: 20px;">
+                Offline Community Intelligence OS &bull; Member Experiences &bull; Aparna Pande
+              </div>
+            </div>
+          `;
+
+          const sendResult = await resend.emails.send({
+            from: 'Offline Experiences <onboarding@resend.dev>',
+            to: [safeRecipient],
+            subject: `[VIP DISPATCH DEMO for ${sampleInvite.recipientName}] ${sampleInvite.subject}`,
+            html: attendeeHtml,
+            text: sampleInvite.body,
+          });
+
+          if (sendResult.data?.id) {
+            liveSentCount += 1;
+            resendDeliveryDetails = {
+              id: sendResult.data.id,
+              recipient: safeRecipient,
+              intendedRecipient: sampleInvite.recipientName,
+              status: 'delivered',
+            };
+          } else if (sendResult.error) {
+            resendDeliveryDetails = {
+              error: sendResult.error.message,
+              status: 'rejected',
+            };
+          }
         }
-      } catch (sendErr) {
-        console.warn('Resend batch email dispatch error:', sendErr);
+      } catch (sendErr: any) {
+        console.warn('Resend email dispatch error:', sendErr);
+        resendDeliveryDetails = { error: sendErr.message };
       }
     }
 
@@ -240,6 +302,7 @@ Aparna Pande`;
       dispatchMethod,
       liveSentCount,
       webhookDispatched,
+      resendDeliveryDetails,
       totalAttendees: attendeeInvites.length,
       totalTables: tables.length,
       totalCaptains: hostBriefings.length,
