@@ -66,7 +66,10 @@ import {
   Calendar,
   UserX,
   UserCheck,
-  UserPlus
+  UserPlus,
+  BarChart2,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 interface Person {
@@ -222,6 +225,226 @@ function normalizeScrapedContent(raw: string): string {
   return result.join('\n');
 }
 
+interface TelemetryItem {
+  label: string;
+  barRaw?: string;
+  valueStr: string;
+  minVal: number;
+  maxVal: number;
+  avgPercent: number;
+}
+
+interface TelemetryChartData {
+  title: string;
+  items: TelemetryItem[];
+  rawText: string;
+  badge: string;
+}
+
+function parseTelemetryChart(text: string): TelemetryChartData | null {
+  if (!text || typeof text !== 'string') return null;
+  const lines = text.split('\n').map(l => l.trimEnd()).filter(l => l.trim().length > 0);
+  if (lines.length < 2) return null;
+
+  let title = '';
+  const items: TelemetryItem[] = [];
+
+  for (let idx = 0; idx < lines.length; idx++) {
+    const line = lines[idx];
+    const trimmed = line.trim();
+
+    // Skip code fences and divider rules
+    if (trimmed.startsWith('```') || trimmed === '---' || trimmed === '***' || trimmed === '___') continue;
+
+    // Pattern A: Category [████████    ] 85-88% or Category [====] 50%
+    const barMatch = line.match(/^\s*([A-Za-z0-9&/ .,'()_#@+\-]+?)\s*\[([█■#=*.\-░▒▓\s]+)\]\s*([0-9.,%+\-–— ]+)?\s*$/);
+
+    // Pattern B: Category: 85-88% or Category - 75%
+    const simplePercentMatch = !barMatch && line.match(/^\s*([A-Za-z0-9&/ .,'()_#@+\-]+?)[:–-]\s*([0-9]+(?:\.[0-9]+)?(?:\s*[-–—]\s*[0-9]+(?:\.[0-9]+)?)?%)\s*$/);
+
+    if (barMatch) {
+      const label = barMatch[1].replace(/\*+/g, '').trim();
+      const barContent = barMatch[2];
+      let valStr = (barMatch[3] || '').trim();
+
+      let minVal = 0;
+      let maxVal = 100;
+      let avgPercent = 50;
+
+      if (valStr) {
+        const nums = valStr.match(/\d+(?:\.\d+)?/g);
+        if (nums && nums.length >= 2) {
+          minVal = parseFloat(nums[0]);
+          maxVal = parseFloat(nums[1]);
+          avgPercent = Math.min(Math.max((minVal + maxVal) / 2, 0), 100);
+        } else if (nums && nums.length === 1) {
+          minVal = parseFloat(nums[0]);
+          maxVal = minVal;
+          avgPercent = Math.min(Math.max(minVal, 0), 100);
+        }
+      } else {
+        const filledChars = (barContent.match(/[█■#=*▓▒]/g) || []).length;
+        const totalChars = barContent.length;
+        if (totalChars > 0) {
+          avgPercent = Math.min(Math.max((filledChars / totalChars) * 100, 0), 100);
+          valStr = `${Math.round(avgPercent)}%`;
+        }
+      }
+
+      items.push({
+        label,
+        barRaw: `[${barContent}]`,
+        valueStr: valStr || `${Math.round(avgPercent)}%`,
+        minVal,
+        maxVal,
+        avgPercent,
+      });
+    } else if (simplePercentMatch) {
+      const label = simplePercentMatch[1].replace(/\*+/g, '').trim();
+      const valStr = simplePercentMatch[2].trim();
+      const nums = valStr.match(/\d+(?:\.\d+)?/g);
+      let minVal = 0;
+      let maxVal = 100;
+      let avgPercent = 50;
+      if (nums && nums.length >= 2) {
+        minVal = parseFloat(nums[0]);
+        maxVal = parseFloat(nums[1]);
+        avgPercent = (minVal + maxVal) / 2;
+      } else if (nums && nums.length === 1) {
+        minVal = parseFloat(nums[0]);
+        maxVal = minVal;
+        avgPercent = minVal;
+      }
+      items.push({
+        label,
+        valueStr: valStr,
+        minVal,
+        maxVal,
+        avgPercent: Math.min(Math.max(avgPercent, 0), 100),
+      });
+    } else {
+      if (items.length === 0 && !title && trimmed.length > 0 && !trimmed.startsWith('```')) {
+        title = trimmed.replace(/^#+\s*/, '').replace(/\*+/g, '').trim();
+      }
+    }
+  }
+
+  if (items.length >= 2) {
+    return {
+      title: title || 'Benchmark Telemetry & Adoption Rates',
+      items,
+      rawText: text.trim(),
+      badge: 'TEXT',
+    };
+  }
+
+  return null;
+}
+
+function TelemetryGraphicCard({ data }: { data: TelemetryChartData }) {
+  const [mode, setMode] = useState<'visual' | 'ascii'>('visual');
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(data.rawText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="my-3.5 rounded-xl border border-line bg-surface shadow-2xs overflow-hidden transition-all">
+      {/* Top Bar with TEXT tab badge and mode switches */}
+      <div className="flex items-center justify-between px-3.5 py-2 bg-surface-raised/80 border-b border-line">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="px-2 py-0.5 text-[10px] font-mono font-bold uppercase tracking-wider bg-surface border border-line text-ink rounded shadow-2xs">
+            {data.badge || 'TEXT'}
+          </span>
+          <span className="text-xs font-semibold text-ink font-mono sm:font-sans truncate">
+            {data.title}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center bg-surface p-0.5 rounded border border-line text-[10px] font-mono">
+            <button
+              onClick={() => setMode('visual')}
+              className={`px-2 py-0.5 rounded transition-colors flex items-center gap-1 cursor-pointer ${
+                mode === 'visual' ? 'bg-signal text-surface font-semibold shadow-2xs' : 'text-ink-muted hover:text-ink'
+              }`}
+            >
+              <BarChart2 className="w-2.5 h-2.5" />
+              <span>Bars</span>
+            </button>
+            <button
+              onClick={() => setMode('ascii')}
+              className={`px-2 py-0.5 rounded transition-colors flex items-center gap-1 cursor-pointer ${
+                mode === 'ascii' ? 'bg-signal text-surface font-semibold shadow-2xs' : 'text-ink-muted hover:text-ink'
+              }`}
+            >
+              <Terminal className="w-2.5 h-2.5" />
+              <span>ASCII</span>
+            </button>
+          </div>
+
+          <button
+            onClick={handleCopy}
+            className="p-1 rounded bg-surface border border-line text-ink-muted hover:text-ink transition-colors cursor-pointer"
+            title="Copy Graphic Raw Data"
+          >
+            {copied ? <Check className="w-3 h-3 text-signal" /> : <Copy className="w-3 h-3" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Chart Body */}
+      <div className="p-3.5 sm:p-4">
+        {mode === 'visual' ? (
+          <div className="space-y-1.5">
+            {data.items.map((item, idx) => (
+              <div
+                key={idx}
+                className="flex items-center gap-2 sm:gap-3 py-1 px-1.5 rounded-lg hover:bg-surface-raised/70 transition-colors group"
+              >
+                {/* Category Name */}
+                <div className="w-28 sm:w-44 text-xs font-medium text-ink truncate shrink-0" title={item.label}>
+                  {item.label}
+                </div>
+
+                {/* Shaded Visual Bar with Brackets & Stippled Dot Track */}
+                <div className="flex items-center gap-1 flex-1 min-w-0">
+                  <span className="text-xs font-mono text-ink-muted/70 select-none">[</span>
+                  <div
+                    className="flex-1 h-5.5 rounded border border-line/80 relative overflow-hidden bg-surface-raised flex items-center"
+                    style={{
+                      backgroundImage: 'radial-gradient(circle, currentColor 0.75px, transparent 0.75px)',
+                      backgroundSize: '4px 4px',
+                    }}
+                  >
+                    <div
+                      className="h-full bg-slate-700 dark:bg-slate-300 group-hover:bg-signal transition-all duration-500 ease-out"
+                      style={{ width: `${Math.max(item.avgPercent, 3)}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-mono text-ink-muted/70 select-none">]</span>
+                </div>
+
+                {/* Percentage / Value */}
+                <div className="w-16 sm:w-20 text-right text-xs font-mono font-semibold text-ink shrink-0">
+                  {item.valueStr}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <pre className="p-3 text-xs font-mono text-ink bg-surface-raised/40 rounded-lg border border-line/60 overflow-x-auto whitespace-pre leading-relaxed">
+            {data.rawText}
+          </pre>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function ExecutiveMarkdownViewer({
   content,
   maxHeightClass = 'max-h-[550px]',
@@ -294,7 +517,7 @@ function ExecutiveMarkdownViewer({
 
   // Structured Block Parser for Tables, Code Blocks, Headers, Lists & Paragraphs
   const blocks: Array<{
-    type: 'hr' | 'h1' | 'h2' | 'h3' | 'boldHeader' | 'kv' | 'bullet' | 'number' | 'quote' | 'table' | 'code' | 'paragraph';
+    type: 'hr' | 'h1' | 'h2' | 'h3' | 'boldHeader' | 'kv' | 'bullet' | 'number' | 'quote' | 'table' | 'code' | 'chart' | 'paragraph';
     headers?: string[];
     rows?: string[][];
     language?: string;
@@ -303,6 +526,7 @@ function ExecutiveMarkdownViewer({
     key?: string;
     value?: string;
     num?: string;
+    chartData?: TelemetryChartData;
   }> = [];
 
   const rawLines = (showRaw ? (content || '') : processedContent).split('\n');
@@ -326,7 +550,7 @@ function ExecutiveMarkdownViewer({
       continue;
     }
 
-    // 1. Fenced Code Block: ```lang
+    // 1. Fenced Code Block: ```lang (also detects Telemetry Charts)
     if (trimmed.startsWith('```')) {
       const language = trimmed.slice(3).trim();
       const codeLines: string[] = [];
@@ -338,12 +562,42 @@ function ExecutiveMarkdownViewer({
       if (i < rawLines.length && rawLines[i].trim().startsWith('```')) {
         i++; // skip closing ```
       }
-      blocks.push({
-        type: 'code',
-        language: language || 'text',
-        code: codeLines.join('\n'),
-      });
+      const rawCode = codeLines.join('\n');
+      const chart = parseTelemetryChart(rawCode);
+      if (chart) {
+        blocks.push({
+          type: 'chart',
+          chartData: chart,
+        });
+      } else {
+        blocks.push({
+          type: 'code',
+          language: language || 'text',
+          code: rawCode,
+        });
+      }
       continue;
+    }
+
+    // 1.5 Unfenced Telemetry Chart Block (2+ lines with bracketed bars or percentages)
+    if (trimmed.includes('[') && (/[█■#=*.\-░▒▓]{2,}/.test(trimmed) || /%\s*$/.test(trimmed))) {
+      const chartCandidateLines: string[] = [];
+      let chartIdx = i;
+      while (chartIdx < rawLines.length && rawLines[chartIdx].trim().length > 0) {
+        chartCandidateLines.push(rawLines[chartIdx]);
+        chartIdx++;
+      }
+      if (chartCandidateLines.length >= 2) {
+        const detected = parseTelemetryChart(chartCandidateLines.join('\n'));
+        if (detected && detected.items.length >= 2) {
+          blocks.push({
+            type: 'chart',
+            chartData: detected,
+          });
+          i = chartIdx;
+          continue;
+        }
+      }
     }
 
     // 2. Strict Markdown Table Detection (MUST have valid header and separator row)
@@ -565,6 +819,11 @@ function ExecutiveMarkdownViewer({
                   <blockquote key={idx} className="border-l-2 border-signal/60 bg-signal-soft/20 p-2.5 rounded-r-lg text-ink-muted italic text-xs">
                     {renderInline(block.text || '')}
                   </blockquote>
+                );
+              }
+              if (block.type === 'chart' && block.chartData) {
+                return (
+                  <TelemetryGraphicCard key={idx} data={block.chartData} />
                 );
               }
               if (block.type === 'code') {
@@ -789,6 +1048,7 @@ export default function OfflineCRM() {
   const [intelligenceRecords, setIntelligenceRecords] = useState<any[]>([]);
   const [loadingIntelHistory, setLoadingIntelHistory] = useState(false);
   const [intelHistoryFilter, setIntelHistoryFilter] = useState<'all' | 'search' | 'deep_research' | 'crawl' | 'extract'>('all');
+  const [expandedIntelRecordId, setExpandedIntelRecordId] = useState<number | null>(null);
   const [researchPrompt, setResearchPrompt] = useState('Competitor analysis and market landscape for AI coding agents in 2026');
   const [researchModel, setResearchModel] = useState<'mini' | 'pro'>('mini');
   const [researchStatus, setResearchStatus] = useState<'idle' | 'pending' | 'in_progress' | 'completed' | 'failed'>('idle');
@@ -1517,7 +1777,8 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
     } else if (rec.record_type === 'deep_research') {
       if (rec.content) setResearchReport(rec.content);
       if (rec.payload?.sources) setResearchSources(rec.payload.sources);
-      if (rec.query_or_url) setResearchPrompt(rec.query_or_url);
+      const restoredPrompt = rec.parameters?.input || (rec.title ? rec.title.replace(/^Deep Research:\s*/i, '') : '') || rec.query_or_url;
+      if (restoredPrompt) setResearchPrompt(restoredPrompt);
       setResearchStatus('completed');
       setIntelligenceSubTab('research');
     } else if (rec.record_type === 'crawl') {
@@ -6201,64 +6462,95 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                         const isSearch = rec.record_type === 'search';
                         const isResearch = rec.record_type === 'deep_research';
                         const isCrawl = rec.record_type === 'crawl';
+                        const isExpanded = expandedIntelRecordId === rec.id;
 
                         return (
                           <div
                             key={rec.id}
-                            className="py-4 flex flex-col md:flex-row md:items-center justify-between gap-3.5 hover:bg-surface-raised/60 px-3 sm:px-4 rounded-xl transition-colors"
+                            className={`py-3.5 px-3 sm:px-4 rounded-xl border transition-all ${
+                              isExpanded
+                                ? 'bg-surface border-signal/40 shadow-xs'
+                                : 'border-transparent hover:border-line/70 hover:bg-surface-raised/40'
+                            }`}
                           >
-                            <div className="space-y-1.5 flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase ${
-                                  isSearch ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20' :
-                                  isResearch ? 'bg-signal-soft text-signal border border-signal/20' :
-                                  isCrawl ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' :
-                                  'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
-                                }`}>
-                                  {rec.record_type === 'deep_research' ? 'Deep Research' : rec.record_type}
-                                </span>
-                                <span className="text-[11px] font-mono text-ink-faint">
-                                  {new Date(rec.created_at).toLocaleString()}
-                                </span>
-                                {rec.results_count > 0 && (
-                                  <span className="text-[11px] font-mono text-signal bg-signal-soft/80 border border-signal/20 px-1.5 py-0.2 rounded font-semibold">
-                                    {rec.results_count} {rec.record_type === 'crawl' ? 'pages' : 'sources'}
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5">
+                              <div className="space-y-1.5 flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase ${
+                                    isSearch ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20' :
+                                    isResearch ? 'bg-signal-soft text-signal border border-signal/20' :
+                                    isCrawl ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' :
+                                    'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                                  }`}>
+                                    {rec.record_type === 'deep_research' ? 'Deep Research' : rec.record_type}
                                   </span>
-                                )}
+                                  <span className="text-[11px] font-mono text-ink-faint">
+                                    {new Date(rec.created_at).toLocaleString()}
+                                  </span>
+                                  {rec.results_count > 0 && (
+                                    <span className="text-[11px] font-mono text-signal bg-signal-soft/80 border border-signal/20 px-1.5 py-0.2 rounded font-semibold">
+                                      {rec.results_count} {rec.record_type === 'crawl' ? 'pages' : 'sources'}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm font-semibold text-ink truncate">
+                                  {rec.title || rec.query_or_url}
+                                </p>
+                                <p className="text-xs text-ink-muted font-mono truncate max-w-2xl">
+                                  {rec.query_or_url}
+                                </p>
                               </div>
-                              <p className="text-sm font-semibold text-ink truncate">
-                                {rec.title || rec.query_or_url}
-                              </p>
-                              <p className="text-xs text-ink-muted font-mono truncate max-w-2xl">
-                                {rec.query_or_url}
-                              </p>
+
+                              <div className="flex items-center gap-2 shrink-0 self-start md:self-center">
+                                {rec.content && (
+                                  <button
+                                    onClick={() => setExpandedIntelRecordId(isExpanded ? null : rec.id)}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs ${
+                                      isExpanded
+                                        ? 'bg-signal text-surface border-signal font-bold'
+                                        : 'bg-surface-raised border-line hover:border-signal/50 text-ink hover:text-signal'
+                                    }`}
+                                  >
+                                    {isExpanded ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                    <span>{isExpanded ? 'Hide Output' : 'Inspect Output'}</span>
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => handleRestoreIntelligenceRecord(rec)}
+                                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface-raised border border-line hover:border-signal/50 text-ink hover:text-signal transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                                >
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                  <span>Restore to View</span>
+                                </button>
+                                {rec.content && (
+                                  <button
+                                    onClick={() => copyToClipboard(rec.content, rec.id)}
+                                    className="p-1.5 rounded-lg border border-line hover:bg-surface-raised text-ink-muted hover:text-ink transition-colors cursor-pointer"
+                                    title="Copy Output"
+                                  >
+                                    {copiedIntroId === rec.id ? <Check className="w-3.5 h-3.5 text-signal" /> : <Copy className="w-3.5 h-3.5" />}
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => handleDeleteIntelligenceRecord(rec.id)}
+                                  className="p-1.5 rounded-lg border border-line hover:bg-red-500/10 text-ink-muted hover:text-red-500 transition-colors cursor-pointer"
+                                  title="Delete Record"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </div>
 
-                            <div className="flex items-center gap-2 shrink-0 self-start md:self-center">
-                              <button
-                                onClick={() => handleRestoreIntelligenceRecord(rec)}
-                                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface-raised border border-line hover:border-signal/50 text-ink hover:text-signal transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                              >
-                                <ExternalLink className="w-3.5 h-3.5" />
-                                <span>Restore to View</span>
-                              </button>
-                              {rec.content && (
-                                <button
-                                  onClick={() => copyToClipboard(rec.content, rec.id)}
-                                  className="p-1.5 rounded-lg border border-line hover:bg-surface-raised text-ink-muted hover:text-ink transition-colors cursor-pointer"
-                                  title="Copy Output"
-                                >
-                                  {copiedIntroId === rec.id ? <Check className="w-3.5 h-3.5 text-signal" /> : <Copy className="w-3.5 h-3.5" />}
-                                </button>
-                              )}
-                              <button
-                                onClick={() => handleDeleteIntelligenceRecord(rec.id)}
-                                className="p-1.5 rounded-lg border border-line hover:bg-red-500/10 text-ink-muted hover:text-red-500 transition-colors cursor-pointer"
-                                title="Delete Record"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
+                            {/* Inline Expandable Executive Output */}
+                            {isExpanded && (
+                              <div className="mt-3.5 pt-3.5 border-t border-line/70 animate-in fade-in-50 duration-150">
+                                <ExecutiveMarkdownViewer
+                                  content={rec.content || 'No content recorded.'}
+                                  maxHeightClass="max-h-[420px]"
+                                  title={`Historical Record: ${rec.title || rec.query_or_url}`}
+                                />
+                              </div>
+                            )}
                           </div>
                         );
                       })}

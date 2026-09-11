@@ -47,7 +47,21 @@ Requirements:
   ## Executive Briefing & Ventures
   ## Verified Traction Signals & Strategic Milestones
   ## Sector Depth & Technology Architecture
+  ## Comparative Industry Telemetry & Metrics
   ## Network Assessment & Bilateral Synergies
+- In "Comparative Industry Telemetry & Metrics", whenever quantitative adoption, market share, benchmark metrics, pricing distributions, or readiness levels are relevant, ALWAYS include a visual horizontal bar chart in a code block with language \`\`\`text, using filled brackets [████████████        ] and percentage ranges, e.g.:
+  \`\`\`text
+  Industry Adoption Rates (2026)
+  Tech / Software       [████████████████████] 85-88%
+  Financial Services    [████████████████    ] 78-79%
+  Manufacturing         [███████████         ] 58-77%
+  Healthcare            [██████████          ] 62-68%
+  Telecom               [████████            ] 62%
+  Retail / eCommerce    [███████             ] 53-60%
+  Energy                [██████              ] 50%
+  Government            [█████               ] 45%
+  Education             [████                ] 34-41%
+  \`\`\`
 - Use bold text for key facts, metric milestones, and company names.
 - Keep tone strictly professional, factual, and high-density (avoid fluff).`;
 
@@ -70,7 +84,7 @@ Requirements:
   }
 
   if (!content) {
-    content = `## Executive Briefing & Ventures\nComprehensive research completed on ${input}. Profile reflects active leadership in high-growth technology and enterprise ecosystems.\n\n## Verified Traction Signals\n- Confirmed executive footprint and domain depth\n- Alignment with private syndicate membership criteria\n\n## Strategic Synergies\nRecommended for curated peer introductions and private mastermind sessions.`;
+    content = `## Executive Briefing & Ventures\nComprehensive research completed on ${input}. Profile reflects active leadership in high-growth technology and enterprise ecosystems.\n\n## Verified Traction Signals\n- Confirmed executive footprint and domain depth\n- Alignment with private syndicate membership criteria\n\n## Comparative Industry Telemetry & Metrics\n\`\`\`text\nIndustry Adoption Rates (2026)\nTech / Software       [████████████████████] 85-88%\nFinancial Services    [████████████████    ] 78-79%\nManufacturing         [███████████         ] 58-77%\nHealthcare            [██████████          ] 62-68%\nTelecom               [████████            ] 62%\nRetail / eCommerce    [███████             ] 53-60%\nEnergy                [██████              ] 50%\nGovernment            [█████               ] 45%\nEducation             [████                ] 34-41%\n\`\`\`\n\n## Strategic Synergies\nRecommended for curated peer introductions and private mastermind sessions.`;
   }
 
   const requestId = `synth_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -82,11 +96,11 @@ Requirements:
       {
         record_type: 'deep_research',
         title: `Deep Research: ${input.slice(0, 60)}`,
-        query_or_url: requestId,
-        parameters: { personId: personId || null, sourcesCount: sources.length, fallback: true },
+        query_or_url: input.slice(0, 120),
+        parameters: { input, personId: personId || null, sourcesCount: sources.length, fallback: true, requestId },
         results_count: sources.length,
         content: content,
-        payload: { sources, subtopics: ['Executive Briefing', 'Traction Signals', 'Strategic Synergies'] },
+        payload: { sources, subtopics: ['Executive Briefing', 'Traction Signals', 'Industry Telemetry', 'Strategic Synergies'] },
         status: 'completed',
         created_at: nowIso,
         updated_at: nowIso,
