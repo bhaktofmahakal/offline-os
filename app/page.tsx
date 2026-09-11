@@ -168,6 +168,60 @@ function cleanWebSnippet(raw: string, maxLen = 320): string {
   return cleaned;
 }
 
+function normalizeScrapedContent(raw: string): string {
+  if (!raw) return '';
+  const lines = raw.split('\n');
+  const result: string[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i].trim();
+    if (!line) {
+      if (result.length > 0 && result[result.length - 1] !== '') result.push('');
+      continue;
+    }
+
+    // Skip empty pipe frames: | | | | or | --- | --- |
+    if (/^\|[\s|:-]*\|$/.test(line)) continue;
+
+    // Skip boilerplate guidelines / terms / privacy / login lines
+    if (/^\[Guidelines\]\(.*?\)\s*\|\s*\[FAQ\]/i.test(line)) continue;
+    if (/^\[Privacy Policy\]\(.*?\)\s*\|\s*\[Terms\]/i.test(line)) continue;
+    if (/^\[Apply to YC\]\(.*?\)\s*\|\s*\[Contact\]/i.test(line)) continue;
+
+    // Remove empty/badge image markdown ![...](...)
+    line = line.replace(/!\[.*?\]\(.*?\)/g, '').trim();
+    if (!line) continue;
+
+    // Remove anchor jump links like [Product](#)
+    line = line.replace(/\[([^\]]+)\]\(#\)/g, '$1').trim();
+
+    // Remove standalone dashed separator lines that aren't hr
+    if (/^[-:|\s]{3,}$/.test(line) && !/^-{3,}$/.test(line)) continue;
+
+    // Clean up scraped table artifacts where | --- | is embedded
+    line = line.replace(/\|?\s*---\s*\|?/g, ' ').replace(/\|\s*\|\s*/g, ' | ').trim();
+
+    // If line starts and ends with | but is a scraped HTML row (e.g. | 1. | [Story](url) | (domain) |)
+    // convert into a clean, readable text line or numbered list item:
+    if (line.startsWith('|') && line.endsWith('|') && !(/^\|?\s*[-:]+[-| :]{2,}\|?$/.test(line))) {
+      const cells = line.split('|').map(c => c.trim()).filter(Boolean);
+      if (cells.length > 0) {
+        if (/^\d+\./.test(cells[0])) {
+          line = `${cells[0]} ${cells.slice(1).join(' • ')}`;
+        } else if (cells.length === 1) {
+          line = cells[0];
+        } else {
+          line = cells.join(' • ');
+        }
+      }
+    }
+
+    result.push(line);
+  }
+
+  return result.join('\n');
+}
+
 function ExecutiveMarkdownViewer({
   content,
   maxHeightClass = 'max-h-[550px]',
@@ -179,6 +233,9 @@ function ExecutiveMarkdownViewer({
 }) {
   const [showRaw, setShowRaw] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // Normalize scraped markdown for clean reading experience
+  const processedContent = useMemo(() => normalizeScrapedContent(content), [content]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(content || '');
@@ -248,7 +305,7 @@ function ExecutiveMarkdownViewer({
     num?: string;
   }> = [];
 
-  const rawLines = (content || '').split('\n');
+  const rawLines = (showRaw ? (content || '') : processedContent).split('\n');
   let i = 0;
 
   const isTableSeparator = (l: string) => /^\|?\s*[-:]+[-| :]{2,}\|?$/.test(l.trim());
@@ -289,21 +346,19 @@ function ExecutiveMarkdownViewer({
       continue;
     }
 
-    // 2. Markdown Table Detection
-    if (trimmed.includes('|') && (trimmed.startsWith('|') || trimmed.endsWith('|') || (i + 1 < rawLines.length && isTableSeparator(rawLines[i + 1])))) {
+    // 2. Strict Markdown Table Detection (MUST have valid header and separator row)
+    if (trimmed.includes('|') && i + 1 < rawLines.length && isTableSeparator(rawLines[i + 1])) {
       const tableLines: string[] = [];
-      while (i < rawLines.length && rawLines[i].trim().includes('|') && (rawLines[i].trim().startsWith('|') || rawLines[i].trim().endsWith('|') || isTableSeparator(rawLines[i]))) {
+      while (i < rawLines.length && rawLines[i].trim().includes('|')) {
         tableLines.push(rawLines[i]);
         i++;
       }
 
-      if (tableLines.length > 0) {
-        let headers: string[] = [];
-        let rows: string[][] = [];
-
+      if (tableLines.length >= 2) {
         const sepIdx = tableLines.findIndex(isTableSeparator);
         if (sepIdx > 0) {
-          headers = parseCells(tableLines[0]);
+          const headers = parseCells(tableLines[0]);
+          const rows: string[][] = [];
           for (let r = 1; r < tableLines.length; r++) {
             if (r === sepIdx) continue;
             const cells = parseCells(tableLines[r]);
@@ -311,26 +366,14 @@ function ExecutiveMarkdownViewer({
               rows.push(cells);
             }
           }
-        } else {
-          for (const tl of tableLines) {
-            const cells = parseCells(tl);
-            if (cells.some(c => c.length > 0)) {
-              rows.push(cells);
-            }
+          if (headers.some(h => h.length > 0) || rows.length > 0) {
+            blocks.push({
+              type: 'table',
+              headers,
+              rows,
+            });
+            continue;
           }
-          if (rows.length > 0) {
-            headers = rows[0];
-            rows = rows.slice(1);
-          }
-        }
-
-        if (headers.some(h => h.length > 0) || rows.length > 0) {
-          blocks.push({
-            type: 'table',
-            headers,
-            rows,
-          });
-          continue;
         }
       }
     }

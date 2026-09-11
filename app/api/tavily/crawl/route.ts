@@ -45,7 +45,10 @@ export async function POST(request: Request) {
 
     const formattedResults = (response.results || []).map((r: any) => ({
       url: r.url,
+      title: r.title || (r.url ? r.url.replace(/^https?:\/\//, '').split('/')[0] : 'Scraped Page'),
       rawContent: r.rawContent,
+      favicon: r.favicon || null,
+      images: r.images || [],
     }));
 
     // Persist crawl record in Supabase intelligence_records

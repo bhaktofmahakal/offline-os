@@ -27,6 +27,7 @@ export async function POST(request: Request) {
 
     const formattedResults = (response.results || []).map((r: any) => ({
       url: r.url,
+      title: r.title || (r.url ? r.url.replace(/^https?:\/\//, '').split('/')[0] : 'Extracted URL'),
       rawContent: r.rawContent,
       images: r.images || [],
       favicon: r.favicon || null,
