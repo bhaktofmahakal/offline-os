@@ -190,11 +190,15 @@ Aparna Pande`;
       try {
         const resend = new Resend(resendApiKey);
 
-        // SAFETY: Never email real founders during development/testing
-        // Free tier sandbox sends to authorized account owner
-        const safeRecipient = (body.testRecipientEmail || process.env.TEST_EMAIL_RECIPIENT || 'antidov11@gmail.com').trim();
+        // ABSOLUTE SAFETY GUARD: Never email real founders during development or testing
+        // Strictly intercept and restrict delivery only to verified operator test inboxes
+        const candidateRecipient = (body.testRecipientEmail || process.env.TEST_EMAIL_RECIPIENT || 'moviesf14@gmail.com').trim();
+        const ALLOWED_TEST_INBOXES = ['moviesf14@gmail.com', 'antidov11@gmail.com'];
+        const safeRecipient = ALLOWED_TEST_INBOXES.includes(candidateRecipient.toLowerCase())
+          ? candidateRecipient
+          : 'moviesf14@gmail.com';
 
-        // Dispatch first attendee invitation sample with rich executive HTML
+        // Dispatch sample invitation exclusively to the verified operator test inbox
         const sampleInvite = attendeeInvites[0];
         if (sampleInvite) {
           const attendeeHtml = `
