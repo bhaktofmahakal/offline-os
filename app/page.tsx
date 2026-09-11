@@ -395,6 +395,29 @@ export default function OfflineCRM() {
     directoryMobileContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // HubSpot-Inspired CRM Directory Views & Toolbar Menus
+  const [directoryViewTab, setDirectoryViewTab] = useState<'all' | 'high_fit' | 'duplicates' | 'enriched' | 'incomplete'>('all');
+  const [isAddMemberMenuOpen, setIsAddMemberMenuOpen] = useState(false);
+  const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Global keyboard shortcut: press '/' anywhere to focus search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === '/' &&
+        document.activeElement !== searchInputRef.current &&
+        e.target instanceof Element &&
+        !['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)
+      ) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const [darkMode, setDarkMode] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [mergedIds, setMergedIds] = useState<Set<number>>(new Set());
@@ -1540,14 +1563,31 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       if (statusFilter === 'INCOMPLETE') matchStatus = p.is_incomplete;
       if (statusFilter === 'HIGH_FIT') matchStatus = p.fit_score !== null && p.fit_score >= 80;
 
-      return matchSearch && matchRole && matchSector && matchStatus;
+      // HubSpot Quick View Tab Filter
+      let matchViewTab = true;
+      if (directoryViewTab === 'high_fit') matchViewTab = p.fit_score !== null && p.fit_score >= 80;
+      if (directoryViewTab === 'duplicates') matchViewTab = p.is_duplicate_of !== null && p.review_status !== 'merged' && !mergedIds.has(p.id);
+      if (directoryViewTab === 'enriched') matchViewTab = p.ai_enrichment_status === 'completed';
+      if (directoryViewTab === 'incomplete') matchViewTab = p.is_incomplete;
+
+      return matchSearch && matchRole && matchSector && matchStatus && matchViewTab;
     });
-  }, [activePeople, searchQuery, roleFilter, sectorFilter, statusFilter, mergedIds]);
+  }, [activePeople, searchQuery, roleFilter, sectorFilter, statusFilter, directoryViewTab, mergedIds]);
+
+  // Dynamic record counts for HubSpot View Tabs
+  const tabCounts = useMemo(() => {
+    const all = activePeople.length;
+    const highFit = activePeople.filter(p => p.fit_score !== null && p.fit_score >= 80).length;
+    const dups = activePeople.filter(p => p.is_duplicate_of !== null && p.review_status !== 'merged' && !mergedIds.has(p.id)).length;
+    const enriched = activePeople.filter(p => p.ai_enrichment_status === 'completed').length;
+    const incomplete = activePeople.filter(p => p.is_incomplete).length;
+    return { all, highFit, dups, enriched, incomplete };
+  }, [activePeople, mergedIds]);
 
   // Auto-reset pagination to page 1 whenever any search or filter criteria change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, roleFilter, sectorFilter, statusFilter, pageSize]);
+  }, [searchQuery, roleFilter, sectorFilter, statusFilter, directoryViewTab, pageSize]);
 
   // HubSpot CRM Pagination Calculations
   const totalPages = Math.max(1, Math.ceil(filteredPeople.length / pageSize));
@@ -2066,29 +2106,98 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
               </button>
             </div>
 
-            {/* Ingest Airtable / CSV */}
-            <button
-              onClick={() => {
-                setIsImportModalOpen(true);
-                fetchAirtableBases();
-              }}
-              className="min-h-[40px] px-3 text-xs bg-surface-raised border border-line hover:border-signal/50 text-ink font-medium rounded flex items-center gap-1.5 transition-colors shadow-sm"
-              title="Airtable Live Sync, Webhook Stream, or CSV Import"
-            >
-              <UploadCloud className="w-3.5 h-3.5 text-signal" />
-              <span className="hidden sm:inline">Sync & Ingest</span>
-              <span className="sm:hidden">Ingest</span>
-            </button>
+            {/* Enterprise Primary Action: [ Add Members ▾ ] */}
+            <div className="relative">
+              <div className="inline-flex rounded shadow-xs border border-line overflow-hidden">
+                <button
+                  onClick={() => {
+                    setIsImportModalOpen(true);
+                    setImportTab('csv');
+                  }}
+                  className="min-h-[38px] px-3.5 text-xs bg-signal text-surface hover:bg-signal/90 font-medium flex items-center gap-1.5 transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Members</span>
+                </button>
+                <button
+                  onClick={() => setIsAddMemberMenuOpen(prev => !prev)}
+                  className="min-h-[38px] px-2 text-xs bg-signal text-surface hover:bg-signal/90 border-l border-white/20 flex items-center justify-center transition-colors"
+                  title="More ingestion options"
+                >
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </button>
+              </div>
 
-            <Link
-              href="/apply"
-              target="_blank"
-              className="min-h-[40px] px-3 text-xs bg-surface-raised border border-line text-ink hover:bg-surface-muted font-medium rounded flex items-center gap-1.5 transition-colors"
-            >
-              <span className="hidden sm:inline">Public Intake</span>
-              <span className="sm:hidden">Intake</span>
-              <ExternalLink className="w-3 h-3 text-ink-muted" />
-            </Link>
+              {isAddMemberMenuOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsAddMemberMenuOpen(false)} />
+                  <div className="absolute right-0 top-full mt-1.5 w-60 bg-surface-raised border border-line-strong rounded-lg shadow-xl z-50 py-1 text-xs animate-in fade-in zoom-in-95 duration-100">
+                    <div className="px-3 py-1.5 text-[10px] font-mono text-ink-muted uppercase border-b border-line">
+                      Member Ingestion
+                    </div>
+                    <button
+                      onClick={() => {
+                        setIsAddMemberMenuOpen(false);
+                        setIsImportModalOpen(true);
+                        setImportTab('csv');
+                      }}
+                      className="w-full px-3 py-2 text-left flex items-center gap-2.5 hover:bg-surface-muted text-ink transition-colors"
+                    >
+                      <UploadCloud className="w-4 h-4 text-signal" />
+                      <div>
+                        <div className="font-medium">Import CSV File</div>
+                        <div className="text-[10px] text-ink-muted">Upload cohort spreadsheet</div>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsAddMemberMenuOpen(false);
+                        setIsImportModalOpen(true);
+                        setImportTab('airtable');
+                        fetchAirtableBases();
+                      }}
+                      className="w-full px-3 py-2 text-left flex items-center gap-2.5 hover:bg-surface-muted text-ink transition-colors"
+                    >
+                      <Database className="w-4 h-4 text-info" />
+                      <div>
+                        <div className="font-medium">Sync Airtable Base</div>
+                        <div className="text-[10px] text-ink-muted">Direct API integration</div>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsAddMemberMenuOpen(false);
+                        setIsImportModalOpen(true);
+                        setImportTab('webhook');
+                      }}
+                      className="w-full px-3 py-2 text-left flex items-center gap-2.5 hover:bg-surface-muted text-ink transition-colors"
+                    >
+                      <Zap className="w-4 h-4 text-copper" />
+                      <div>
+                        <div className="font-medium">Webhook Realtime Intake</div>
+                        <div className="text-[10px] text-ink-muted">Automated HTTP payload</div>
+                      </div>
+                    </button>
+                    <div className="border-t border-line my-1" />
+                    <Link
+                      href="/apply"
+                      target="_blank"
+                      onClick={() => setIsAddMemberMenuOpen(false)}
+                      className="w-full px-3 py-2 text-left flex items-center justify-between hover:bg-surface-muted text-ink transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <FileSpreadsheet className="w-4 h-4 text-warning" />
+                        <div>
+                          <div className="font-medium">Public Intake Form</div>
+                          <div className="text-[10px] text-ink-muted">External application link</div>
+                        </div>
+                      </div>
+                      <ExternalLink className="w-3.5 h-3.5 text-ink-muted" />
+                    </Link>
+                  </div>
+                </>
+              )}
+            </div>
 
             {workspaceMode === 'live' && activePeople.length > 0 && (
               <button
@@ -2143,6 +2252,88 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
         {/* TAB 1: MEMBERS DIRECTORY VIEW */}
         {activeTab === 'people' && (
           <div className="flex-1 flex flex-col min-h-0 bg-canvas">
+            {/* HubSpot-Inspired View Tabs */}
+            <div className="border-b border-line bg-surface px-4 sm:px-6 flex items-center gap-1 sm:gap-2 overflow-x-auto select-none">
+              <button
+                onClick={() => setDirectoryViewTab('all')}
+                className={`py-2.5 px-3 text-xs font-medium border-b-2 flex items-center gap-2 transition-all whitespace-nowrap ${
+                  directoryViewTab === 'all'
+                    ? 'border-signal text-ink font-semibold'
+                    : 'border-transparent text-ink-muted hover:text-ink hover:border-line'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>All Members</span>
+                <span className="text-[11px] font-mono px-1.5 py-0.2 rounded-full bg-surface-raised border border-line text-ink-muted tabular-nums">
+                  {tabCounts.all}
+                </span>
+              </button>
+
+              <button
+                onClick={() => setDirectoryViewTab('high_fit')}
+                className={`py-2.5 px-3 text-xs font-medium border-b-2 flex items-center gap-2 transition-all whitespace-nowrap ${
+                  directoryViewTab === 'high_fit'
+                    ? 'border-signal text-ink font-semibold'
+                    : 'border-transparent text-ink-muted hover:text-ink hover:border-line'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-signal" />
+                <span>High Fit (80+)</span>
+                <span className="text-[11px] font-mono px-1.5 py-0.2 rounded-full bg-signal-soft text-signal border border-signal/30 tabular-nums">
+                  {tabCounts.highFit}
+                </span>
+              </button>
+
+              <button
+                onClick={() => setDirectoryViewTab('duplicates')}
+                className={`py-2.5 px-3 text-xs font-medium border-b-2 flex items-center gap-2 transition-all whitespace-nowrap ${
+                  directoryViewTab === 'duplicates'
+                    ? 'border-signal text-ink font-semibold'
+                    : 'border-transparent text-ink-muted hover:text-ink hover:border-line'
+                }`}
+              >
+                <AlertTriangle className="w-3.5 h-3.5 text-warning" />
+                <span>Duplicates Queue</span>
+                {tabCounts.dups > 0 && (
+                  <span className="text-[11px] font-mono px-1.5 py-0.2 rounded-full bg-warning-soft text-warning border border-warning/30 tabular-nums font-semibold">
+                    {tabCounts.dups}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => setDirectoryViewTab('enriched')}
+                className={`py-2.5 px-3 text-xs font-medium border-b-2 flex items-center gap-2 transition-all whitespace-nowrap ${
+                  directoryViewTab === 'enriched'
+                    ? 'border-signal text-ink font-semibold'
+                    : 'border-transparent text-ink-muted hover:text-ink hover:border-line'
+                }`}
+              >
+                <Zap className="w-3.5 h-3.5 text-info" />
+                <span>Enriched Profiles</span>
+                <span className="text-[11px] font-mono px-1.5 py-0.2 rounded-full bg-info-soft text-info border border-info/30 tabular-nums">
+                  {tabCounts.enriched}
+                </span>
+              </button>
+
+              <button
+                onClick={() => setDirectoryViewTab('incomplete')}
+                className={`py-2.5 px-3 text-xs font-medium border-b-2 flex items-center gap-2 transition-all whitespace-nowrap ${
+                  directoryViewTab === 'incomplete'
+                    ? 'border-signal text-ink font-semibold'
+                    : 'border-transparent text-ink-muted hover:text-ink hover:border-line'
+                }`}
+              >
+                <FileText className="w-3.5 h-3.5 text-danger" />
+                <span>Needs Details</span>
+                {tabCounts.incomplete > 0 && (
+                  <span className="text-[11px] font-mono px-1.5 py-0.2 rounded-full bg-danger-soft text-danger border border-danger/30 tabular-nums font-semibold">
+                    {tabCounts.incomplete}
+                  </span>
+                )}
+              </button>
+            </div>
+
             {/* Filter Toolbar Header */}
             <div className="px-4 sm:px-6 py-2.5 border-b border-line bg-surface-muted/50 flex flex-wrap items-center justify-between gap-2.5 text-xs">
               {/* Mobile Filter Toggle */}
@@ -2164,17 +2355,40 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   </button>
                 )}
                 <div className="text-xs font-mono text-ink-muted tabular-nums">
-                  {filteredPeople.length} / {people.length}
+                  {filteredPeople.length > 0 ? `${startIndex + 1}–${endIndex}` : '0'} / {filteredPeople.length}
                 </div>
               </div>
 
-              {/* Desktop Filters (Always visible on md+) */}
-              <div className="hidden md:flex items-center gap-2 overflow-x-auto">
-                <span className="text-ink-muted font-mono flex items-center gap-1">
-                  <Filter className="w-3.5 h-3.5" /> Filters:
+              {/* Desktop Search & Filter Pills (Always visible on md+) */}
+              <div className="hidden md:flex items-center gap-2 overflow-x-auto flex-1 mr-2">
+                {/* Search Bar with Keyboard Shortcut Hint (HubSpot style) */}
+                <div className="relative min-w-[220px] max-w-xs">
+                  <Search className="w-3.5 h-3.5 text-ink-muted absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    placeholder="Search members (/ to focus)"
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    className="w-full h-8 pl-8 pr-7 bg-surface border border-line rounded text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:ring-1 focus:ring-signal"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+
+                <div className="h-4 w-px bg-line mx-1" />
+
+                <span className="text-ink-muted font-mono flex items-center gap-1 text-[11px]">
+                  <Filter className="w-3.5 h-3.5" /> Filter:
                 </span>
 
-                {/* Role Filter */}
+                {/* Role Filter Pill */}
                 <select
                   value={roleFilter}
                   onChange={e => setRoleFilter(e.target.value)}
@@ -2187,7 +2401,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   <option value="RESEARCHER">Researchers</option>
                 </select>
 
-                {/* Sector Filter */}
+                {/* Sector Filter Pill */}
                 <select
                   value={sectorFilter}
                   onChange={e => setSectorFilter(e.target.value)}
@@ -2202,7 +2416,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   <option value="ops">Ops & SaaS</option>
                 </select>
 
-                {/* Quality Status Filter */}
+                {/* Quality Status Filter Pill */}
                 <select
                   value={statusFilter}
                   onChange={e => setStatusFilter(e.target.value)}
@@ -2212,7 +2426,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   <option value="CANONICAL">Canonical Only</option>
                   <option value="DUPLICATES">Pending Duplicates</option>
                   <option value="MERGED">Merged Records</option>
-                  <option value="ALL_DUPLICATES">All Duplicates (Pending & Merged)</option>
+                  <option value="ALL_DUPLICATES">All Duplicates</option>
                   <option value="INCOMPLETE">Incomplete Profiles</option>
                   <option value="HIGH_FIT">High Fit (80+)</option>
                 </select>
@@ -2230,29 +2444,52 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                 )}
               </div>
 
-              <div className="hidden md:flex items-center gap-3">
+              {/* Right Side: Range Summary & Unified Export Menu */}
+              <div className="hidden md:flex items-center gap-3 shrink-0">
                 <div className="text-xs font-mono text-ink-muted tabular-nums">
                   Showing <span className="text-ink font-semibold">{filteredPeople.length > 0 ? `${startIndex + 1}–${endIndex}` : '0'}</span> of <span className="text-ink font-semibold">{filteredPeople.length}</span> members
                 </div>
-                <div className="flex items-center gap-1.5 border-l border-line pl-3">
-                  <a
-                    href={`/api/export?type=members&format=csv&role=${encodeURIComponent(roleFilter)}&sector=${encodeURIComponent(sectorFilter)}&status=${encodeURIComponent(statusFilter)}&search=${encodeURIComponent(searchQuery)}`}
-                    download={`network_os_members_${new Date().toISOString().slice(0, 10)}.csv`}
-                    className="h-7 px-2 bg-surface border border-line hover:border-signal/50 text-ink rounded text-[11px] font-medium flex items-center gap-1 transition-colors"
-                    title="Export filtered records to CSV"
+
+                {/* Unified Export Menu (HubSpot style) */}
+                <div className="relative border-l border-line pl-3">
+                  <button
+                    onClick={() => setIsExportMenuOpen(prev => !prev)}
+                    className="h-8 px-2.5 bg-surface border border-line hover:border-line-strong text-ink rounded text-xs font-medium flex items-center gap-1.5 transition-colors shadow-xs"
+                    title="Export dataset"
                   >
-                    <Download className="w-3 h-3 text-ink-muted" />
-                    <span>CSV</span>
-                  </a>
-                  <a
-                    href={`/api/export?type=members&format=json&role=${encodeURIComponent(roleFilter)}&sector=${encodeURIComponent(sectorFilter)}&status=${encodeURIComponent(statusFilter)}&search=${encodeURIComponent(searchQuery)}`}
-                    download={`network_os_members_${new Date().toISOString().slice(0, 10)}.json`}
-                    className="h-7 px-2 bg-surface border border-line hover:border-signal/50 text-ink rounded text-[11px] font-medium flex items-center gap-1 transition-colors"
-                    title="Export filtered records to JSON"
-                  >
-                    <FileText className="w-3 h-3 text-ink-muted" />
-                    <span>JSON</span>
-                  </a>
+                    <Download className="w-3.5 h-3.5 text-ink-muted" />
+                    <span>Export</span>
+                    <ChevronDown className="w-3 h-3 text-ink-muted" />
+                  </button>
+
+                  {isExportMenuOpen && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setIsExportMenuOpen(false)} />
+                      <div className="absolute right-0 top-full mt-1.5 w-44 bg-surface-raised border border-line-strong rounded-lg shadow-xl z-50 py-1 text-xs animate-in fade-in zoom-in-95 duration-100">
+                        <div className="px-3 py-1 text-[10px] font-mono text-ink-muted uppercase border-b border-line mb-1">
+                          Export Format
+                        </div>
+                        <a
+                          href={`/api/export?type=members&format=csv&role=${encodeURIComponent(roleFilter)}&sector=${encodeURIComponent(sectorFilter)}&status=${encodeURIComponent(statusFilter)}&search=${encodeURIComponent(searchQuery)}`}
+                          download={`network_os_members_${new Date().toISOString().slice(0, 10)}.csv`}
+                          onClick={() => setIsExportMenuOpen(false)}
+                          className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-surface-muted text-ink transition-colors"
+                        >
+                          <FileSpreadsheet className="w-3.5 h-3.5 text-signal" />
+                          <span>CSV Spreadsheet</span>
+                        </a>
+                        <a
+                          href={`/api/export?type=members&format=json&role=${encodeURIComponent(roleFilter)}&sector=${encodeURIComponent(sectorFilter)}&status=${encodeURIComponent(statusFilter)}&search=${encodeURIComponent(searchQuery)}`}
+                          download={`network_os_members_${new Date().toISOString().slice(0, 10)}.json`}
+                          onClick={() => setIsExportMenuOpen(false)}
+                          className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-surface-muted text-ink transition-colors"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-info" />
+                          <span>JSON Schema</span>
+                        </a>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -2388,8 +2625,35 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                             </div>
                           </div>
                         ) : (
-                          <div className="text-ink-muted text-xs">
-                            No members match your current filter query.
+                          <div className="py-12 max-w-sm mx-auto text-center space-y-3">
+                            <div className="w-10 h-10 rounded-full bg-surface-muted border border-line flex items-center justify-center mx-auto text-ink-muted">
+                              <Users className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <h4 className="text-xs font-semibold text-ink">No matching members found</h4>
+                              <p className="text-[11px] text-ink-muted mt-1 leading-relaxed">
+                                No records match your active search or filter criteria in this view.
+                              </p>
+                            </div>
+                            <div className="flex items-center justify-center gap-2 pt-1">
+                              {hasActiveFilters && (
+                                <button
+                                  onClick={handleClearFilters}
+                                  className="px-3 py-1.5 bg-surface border border-line hover:border-signal/50 rounded text-xs font-medium text-ink transition-colors"
+                                >
+                                  Clear Filters
+                                </button>
+                              )}
+                              <button
+                                onClick={() => {
+                                  setIsImportModalOpen(true);
+                                  setImportTab('csv');
+                                }}
+                                className="px-3 py-1.5 bg-signal text-surface rounded text-xs font-medium hover:bg-signal/90 transition-colors"
+                              >
+                                Add Members
+                              </button>
+                            </div>
                           </div>
                         )}
                       </td>
@@ -2546,8 +2810,35 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   Loading database records from Supabase...
                 </div>
               ) : filteredPeople.length === 0 ? (
-                <div className="py-12 text-center text-ink-muted text-xs">
-                  No members match your current filter query.
+                <div className="py-12 max-w-sm mx-auto text-center space-y-3">
+                  <div className="w-10 h-10 rounded-full bg-surface-muted border border-line flex items-center justify-center mx-auto text-ink-muted">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-semibold text-ink">No matching members found</h4>
+                    <p className="text-[11px] text-ink-muted mt-1 leading-relaxed">
+                      No records match your active search or filter criteria in this view.
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-center gap-2 pt-1">
+                    {hasActiveFilters && (
+                      <button
+                        onClick={handleClearFilters}
+                        className="px-3 py-1.5 bg-surface border border-line hover:border-signal/50 rounded text-xs font-medium text-ink transition-colors"
+                      >
+                        Clear Filters
+                      </button>
+                    )}
+                    <button
+                      onClick={() => {
+                        setIsImportModalOpen(true);
+                        setImportTab('csv');
+                      }}
+                      className="px-3 py-1.5 bg-signal text-surface rounded text-xs font-medium hover:bg-signal/90 transition-colors"
+                    >
+                      Add Members
+                    </button>
+                  </div>
                 </div>
               ) : (
                 paginatedPeople.map(person => {
