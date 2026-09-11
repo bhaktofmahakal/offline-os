@@ -50,7 +50,12 @@ import {
   MessageSquare,
   Compass,
   Code2,
-  History
+  History,
+  Utensils,
+  LayoutGrid,
+  Coffee,
+  ShieldCheck,
+  Shuffle
 } from 'lucide-react';
 
 interface Person {
@@ -370,7 +375,7 @@ export default function OfflineCRM() {
   const [people, setPeople] = useState<Person[]>([]);
   const [introductions, setIntroductions] = useState<Introduction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'people' | 'duplicates' | 'intros' | 'intelligence'>('people');
+  const [activeTab, setActiveTab] = useState<'people' | 'duplicates' | 'intros' | 'seating' | 'intelligence'>('people');
   const [searchQuery, setSearchQuery] = useState('');
 
   const [roleFilter, setRoleFilter] = useState('ALL');
@@ -549,6 +554,18 @@ export default function OfflineCRM() {
   const [tavilySearchResults, setTavilySearchResults] = useState<any[]>([]);
   const [rawViewResults, setRawViewResults] = useState<Record<string, boolean>>({});
   const [copiedResultId, setCopiedResultId] = useState<string | null>(null);
+
+  // Algorithmic Seating Optimizer State (Blueprint 1)
+  const [seatingTableSize, setSeatingTableSize] = useState<number>(8);
+  const [seatingCustomSize, setSeatingCustomSize] = useState<string>('8');
+  const [seatingCohortFilter, setSeatingCohortFilter] = useState<'all' | 'high_fit' | 'founders' | 'operators'>('all');
+  const [selectedSeatingMemberIds, setSelectedSeatingMemberIds] = useState<Set<number>>(new Set());
+  const [strictCompetitorAvoidance, setStrictCompetitorAvoidance] = useState<boolean>(true);
+  const [generateAiTableCards, setGenerateAiTableCards] = useState<boolean>(true);
+  const [isOptimizingSeating, setIsOptimizingSeating] = useState<boolean>(false);
+  const [optimizedSeatingResult, setOptimizedSeatingResult] = useState<any | null>(null);
+  const [activeBriefingTableNumber, setActiveBriefingTableNumber] = useState<number | null>(null);
+  const [copiedTableCardNum, setCopiedTableCardNum] = useState<number | null>(null);
 
   // Drawer research state
   const [drawerResearching, setDrawerResearching] = useState(false);
@@ -1627,6 +1644,138 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
     setTimeout(() => setCopiedIntroId(null), 2000);
   };
 
+  // Seating Optimizer Attendee Selection & Execution Helpers
+  const handleSelectAllCanonicalForSeating = () => {
+    const canonicalMembers = activePeople.filter(p => p.is_duplicate_of === null);
+    setSelectedSeatingMemberIds(new Set(canonicalMembers.map(p => p.id)));
+  };
+
+  const handleSelectHighFitForSeating = () => {
+    const highFit = activePeople
+      .filter(p => p.is_duplicate_of === null && (p.fit_score ?? 0) >= 75)
+      .slice(0, 48);
+    setSelectedSeatingMemberIds(new Set(highFit.map(p => p.id)));
+  };
+
+  const handleToggleSeatingMember = (id: number) => {
+    setSelectedSeatingMemberIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleClearSeatingSelection = () => {
+    setSelectedSeatingMemberIds(new Set());
+  };
+
+  const handleRunSeatingOptimization = async () => {
+    let memberIds = Array.from(selectedSeatingMemberIds);
+    if (memberIds.length === 0) {
+      const canonicalMembers = activePeople.filter(p => p.is_duplicate_of === null);
+      if (canonicalMembers.length === 0) {
+        alert('No canonical members found in database to seat.');
+        return;
+      }
+      memberIds = canonicalMembers.map(p => p.id);
+      setSelectedSeatingMemberIds(new Set(memberIds));
+    }
+
+    const effectiveTableSize = seatingTableSize === 0 ? parseInt(seatingCustomSize, 10) || 8 : seatingTableSize;
+    if (effectiveTableSize < 2 || effectiveTableSize > 24) {
+      alert('Table capacity must be between 2 and 24.');
+      return;
+    }
+
+    setIsOptimizingSeating(true);
+    try {
+      const res = await fetch('/api/seating/optimize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          memberIds,
+          tableSize: effectiveTableSize,
+          strictCompetitorAvoidance,
+          generateAiCards: generateAiTableCards,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      setOptimizedSeatingResult(data);
+      if (data.tables && data.tables.length > 0) {
+        setActiveBriefingTableNumber(data.tables[0].tableNumber);
+      }
+    } catch (err: any) {
+      console.error('Seating optimization failed:', err);
+      alert('Seating optimization failed: ' + err.message);
+    } finally {
+      setIsOptimizingSeating(false);
+    }
+  };
+
+  const handleExportSeatingCSV = () => {
+    if (!optimizedSeatingResult || !optimizedSeatingResult.tables) return;
+    const rows = [
+      ['Table Number', 'Table Name', 'Seat', 'Member Name', 'Company', 'Title', 'Sector', 'Fit Score', 'Bio Notes', 'Conversation Icebreaker']
+    ];
+
+    optimizedSeatingResult.tables.forEach((table: any) => {
+      table.seats.forEach((seat: any) => {
+        rows.push([
+          String(table.tableNumber),
+          table.tableName || `Table ${table.tableNumber}`,
+          String(seat.seatNumber),
+          seat.name,
+          seat.company || '',
+          seat.roleTitle || '',
+          (seat.sectorTags || []).join('; '),
+          String(seat.fitScore || ''),
+          seat.bioNotes || '',
+          table.conversationCard?.icebreakerPrompt || ''
+        ]);
+      });
+    });
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + rows.map(r => r.map(escapeCSV).join(',')).join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `vip_seating_chart_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleCopyAllTableBriefings = () => {
+    if (!optimizedSeatingResult || !optimizedSeatingResult.tables) return;
+    let md = `# VIP Seating Briefings (${optimizedSeatingResult.totalAttendees} Attendees across ${optimizedSeatingResult.totalTables} Tables)\n\n`;
+    optimizedSeatingResult.tables.forEach((t: any) => {
+      md += `## Table ${t.tableNumber}: ${t.tableName}\n`;
+      md += `Format: ${t.seats.length} Seats | Diversity Score: ${t.metrics?.diversityScore ?? 'High'}\n\n`;
+      md += `### Attendees\n`;
+      t.seats.forEach((s: any) => {
+        md += `- Seat ${s.seatNumber}: ${s.name} (${s.roleTitle || 'Founder'} at ${s.company || 'Stealth'}) - Sectors: ${(s.sectorTags || []).join(', ') || 'N/A'}\n`;
+      });
+      if (t.conversationCard) {
+        md += `\n### Table Theme: ${t.conversationCard.tableTheme}\n`;
+        md += `Curator Icebreaker: ${t.conversationCard.icebreakerPrompt}\n`;
+        md += `Discussion Spark: ${t.conversationCard.unifyingTopic}\n`;
+      }
+      md += `\n---\n\n`;
+    });
+
+    navigator.clipboard.writeText(md).then(() => {
+      setCopiedTableCardNum(-1);
+      setTimeout(() => setCopiedTableCardNum(null), 3000);
+    });
+  };
+
   // Nav Items Helper Component (for expanded sidebar & mobile drawer)
   const NavItems = () => (
     <div className="p-3 space-y-1.5">
@@ -1701,6 +1850,29 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
         </div>
         <span className="text-xs font-mono tabular-nums px-2 py-0.5 rounded bg-surface border border-line text-ink-muted shrink-0 ml-2">
           {introductions.length}
+        </span>
+      </button>
+
+      <button
+        onClick={() => {
+          setActiveTab('seating');
+          setIsMobileMenuOpen(false);
+        }}
+        className={`w-full min-h-[42px] flex items-center justify-between pl-3.5 pr-2.5 py-2 text-sm rounded-lg transition-all relative ${
+          activeTab === 'seating'
+            ? 'bg-surface-raised text-ink font-semibold shadow-xs'
+            : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
+        }`}
+      >
+        {activeTab === 'seating' && (
+          <span className="absolute left-0 top-2 bottom-2 w-1 bg-[#E05A47] rounded-r-full" />
+        )}
+        <div className="flex items-center gap-2.5 min-w-0">
+          <Utensils className={`w-4 h-4 shrink-0 ${activeTab === 'seating' ? 'text-[#E05A47]' : 'text-signal'}`} />
+          <span className="truncate whitespace-nowrap">Seating Optimizer</span>
+        </div>
+        <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-signal-soft text-signal border border-signal/20 shrink-0 ml-2">
+          VIP
         </span>
       </button>
 
@@ -1930,7 +2102,31 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
               </span>
             </button>
 
-            {/* 4. Intelligence Lab Tab (Compass) */}
+            {/* 4. Seating Optimizer Tab (Utensils) */}
+            <button
+              onClick={() => setActiveTab('seating')}
+              className="relative w-full py-1 flex items-center justify-center group transition-colors"
+              title="VIP Seating Optimizer"
+              aria-label="VIP Seating Optimizer"
+            >
+              {activeTab === 'seating' && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[#E05A47] rounded-r-full" />
+              )}
+              <div
+                className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
+                  activeTab === 'seating'
+                    ? 'bg-surface-raised border border-line/60 text-ink shadow-xs'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface-muted/70'
+                }`}
+              >
+                <Utensils className={`w-5 h-5 ${activeTab === 'seating' ? 'text-ink' : 'text-ink-muted'}`} />
+              </div>
+              <span className="pointer-events-none absolute left-full ml-3 px-2 py-1 rounded bg-ink text-surface text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-md">
+                Seating Optimizer
+              </span>
+            </button>
+
+            {/* 5. Intelligence Lab Tab (Compass) */}
             <button
               onClick={() => setActiveTab('intelligence')}
               className="relative w-full py-1 flex items-center justify-center group transition-colors"
@@ -3432,6 +3628,497 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                   </div>
                 );
               })}
+            </div>
+          </div>
+        )}
+
+        {/* 2C. ALGORITHMIC SEATING OPTIMIZER (VIP RETREATS & DINNERS - APARNA PANDE) */}
+        {activeTab === 'seating' && (
+          <div className="flex-1 overflow-y-auto bg-canvas p-4 sm:p-6 lg:p-8 animate-in fade-in-50 duration-200">
+            <div className="max-w-7xl mx-auto space-y-6">
+              {/* Header & Controls Strip */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-line pb-5">
+                <div>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="w-2 h-2 rounded-full bg-signal animate-pulse" />
+                    <span className="text-[11px] font-mono font-bold tracking-wider uppercase text-signal">
+                      VIP Retreats & Intimate Dinners Curator
+                    </span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-signal-soft text-signal border border-signal/30 font-semibold">
+                      ALGORITHMIC SEATING
+                    </span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-ink tracking-tight">
+                    VIP Seating Optimizer
+                  </h2>
+                  <p className="text-xs sm:text-sm text-ink-muted mt-1 max-w-2xl leading-relaxed">
+                    Constraint satisfaction engine for curated dining pods, founder roundtables, and retreats. Enforces zero direct-competitor clashes, stratifies seniority stages, and synthesizes server-side AI conversation cards.
+                  </p>
+                </div>
+
+                {/* Top Action Buttons (CSV Export & Markdown Copy) */}
+                {optimizedSeatingResult && optimizedSeatingResult.tables && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      onClick={handleExportSeatingCSV}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface border border-line hover:border-signal/50 text-ink hover:text-signal transition-colors flex items-center gap-1.5 shadow-2xs"
+                      title="Export full seating arrangement to CSV spreadsheet"
+                    >
+                      <Download className="w-3.5 h-3.5 text-signal" />
+                      <span>Export CSV</span>
+                    </button>
+
+                    <button
+                      onClick={handleCopyAllTableBriefings}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface border border-line hover:border-signal/50 text-ink hover:text-signal transition-colors flex items-center gap-1.5 shadow-2xs"
+                      title="Copy all table briefings and icebreakers as markdown"
+                    >
+                      {copiedTableCardNum === -1 ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-signal" />
+                          <span>Briefings Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5 text-ink-muted" />
+                          <span>Copy All Briefings</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Main Workspace Layout (Left: Controls & Selection, Right: Seating Canvas) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                {/* LEFT CONFIGURATION PANEL (4 Cols) */}
+                <div className="lg:col-span-4 bg-surface border border-line rounded-xl p-4 sm:p-5 space-y-5 shadow-xs">
+                  {/* 1. Format & Capacity Selector */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-ink flex items-center gap-1.5">
+                      <LayoutGrid className="w-3.5 h-3.5 text-signal" />
+                      <span>Table Format & Capacity</span>
+                    </label>
+                    <p className="text-[11px] text-ink-muted">
+                      Select dining pod size or configure custom capacity.
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-1.5 pt-1">
+                      {[
+                        { size: 2, label: '1:1 Mastermind', desc: '2 seats' },
+                        { size: 4, label: 'Coffee Pod', desc: '4 seats' },
+                        { size: 6, label: 'Private Dining', desc: '6 seats' },
+                        { size: 8, label: 'Flagship Retreat', desc: '8 seats' },
+                        { size: 12, label: 'Boardroom Banquet', desc: '12 seats' },
+                        { size: 0, label: 'Custom Capacity', desc: 'Custom' },
+                      ].map(preset => {
+                        const isSelected = seatingTableSize === preset.size;
+                        return (
+                          <button
+                            key={preset.label}
+                            type="button"
+                            onClick={() => setSeatingTableSize(preset.size)}
+                            className={`p-2 rounded-lg border text-left transition-all ${
+                              isSelected
+                                ? 'bg-signal-soft border-signal text-signal font-semibold shadow-xs'
+                                : 'bg-surface-raised border-line/80 hover:border-line hover:bg-surface-muted text-ink'
+                            }`}
+                          >
+                            <div className="text-xs leading-snug">{preset.label}</div>
+                            <div className="text-[10px] font-mono text-ink-muted">{preset.desc}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {seatingTableSize === 0 && (
+                      <div className="pt-2">
+                        <label className="text-[11px] font-mono text-ink-muted block mb-1">
+                          Custom Seats Per Table (2–24):
+                        </label>
+                        <input
+                          type="number"
+                          min={2}
+                          max={24}
+                          value={seatingCustomSize}
+                          onChange={e => setSeatingCustomSize(e.target.value)}
+                          className="w-full h-8 px-2.5 text-xs bg-surface-raised border border-line rounded font-mono text-ink"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="border-t border-line" />
+
+                  {/* 2. Algorithm Constraints */}
+                  <div className="space-y-3">
+                    <div className="text-xs font-semibold text-ink flex items-center gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-signal" />
+                      <span>Optimization Constraints</span>
+                    </div>
+
+                    {/* Strict Competitor Avoidance Toggle */}
+                    <div className="flex items-start justify-between gap-3 p-2.5 bg-surface-raised border border-line/80 rounded-lg">
+                      <div className="space-y-0.5">
+                        <div className="text-xs font-medium text-ink">Strict Competitor Isolation</div>
+                        <div className="text-[10px] text-ink-muted leading-relaxed">
+                          Isolates direct rival founders and same company members across separate tables.
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setStrictCompetitorAvoidance(!strictCompetitorAvoidance)}
+                        className={`w-9 h-5 rounded-full transition-colors relative shrink-0 mt-0.5 ${
+                          strictCompetitorAvoidance ? 'bg-signal' : 'bg-line-strong'
+                        }`}
+                      >
+                        <span
+                          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                            strictCompetitorAvoidance ? 'translate-x-4' : 'translate-x-0'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    {/* Gemini AI Conversation Cards Toggle */}
+                    <div className="flex items-start justify-between gap-3 p-2.5 bg-surface-raised border border-line/80 rounded-lg">
+                      <div className="space-y-0.5">
+                        <div className="text-xs font-medium text-ink">AI Table Conversation Cards</div>
+                        <div className="text-[10px] text-ink-muted leading-relaxed">
+                          Server-side Gemini 3.6 Flash generates table theme, unifying topic, and icebreakers.
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setGenerateAiTableCards(!generateAiTableCards)}
+                        className={`w-9 h-5 rounded-full transition-colors relative shrink-0 mt-0.5 ${
+                          generateAiTableCards ? 'bg-signal' : 'bg-line-strong'
+                        }`}
+                      >
+                        <span
+                          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                            generateAiTableCards ? 'translate-x-4' : 'translate-x-0'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-line" />
+
+                  {/* 3. Attendee Pool Selection */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-semibold text-ink flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-signal" />
+                        <span>Attendee Pool</span>
+                      </label>
+                      <span className="text-[11px] font-mono text-ink-muted tabular-nums">
+                        {selectedSeatingMemberIds.size > 0
+                          ? `${selectedSeatingMemberIds.size} selected`
+                          : `All Canonical (${metrics.canonical})`}
+                      </span>
+                    </div>
+
+                    {/* Quick Cohort Selection Buttons */}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={handleSelectAllCanonicalForSeating}
+                        className="px-2 py-1 text-[11px] rounded bg-surface-raised border border-line hover:border-line-strong text-ink transition-colors"
+                      >
+                        Select All Canonical ({metrics.canonical})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSelectHighFitForSeating}
+                        className="px-2 py-1 text-[11px] rounded bg-surface-raised border border-line hover:border-line-strong text-ink transition-colors"
+                      >
+                        Top 48 High Fit
+                      </button>
+                      {selectedSeatingMemberIds.size > 0 && (
+                        <button
+                          type="button"
+                          onClick={handleClearSeatingSelection}
+                          className="px-2 py-1 text-[11px] rounded bg-danger-soft text-danger border border-danger/20 hover:bg-danger/20 transition-colors"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Expected Tables Estimation Pill */}
+                    <div className="p-2.5 rounded-lg bg-surface-muted/60 border border-line text-xs space-y-1">
+                      <div className="flex items-center justify-between text-[11px] font-mono text-ink-muted">
+                        <span>Expected Tables:</span>
+                        <span className="text-ink font-semibold">
+                          ~{Math.ceil((selectedSeatingMemberIds.size || metrics.canonical || 8) / (seatingTableSize === 0 ? parseInt(seatingCustomSize, 10) || 8 : seatingTableSize))} Tables
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-ink-muted">
+                        Constraint optimizer will balance seniority tiers and cross-pollinate sectors evenly.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Primary CTA Run Button */}
+                  <button
+                    type="button"
+                    onClick={handleRunSeatingOptimization}
+                    disabled={isOptimizingSeating || metrics.canonical === 0}
+                    className="w-full py-2.5 px-4 rounded-lg bg-signal text-surface font-semibold text-xs hover:bg-signal/90 transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 cursor-pointer"
+                  >
+                    {isOptimizingSeating ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>Optimizing Seating & Generating Cards...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Utensils className="w-4 h-4" />
+                        <span>Run Seating Optimization</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* RIGHT CANVAS: LIVE SEATING CHART & TABLE CARDS (8 Cols) */}
+                <div className="lg:col-span-8 space-y-5">
+                  {/* Empty State: Not Yet Run */}
+                  {!optimizedSeatingResult && !isOptimizingSeating && (
+                    <div className="bg-surface border border-line rounded-xl p-8 text-center space-y-4">
+                      <div className="w-12 h-12 rounded-2xl bg-signal-soft border border-signal/30 text-signal flex items-center justify-center mx-auto shadow-xs">
+                        <Utensils className="w-6 h-6" />
+                      </div>
+                      <div className="space-y-1 max-w-md mx-auto">
+                        <h3 className="text-sm font-semibold text-ink">Ready to Optimize Dinner Seating</h3>
+                        <p className="text-xs text-ink-muted leading-relaxed">
+                          Choose your desired table size (2, 4, 6, 8, 12, or custom), select attendees from your canonical database, and launch the constraint satisfaction optimizer.
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left max-w-xl mx-auto pt-2">
+                        <div className="p-3 bg-surface-raised border border-line rounded-lg space-y-1">
+                          <div className="text-xs font-semibold text-ink flex items-center gap-1.5">
+                            <ShieldCheck className="w-3.5 h-3.5 text-signal" />
+                            <span>Zero Rivalry</span>
+                          </div>
+                          <div className="text-[11px] text-ink-muted leading-snug">
+                            Voice AI, crypto, and direct rivals isolated across separate tables.
+                          </div>
+                        </div>
+
+                        <div className="p-3 bg-surface-raised border border-line rounded-lg space-y-1">
+                          <div className="text-xs font-semibold text-ink flex items-center gap-1.5">
+                            <Layers className="w-3.5 h-3.5 text-info" />
+                            <span>Tier Stratification</span>
+                          </div>
+                          <div className="text-[11px] text-ink-muted leading-snug">
+                            Stages and seniority balanced so no table is top-heavy.
+                          </div>
+                        </div>
+
+                        <div className="p-3 bg-surface-raised border border-line rounded-lg space-y-1">
+                          <div className="text-xs font-semibold text-ink flex items-center gap-1.5">
+                            <Sparkles className="w-3.5 h-3.5 text-copper" />
+                            <span>AI Conversation</span>
+                          </div>
+                          <div className="text-[11px] text-ink-muted leading-snug">
+                            Gemini 3.6 Flash curates bespoke icebreakers and themes for hosts.
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-2">
+                        <button
+                          type="button"
+                          onClick={handleRunSeatingOptimization}
+                          className="px-4 py-2 rounded-lg bg-signal text-surface text-xs font-semibold hover:bg-signal/90 transition-colors inline-flex items-center gap-2 shadow-xs cursor-pointer"
+                        >
+                          <Play className="w-3.5 h-3.5" />
+                          <span>Run with All Canonical Members</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Loading State */}
+                  {isOptimizingSeating && (
+                    <div className="bg-surface border border-line rounded-xl p-10 text-center space-y-4">
+                      <RefreshCw className="w-8 h-8 text-signal animate-spin mx-auto" />
+                      <div className="space-y-1.5">
+                        <h3 className="text-sm font-semibold text-ink">Optimizing Seating Chart</h3>
+                        <p className="text-xs text-ink-muted max-w-sm mx-auto">
+                          Evaluating constraint matrix, executing local swap refinement, and generating server-side Gemini 3.6 Flash conversation cards...
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Results State */}
+                  {optimizedSeatingResult && optimizedSeatingResult.tables && (
+                    <div className="space-y-5">
+                      {/* Metric Summary Strip */}
+                      <div className="bg-surface border border-line rounded-xl p-4 grid grid-cols-2 sm:grid-cols-5 gap-3 text-left">
+                        <div className="border-r border-line pr-2">
+                          <div className="text-[10px] font-mono text-ink-muted uppercase">Total Seated</div>
+                          <div className="text-base font-semibold text-ink tabular-nums">
+                            {optimizedSeatingResult.totalAttendees} members
+                          </div>
+                        </div>
+
+                        <div className="border-r border-line pr-2">
+                          <div className="text-[10px] font-mono text-ink-muted uppercase">Dining Tables</div>
+                          <div className="text-base font-semibold text-signal tabular-nums">
+                            {optimizedSeatingResult.totalTables} tables
+                          </div>
+                        </div>
+
+                        <div className="border-r border-line pr-2">
+                          <div className="text-[10px] font-mono text-ink-muted uppercase">Pod Format</div>
+                          <div className="text-base font-semibold text-ink">
+                            {optimizedSeatingResult.tableSize} seats/table
+                          </div>
+                        </div>
+
+                        <div className="border-r border-line pr-2">
+                          <div className="text-[10px] font-mono text-ink-muted uppercase">Direct Conflicts</div>
+                          <div className="text-base font-semibold text-signal flex items-center gap-1">
+                            <CheckCircle2 className="w-4 h-4 text-signal" />
+                            <span>{optimizedSeatingResult.totalConflicts} detected</span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="text-[10px] font-mono text-ink-muted uppercase">Diversity Score</div>
+                          <div className="text-base font-semibold text-ink font-mono">
+                            {optimizedSeatingResult.averageDiversityScore}%
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Tables Grid */}
+                      <div className="space-y-6">
+                        {optimizedSeatingResult.tables.map((table: any) => {
+                          const isCopied = copiedTableCardNum === table.tableNumber;
+                          return (
+                            <div
+                              key={table.tableNumber}
+                              className="bg-surface border border-line rounded-xl overflow-hidden shadow-2xs space-y-0"
+                            >
+                              {/* Table Header Strip */}
+                              <div className="p-4 bg-surface-raised border-b border-line flex flex-wrap items-center justify-between gap-2">
+                                <div className="flex items-center gap-2.5">
+                                  <span className="w-7 h-7 rounded-lg bg-signal/10 border border-signal/30 text-signal font-mono text-xs font-bold flex items-center justify-center">
+                                    T{table.tableNumber}
+                                  </span>
+                                  <div>
+                                    <h4 className="text-sm font-semibold text-ink">
+                                      {table.tableName || `Table ${table.tableNumber}`}
+                                    </h4>
+                                    <div className="text-[11px] text-ink-muted font-mono">
+                                      {table.seats.length} of {table.capacity} seats filled &bull; Diversity Score: {table.metrics?.diversityScore ?? 92}%
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                  <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-signal-soft text-signal border border-signal/20 font-medium flex items-center gap-1">
+                                    <ShieldCheck className="w-3 h-3" />
+                                    Zero Rival Clashes
+                                  </span>
+
+                                  {table.conversationCard && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const mdCard = `Table ${table.tableNumber}: ${table.tableName}\nTheme: ${table.conversationCard.tableTheme}\nIcebreaker: ${table.conversationCard.icebreakerPrompt}\nUnifying Topic: ${table.conversationCard.unifyingTopic}\nAttendees:\n${table.seats.map((s: any) => `- ${s.name} (${s.roleTitle || 'Founder'} at ${s.company || 'Stealth'})`).join('\n')}`;
+                                        navigator.clipboard.writeText(mdCard);
+                                        setCopiedTableCardNum(table.tableNumber);
+                                        setTimeout(() => setCopiedTableCardNum(null), 2000);
+                                      }}
+                                      className="p-1.5 rounded-lg border border-line hover:bg-surface text-ink-muted hover:text-ink transition-colors"
+                                      title="Copy Table Briefing Card"
+                                    >
+                                      {isCopied ? <Check className="w-3.5 h-3.5 text-signal" /> : <Copy className="w-3.5 h-3.5" />}
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Attendees Seating Grid */}
+                              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {table.seats.map((seat: any) => (
+                                  <div
+                                    key={seat.id}
+                                    className="p-3 bg-canvas border border-line/70 rounded-lg flex items-start gap-2.5"
+                                  >
+                                    <span className="w-5 h-5 rounded-full bg-surface-raised border border-line text-[10px] font-mono font-bold text-ink-muted flex items-center justify-center shrink-0 mt-0.5">
+                                      {seat.seatNumber}
+                                    </span>
+                                    <div className="min-w-0 flex-1 space-y-0.5">
+                                      <div className="flex items-center justify-between gap-1">
+                                        <div className="text-xs font-semibold text-ink truncate">
+                                          {seat.name}
+                                        </div>
+                                        {seat.seniority && (
+                                          <span className="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-surface border border-line text-ink-muted shrink-0">
+                                            {seat.seniority}
+                                          </span>
+                                        )}
+                                      </div>
+                                      <div className="text-[11px] text-ink-muted truncate">
+                                        {seat.roleTitle || 'Founder'} at <strong className="text-ink">{seat.company || 'Stealth'}</strong>
+                                      </div>
+                                      {seat.sectorTags && seat.sectorTags.length > 0 && (
+                                        <div className="flex items-center gap-1 flex-wrap pt-1">
+                                          {seat.sectorTags.slice(0, 3).map((tag: string) => (
+                                            <span
+                                              key={tag}
+                                              className="text-[9px] font-mono px-1 py-0.2 rounded bg-surface-raised text-ink-muted border border-line/60"
+                                            >
+                                              {tag}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* AI Table Conversation Card */}
+                              {table.conversationCard && (
+                                <div className="m-4 mt-0 p-3.5 bg-surface-raised border border-line rounded-lg space-y-2">
+                                  <div className="flex items-center justify-between text-xs">
+                                    <span className="font-semibold text-ink flex items-center gap-1.5">
+                                      <Sparkles className="w-3.5 h-3.5 text-copper" />
+                                      <span>Table Briefing & Host Icebreaker</span>
+                                    </span>
+                                    <span className="text-[10px] font-mono text-copper bg-copper/10 px-2 py-0.5 rounded font-medium">
+                                      {table.conversationCard.tableTheme}
+                                    </span>
+                                  </div>
+
+                                  {/* Unifying Topic */}
+                                  <div className="text-xs text-ink-muted leading-relaxed">
+                                    <strong className="text-ink font-medium">Unifying Spark:</strong> {table.conversationCard.unifyingTopic}
+                                  </div>
+
+                                  {/* Icebreaker */}
+                                  <div className="p-2.5 bg-surface border-l-2 border-copper rounded-r text-xs italic font-serif text-ink leading-relaxed">
+                                    &ldquo;{table.conversationCard.icebreakerPrompt}&rdquo;
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}

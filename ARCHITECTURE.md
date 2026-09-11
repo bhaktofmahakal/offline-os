@@ -262,7 +262,7 @@ flowchart LR
   * **Tiered Waterfall Pipeline**:
     1. **TinyFish Autonomous Scraper**: Headless, anti-fingerprinting crawler targeting the founder's personal domain, GitHub repositories, and open-source contributions.
     2. **Tavily Neural Web Search**: Real-time cross-referencing against SEC filings, funding announcements, AngelList syndicate memos, and tech press.
-    3. **Gemini 2.5 Flash Synthesis**: Consolidates scraped web crumbs into a structured 360° executive profile before human review.
+    3. **Gemini 3.6 Flash Synthesis**: Consolidates scraped web crumbs into a structured 360° executive profile before human review.
 
 ### 💡 Blueprint 5: Real-Time Slack VIP Intake Concierge Bot (`#offline-vip-intake`)
 * **Stakeholder**: **Utsav Somani** (Founder & CEO), enabling sub-minute executive approvals directly from mobile.
