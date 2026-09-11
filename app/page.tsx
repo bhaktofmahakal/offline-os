@@ -7887,7 +7887,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                           <span>Strict Founder Safety Guard (Test Protocol)</span>
                         </div>
                         <p className="text-[11px] text-ink-muted leading-relaxed">
-                          Real community founders are <strong>never</strong> messaged or emailed during testing. Live delivery via Resend sandbox is strictly routed to the operator's authorized test address.
+                          Real community founders are <strong>never</strong> messaged or emailed during testing. Live delivery via Resend sandbox is strictly routed to the operator&apos;s authorized test address.
                         </p>
                         <div className="flex items-center gap-2 pt-1">
                           <label className="text-[10px] font-mono text-ink-muted uppercase shrink-0">Test Recipient:</label>
