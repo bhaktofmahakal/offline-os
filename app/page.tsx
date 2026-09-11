@@ -69,7 +69,9 @@ import {
   UserPlus,
   BarChart2,
   Eye,
-  EyeOff
+  EyeOff,
+  Shield,
+  LogOut
 } from 'lucide-react';
 
 interface Person {
@@ -3234,6 +3236,22 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
             >
               <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline">Refresh</span>
+            </button>
+
+            {/* Operator Lock / Sign Out */}
+            <button
+              onClick={async () => {
+                if (confirm('Lock executive console and sign out?')) {
+                  await fetch('/api/auth/logout', { method: 'POST' });
+                  window.location.href = '/login';
+                }
+              }}
+              className="min-h-[40px] px-2.5 sm:px-3 text-xs border border-line hover:border-signal/50 hover:bg-surface-muted rounded text-ink-muted hover:text-ink flex items-center gap-1.5 transition-colors cursor-pointer"
+              title="Lock Console / Sign Out (utsavmishraa005@gmail.com)"
+            >
+              <Shield className="w-3.5 h-3.5 text-signal" />
+              <span className="hidden xl:inline text-[11px] font-mono">utsavmishraa005@gmail.com</span>
+              <LogOut className="w-3.5 h-3.5" />
             </button>
           </div>
         </header>
