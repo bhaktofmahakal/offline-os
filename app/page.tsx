@@ -55,7 +55,13 @@ import {
   LayoutGrid,
   Coffee,
   ShieldCheck,
-  Shuffle
+  Shuffle,
+  Columns,
+  Maximize2,
+  Minimize2,
+  ChevronsUpDown,
+  ChevronsLeft,
+  ChevronsRight
 } from 'lucide-react';
 
 interface Person {
@@ -566,6 +572,15 @@ export default function OfflineCRM() {
   const [optimizedSeatingResult, setOptimizedSeatingResult] = useState<any | null>(null);
   const [activeBriefingTableNumber, setActiveBriefingTableNumber] = useState<number | null>(null);
   const [copiedTableCardNum, setCopiedTableCardNum] = useState<number | null>(null);
+
+  // Seating Floor Plan & Compact Navigation States
+  const [seatingViewMode, setSeatingViewMode] = useState<'grid' | 'focus' | 'list'>('grid');
+  const [seatingCurrentPage, setSeatingCurrentPage] = useState<number>(1);
+  const [seatingTablesPerPage, setSeatingTablesPerPage] = useState<number>(6);
+  const [seatingActiveTableFilter, setSeatingActiveTableFilter] = useState<number | 'all'>('all');
+  const [seatingSearchQuery, setSeatingSearchQuery] = useState<string>('');
+  const [seatingCollapseAiCards, setSeatingCollapseAiCards] = useState<boolean>(false);
+  const [expandedBriefingTables, setExpandedBriefingTables] = useState<Set<number>>(new Set());
 
   // Drawer research state
   const [drawerResearching, setDrawerResearching] = useState(false);
@@ -1775,6 +1790,52 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       setTimeout(() => setCopiedTableCardNum(null), 3000);
     });
   };
+
+  // Toggle individual table briefing expansion when in collapsed mode
+  const handleToggleTableBriefing = (tableNumber: number) => {
+    setExpandedBriefingTables(prev => {
+      const next = new Set(prev);
+      if (next.has(tableNumber)) next.delete(tableNumber);
+      else next.add(tableNumber);
+      return next;
+    });
+  };
+
+  // Filtered Seating Tables (by active table chip or attendee/company search)
+  const filteredSeatingTables = useMemo(() => {
+    if (!optimizedSeatingResult || !optimizedSeatingResult.tables) return [];
+    return optimizedSeatingResult.tables.filter((table: any) => {
+      // 1. Filter by specific table chip
+      if (seatingActiveTableFilter !== 'all' && table.tableNumber !== seatingActiveTableFilter) {
+        return false;
+      }
+      // 2. Filter by attendee name, company, role, sector, or table theme
+      if (seatingSearchQuery.trim()) {
+        const q = seatingSearchQuery.toLowerCase().trim();
+        const matchName = (table.seats || []).some((s: any) => (s.name || '').toLowerCase().includes(q));
+        const matchCompany = (table.seats || []).some((s: any) => (s.company || '').toLowerCase().includes(q));
+        const matchRole = (table.seats || []).some((s: any) => (s.roleTitle || '').toLowerCase().includes(q));
+        const matchSector = (table.seats || []).some((s: any) => (s.sectorTags || []).some((tag: string) => tag.toLowerCase().includes(q)));
+        const matchTheme = (table.tableName || '').toLowerCase().includes(q) || (table.conversationCard?.tableTheme || '').toLowerCase().includes(q);
+        return matchName || matchCompany || matchRole || matchSector || matchTheme;
+      }
+      return true;
+    });
+  }, [optimizedSeatingResult, seatingActiveTableFilter, seatingSearchQuery]);
+
+  // Seating Pagination Computations
+  const seatingTotalPages = useMemo(() => {
+    if (seatingTablesPerPage === 0) return 1;
+    return Math.max(1, Math.ceil(filteredSeatingTables.length / seatingTablesPerPage));
+  }, [filteredSeatingTables.length, seatingTablesPerPage]);
+
+  const validSeatingCurrentPage = Math.min(seatingCurrentPage, seatingTotalPages);
+
+  const paginatedSeatingTables = useMemo(() => {
+    if (seatingTablesPerPage === 0) return filteredSeatingTables;
+    const start = (validSeatingCurrentPage - 1) * seatingTablesPerPage;
+    return filteredSeatingTables.slice(start, start + seatingTablesPerPage);
+  }, [filteredSeatingTables, validSeatingCurrentPage, seatingTablesPerPage]);
 
   // Nav Items Helper Component (for expanded sidebar & mobile drawer)
   const NavItems = () => (
@@ -3957,8 +4018,8 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
 
                   {/* Results State */}
                   {optimizedSeatingResult && optimizedSeatingResult.tables && (
-                    <div className="space-y-5">
-                      {/* Metric Summary Strip */}
+                    <div className="space-y-4">
+                      {/* 1. Metric Summary Strip */}
                       <div className="bg-surface border border-line rounded-xl p-4 grid grid-cols-2 sm:grid-cols-5 gap-3 text-left">
                         <div className="border-r border-line pr-2">
                           <div className="text-[10px] font-mono text-ink-muted uppercase">Total Seated</div>
@@ -3997,27 +4058,285 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                         </div>
                       </div>
 
-                      {/* Tables Grid */}
-                      <div className="space-y-6">
-                        {optimizedSeatingResult.tables.map((table: any) => {
-                          const isCopied = copiedTableCardNum === table.tableNumber;
-                          return (
-                            <div
-                              key={table.tableNumber}
-                              className="bg-surface border border-line rounded-xl overflow-hidden shadow-2xs space-y-0"
+                      {/* 2. Floor Plan Controls & In-Canvas Navigation Bar */}
+                      <div className="bg-surface border border-line rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+                        {/* Left: View Mode Segmented Controls */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <div className="flex items-center bg-surface-raised border border-line rounded-lg p-0.5">
+                            <button
+                              type="button"
+                              onClick={() => setSeatingViewMode('grid')}
+                              className={`px-2.5 py-1 rounded text-xs font-medium flex items-center gap-1.5 transition-colors ${
+                                seatingViewMode === 'grid'
+                                  ? 'bg-signal text-surface font-semibold shadow-xs'
+                                  : 'text-ink-muted hover:text-ink'
+                              }`}
+                              title="2-Column Floor Plan Grid (Side-by-Side)"
                             >
-                              {/* Table Header Strip */}
+                              <LayoutGrid className="w-3.5 h-3.5" />
+                              <span>Floor Plan Grid</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSeatingViewMode('focus');
+                                if (seatingActiveTableFilter === 'all' && filteredSeatingTables.length > 0) {
+                                  setSeatingActiveTableFilter(filteredSeatingTables[0].tableNumber);
+                                }
+                              }}
+                              className={`px-2.5 py-1 rounded text-xs font-medium flex items-center gap-1.5 transition-colors ${
+                                seatingViewMode === 'focus'
+                                  ? 'bg-signal text-surface font-semibold shadow-xs'
+                                  : 'text-ink-muted hover:text-ink'
+                              }`}
+                              title="Focus Pod Mode (Inspect 1 Table at a Time)"
+                            >
+                              <Maximize2 className="w-3.5 h-3.5" />
+                              <span>Focus Pod</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setSeatingViewMode('list')}
+                              className={`px-2.5 py-1 rounded text-xs font-medium flex items-center gap-1.5 transition-colors ${
+                                seatingViewMode === 'list'
+                                  ? 'bg-signal text-surface font-semibold shadow-xs'
+                                  : 'text-ink-muted hover:text-ink'
+                              }`}
+                              title="Full Vertical Roster"
+                            >
+                              <Layers className="w-3.5 h-3.5" />
+                              <span>Full List</span>
+                            </button>
+                          </div>
+
+                          {/* Collapse / Expand AI Cards Toggle */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSeatingCollapseAiCards(!seatingCollapseAiCards);
+                              setExpandedBriefingTables(new Set());
+                            }}
+                            className={`px-2.5 py-1 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-colors ${
+                              seatingCollapseAiCards
+                                ? 'bg-signal-soft border-signal/40 text-signal font-semibold'
+                                : 'bg-surface-raised border-line hover:border-line-strong text-ink'
+                            }`}
+                            title="Toggle Compact Card view (collapses AI briefing cards to reduce vertical scroll)"
+                          >
+                            <ChevronsUpDown className="w-3.5 h-3.5" />
+                            <span>{seatingCollapseAiCards ? 'Briefings Minimized' : 'Compact Cards'}</span>
+                          </button>
+                        </div>
+
+                        {/* Right: Attendee / Company In-Canvas Search & Per Page Selector */}
+                        <div className="flex items-center gap-2.5 flex-1 sm:flex-initial justify-end">
+                          {/* Search Input */}
+                          <div className="relative w-full sm:w-56">
+                            <Search className="w-3.5 h-3.5 text-ink-muted absolute left-2.5 top-1/2 -translate-y-1/2" />
+                            <input
+                              type="text"
+                              value={seatingSearchQuery}
+                              onChange={e => {
+                                setSeatingSearchQuery(e.target.value);
+                                setSeatingCurrentPage(1);
+                              }}
+                              placeholder="Find founder or company..."
+                              className="w-full h-8 pl-8 pr-7 text-xs bg-surface-raised border border-line rounded-lg text-ink placeholder:text-ink-faint focus:outline-none focus:ring-1 focus:ring-signal"
+                            />
+                            {seatingSearchQuery && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSeatingSearchQuery('');
+                                  setSeatingCurrentPage(1);
+                                }}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Tables Per Page Dropdown (Only in Grid/List mode) */}
+                          {seatingViewMode !== 'focus' && (
+                            <select
+                              value={seatingTablesPerPage}
+                              onChange={e => {
+                                setSeatingTablesPerPage(Number(e.target.value));
+                                setSeatingCurrentPage(1);
+                              }}
+                              className="h-8 px-2 bg-surface-raised border border-line rounded-lg text-xs text-ink focus:outline-none focus:ring-1 focus:ring-signal"
+                              title="Tables shown per page"
+                            >
+                              <option value={6}>6 tables / page</option>
+                              <option value={12}>12 tables / page</option>
+                              <option value={0}>All tables</option>
+                            </select>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* 3. Sticky Room Radar: Quick Jump Pill Bar */}
+                      <div className="bg-surface border border-line rounded-xl p-2.5 flex items-center gap-1.5 overflow-x-auto select-none scrollbar-thin">
+                        <span className="text-[10px] font-mono uppercase text-ink-muted px-1 shrink-0 font-semibold">
+                          Quick Jump:
+                        </span>
+
+                        {/* All Tables Chip */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSeatingActiveTableFilter('all');
+                            setSeatingCurrentPage(1);
+                          }}
+                          className={`px-2.5 py-1 rounded-full text-xs font-mono font-medium shrink-0 transition-all ${
+                            seatingActiveTableFilter === 'all'
+                              ? 'bg-signal text-surface font-bold shadow-xs'
+                              : 'bg-surface-raised border border-line hover:border-line-strong text-ink'
+                          }`}
+                        >
+                          All ({optimizedSeatingResult.tables.length})
+                        </button>
+
+                        {/* Individual Table Chips */}
+                        {optimizedSeatingResult.tables.map((t: any) => {
+                          const isSelected = seatingActiveTableFilter === t.tableNumber;
+                          return (
+                            <button
+                              key={t.tableNumber}
+                              type="button"
+                              onClick={() => {
+                                setSeatingActiveTableFilter(t.tableNumber);
+                                setSeatingCurrentPage(1);
+                              }}
+                              className={`px-2 py-0.5 rounded-full text-[11px] font-mono shrink-0 transition-all flex items-center gap-1 ${
+                                isSelected
+                                  ? 'bg-signal text-surface font-bold shadow-xs'
+                                  : 'bg-surface-raised border border-line hover:border-line-strong text-ink-muted hover:text-ink'
+                              }`}
+                              title={`Table ${t.tableNumber}: ${t.tableName} (${t.seats?.length || 0} seats)`}
+                            >
+                              <span>T{t.tableNumber}</span>
+                              <span className="text-[9px] opacity-70">({t.seats?.length || 0})</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Active Filter Notice (if table or search query is filtered) */}
+                      {(seatingActiveTableFilter !== 'all' || seatingSearchQuery) && (
+                        <div className="flex items-center justify-between p-2.5 bg-signal-soft/40 border border-signal/20 rounded-lg text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-signal">Active Filter:</span>
+                            {seatingActiveTableFilter !== 'all' && (
+                              <span className="px-2 py-0.5 rounded bg-signal-soft text-signal border border-signal/30 font-mono text-[11px]">
+                                Table {seatingActiveTableFilter}
+                              </span>
+                            )}
+                            {seatingSearchQuery && (
+                              <span className="px-2 py-0.5 rounded bg-surface border border-line text-ink font-mono text-[11px]">
+                                Matching &ldquo;{seatingSearchQuery}&rdquo; ({filteredSeatingTables.length} tables)
+                              </span>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSeatingActiveTableFilter('all');
+                              setSeatingSearchQuery('');
+                              setSeatingCurrentPage(1);
+                            }}
+                            className="text-xs text-signal hover:underline font-medium"
+                          >
+                            Reset to All Tables
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Empty Search Result State */}
+                      {filteredSeatingTables.length === 0 && (
+                        <div className="bg-surface border border-line rounded-xl p-8 text-center space-y-3">
+                          <div className="w-10 h-10 rounded-xl bg-surface-raised border border-line text-ink-muted flex items-center justify-center mx-auto">
+                            <Search className="w-5 h-5" />
+                          </div>
+                          <div className="text-xs text-ink font-semibold">
+                            No tables found matching &ldquo;{seatingSearchQuery}&rdquo;
+                          </div>
+                          <p className="text-[11px] text-ink-muted">
+                            Try searching for another founder name, company, sector, or reset the filter.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSeatingSearchQuery('');
+                              setSeatingActiveTableFilter('all');
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-surface-raised border border-line text-xs font-medium text-ink hover:bg-surface-muted"
+                          >
+                            Clear Search
+                          </button>
+                        </div>
+                      )}
+
+                      {/* 4. FOCUS POD VIEW MODE */}
+                      {seatingViewMode === 'focus' && filteredSeatingTables.length > 0 && (() => {
+                        const currentTableIndex = filteredSeatingTables.findIndex(
+                          (t: any) => t.tableNumber === seatingActiveTableFilter
+                        );
+                        const activeTable = currentTableIndex >= 0 ? filteredSeatingTables[currentTableIndex] : filteredSeatingTables[0];
+                        const isCopied = copiedTableCardNum === activeTable.tableNumber;
+
+                        return (
+                          <div className="space-y-3">
+                            {/* Focus Pod Stepper Bar */}
+                            <div className="flex items-center justify-between bg-surface border border-line rounded-xl p-3 text-xs">
+                              <button
+                                type="button"
+                                disabled={currentTableIndex <= 0}
+                                onClick={() => {
+                                  const prevTable = filteredSeatingTables[Math.max(0, currentTableIndex - 1)];
+                                  if (prevTable) setSeatingActiveTableFilter(prevTable.tableNumber);
+                                }}
+                                className="px-3 py-1.5 rounded-lg border border-line bg-surface hover:bg-surface-raised disabled:opacity-40 disabled:pointer-events-none text-ink font-medium inline-flex items-center gap-1.5 transition-all shadow-xs"
+                              >
+                                <ChevronLeft className="w-3.5 h-3.5" />
+                                <span>Previous Table</span>
+                              </button>
+
+                              <div className="text-xs font-mono text-ink flex items-center gap-2">
+                                <span className="font-semibold text-signal">Table {activeTable.tableNumber}</span>
+                                <span className="text-ink-muted">of {optimizedSeatingResult.tables.length}</span>
+                              </div>
+
+                              <button
+                                type="button"
+                                disabled={currentTableIndex >= filteredSeatingTables.length - 1}
+                                onClick={() => {
+                                  const nextTable = filteredSeatingTables[Math.min(filteredSeatingTables.length - 1, currentTableIndex + 1)];
+                                  if (nextTable) setSeatingActiveTableFilter(nextTable.tableNumber);
+                                }}
+                                className="px-3 py-1.5 rounded-lg border border-line bg-surface hover:bg-surface-raised disabled:opacity-40 disabled:pointer-events-none text-ink font-medium inline-flex items-center gap-1.5 transition-all shadow-xs"
+                              >
+                                <span>Next Table</span>
+                                <ChevronRight className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+
+                            {/* Focused Table Card (Full Width) */}
+                            <div className="bg-surface border border-line rounded-xl overflow-hidden shadow-2xs">
                               <div className="p-4 bg-surface-raised border-b border-line flex flex-wrap items-center justify-between gap-2">
                                 <div className="flex items-center gap-2.5">
-                                  <span className="w-7 h-7 rounded-lg bg-signal/10 border border-signal/30 text-signal font-mono text-xs font-bold flex items-center justify-center">
-                                    T{table.tableNumber}
+                                  <span className="w-8 h-8 rounded-lg bg-signal/10 border border-signal/30 text-signal font-mono text-sm font-bold flex items-center justify-center">
+                                    T{activeTable.tableNumber}
                                   </span>
                                   <div>
-                                    <h4 className="text-sm font-semibold text-ink">
-                                      {table.tableName || `Table ${table.tableNumber}`}
+                                    <h4 className="text-base font-semibold text-ink">
+                                      {activeTable.tableName || `Table ${activeTable.tableNumber}`}
                                     </h4>
-                                    <div className="text-[11px] text-ink-muted font-mono">
-                                      {table.seats.length} of {table.capacity} seats filled &bull; Diversity Score: {table.metrics?.diversityScore ?? 92}%
+                                    <div className="text-xs text-ink-muted font-mono">
+                                      {activeTable.seats.length} of {activeTable.capacity} seats filled &bull; Diversity: {activeTable.metrics?.diversityScore ?? 92}%
                                     </div>
                                   </div>
                                 </div>
@@ -4027,33 +4346,30 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                                     <ShieldCheck className="w-3 h-3" />
                                     Zero Rival Clashes
                                   </span>
-
-                                  {table.conversationCard && (
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        const mdCard = `Table ${table.tableNumber}: ${table.tableName}\nTheme: ${table.conversationCard.tableTheme}\nIcebreaker: ${table.conversationCard.icebreakerPrompt}\nUnifying Topic: ${table.conversationCard.unifyingTopic}\nAttendees:\n${table.seats.map((s: any) => `- ${s.name} (${s.roleTitle || 'Founder'} at ${s.company || 'Stealth'})`).join('\n')}`;
-                                        navigator.clipboard.writeText(mdCard);
-                                        setCopiedTableCardNum(table.tableNumber);
-                                        setTimeout(() => setCopiedTableCardNum(null), 2000);
-                                      }}
-                                      className="p-1.5 rounded-lg border border-line hover:bg-surface text-ink-muted hover:text-ink transition-colors"
-                                      title="Copy Table Briefing Card"
-                                    >
-                                      {isCopied ? <Check className="w-3.5 h-3.5 text-signal" /> : <Copy className="w-3.5 h-3.5" />}
-                                    </button>
-                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const mdCard = `Table ${activeTable.tableNumber}: ${activeTable.tableName}\nTheme: ${activeTable.conversationCard?.tableTheme || ''}\nIcebreaker: ${activeTable.conversationCard?.icebreakerPrompt || ''}\nAttendees:\n${activeTable.seats.map((s: any) => `- ${s.name} (${s.roleTitle || 'Founder'} at ${s.company || 'Stealth'})`).join('\n')}`;
+                                      navigator.clipboard.writeText(mdCard);
+                                      setCopiedTableCardNum(activeTable.tableNumber);
+                                      setTimeout(() => setCopiedTableCardNum(null), 2000);
+                                    }}
+                                    className="p-1.5 rounded-lg border border-line hover:bg-surface text-ink-muted hover:text-ink transition-colors"
+                                    title="Copy Table Briefing Card"
+                                  >
+                                    {isCopied ? <Check className="w-3.5 h-3.5 text-signal" /> : <Copy className="w-3.5 h-3.5" />}
+                                  </button>
                                 </div>
                               </div>
 
                               {/* Attendees Seating Grid */}
                               <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                {table.seats.map((seat: any) => (
+                                {activeTable.seats.map((seat: any) => (
                                   <div
                                     key={seat.id}
                                     className="p-3 bg-canvas border border-line/70 rounded-lg flex items-start gap-2.5"
                                   >
-                                    <span className="w-5 h-5 rounded-full bg-surface-raised border border-line text-[10px] font-mono font-bold text-ink-muted flex items-center justify-center shrink-0 mt-0.5">
+                                    <span className="w-6 h-6 rounded-full bg-surface-raised border border-line text-[11px] font-mono font-bold text-ink-muted flex items-center justify-center shrink-0 mt-0.5">
                                       {seat.seatNumber}
                                     </span>
                                     <div className="min-w-0 flex-1 space-y-0.5">
@@ -4072,7 +4388,7 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                                       </div>
                                       {seat.sectorTags && seat.sectorTags.length > 0 && (
                                         <div className="flex items-center gap-1 flex-wrap pt-1">
-                                          {seat.sectorTags.slice(0, 3).map((tag: string) => (
+                                          {seat.sectorTags.slice(0, 4).map((tag: string) => (
                                             <span
                                               key={tag}
                                               className="text-[9px] font-mono px-1 py-0.2 rounded bg-surface-raised text-ink-muted border border-line/60"
@@ -4088,33 +4404,240 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
                               </div>
 
                               {/* AI Table Conversation Card */}
-                              {table.conversationCard && (
-                                <div className="m-4 mt-0 p-3.5 bg-surface-raised border border-line rounded-lg space-y-2">
+                              {activeTable.conversationCard && (
+                                <div className="m-4 mt-0 p-4 bg-surface-raised border border-line rounded-lg space-y-2.5">
                                   <div className="flex items-center justify-between text-xs">
                                     <span className="font-semibold text-ink flex items-center gap-1.5">
                                       <Sparkles className="w-3.5 h-3.5 text-copper" />
                                       <span>Table Briefing & Host Icebreaker</span>
                                     </span>
-                                    <span className="text-[10px] font-mono text-copper bg-copper/10 px-2 py-0.5 rounded font-medium">
-                                      {table.conversationCard.tableTheme}
+                                    <span className="text-[10px] font-mono text-copper bg-copper/10 px-2.5 py-0.5 rounded font-medium">
+                                      {activeTable.conversationCard.tableTheme}
                                     </span>
                                   </div>
 
-                                  {/* Unifying Topic */}
                                   <div className="text-xs text-ink-muted leading-relaxed">
-                                    <strong className="text-ink font-medium">Unifying Spark:</strong> {table.conversationCard.unifyingTopic}
+                                    <strong className="text-ink font-medium">Unifying Spark:</strong> {activeTable.conversationCard.unifyingTopic}
                                   </div>
 
-                                  {/* Icebreaker */}
-                                  <div className="p-2.5 bg-surface border-l-2 border-copper rounded-r text-xs italic font-serif text-ink leading-relaxed">
-                                    &ldquo;{table.conversationCard.icebreakerPrompt}&rdquo;
+                                  <div className="p-3 bg-surface border-l-2 border-copper rounded-r text-xs italic font-serif text-ink leading-relaxed">
+                                    &ldquo;{activeTable.conversationCard.icebreakerPrompt}&rdquo;
                                   </div>
                                 </div>
                               )}
                             </div>
-                          );
-                        })}
-                      </div>
+                          </div>
+                        );
+                      })()}
+
+                      {/* 5. GRID FLOOR PLAN OR LIST VIEW MODE */}
+                      {seatingViewMode !== 'focus' && filteredSeatingTables.length > 0 && (
+                        <div
+                          className={
+                            seatingViewMode === 'grid'
+                              ? 'grid grid-cols-1 xl:grid-cols-2 gap-4 items-start'
+                              : 'space-y-4'
+                          }
+                        >
+                          {paginatedSeatingTables.map((table: any) => {
+                            const isCopied = copiedTableCardNum === table.tableNumber;
+                            const isCardCollapsed = seatingCollapseAiCards && !expandedBriefingTables.has(table.tableNumber);
+
+                            return (
+                              <div
+                                key={table.tableNumber}
+                                className="bg-surface border border-line rounded-xl overflow-hidden shadow-2xs space-y-0 transition-all hover:border-line-strong"
+                              >
+                                {/* Table Header Strip */}
+                                <div className="p-3.5 bg-surface-raised border-b border-line flex flex-wrap items-center justify-between gap-2">
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <span className="w-6 h-6 rounded-md bg-signal/10 border border-signal/30 text-signal font-mono text-xs font-bold flex items-center justify-center shrink-0">
+                                      T{table.tableNumber}
+                                    </span>
+                                    <div className="min-w-0">
+                                      <h4 className="text-xs font-semibold text-ink truncate">
+                                        {table.tableName || `Table ${table.tableNumber}`}
+                                      </h4>
+                                      <div className="text-[10px] text-ink-muted font-mono">
+                                        {table.seats.length}/{table.capacity} seats &bull; Diversity: {table.metrics?.diversityScore ?? 92}%
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-1.5 shrink-0">
+                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-signal-soft text-signal border border-signal/20 font-medium flex items-center gap-1">
+                                      <ShieldCheck className="w-2.5 h-2.5" />
+                                      Zero Rivalry
+                                    </span>
+
+                                    {table.conversationCard && (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const mdCard = `Table ${table.tableNumber}: ${table.tableName}\nTheme: ${table.conversationCard.tableTheme}\nIcebreaker: ${table.conversationCard.icebreakerPrompt}\nUnifying Topic: ${table.conversationCard.unifyingTopic}\nAttendees:\n${table.seats.map((s: any) => `- ${s.name} (${s.roleTitle || 'Founder'} at ${s.company || 'Stealth'})`).join('\n')}`;
+                                          navigator.clipboard.writeText(mdCard);
+                                          setCopiedTableCardNum(table.tableNumber);
+                                          setTimeout(() => setCopiedTableCardNum(null), 2000);
+                                        }}
+                                        className="p-1 rounded-md border border-line hover:bg-surface text-ink-muted hover:text-ink transition-colors"
+                                        title="Copy Table Briefing"
+                                      >
+                                        {isCopied ? <Check className="w-3 h-3 text-signal" /> : <Copy className="w-3 h-3" />}
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Attendees Seating Grid (Compact) */}
+                                <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                  {table.seats.map((seat: any) => (
+                                    <div
+                                      key={seat.id}
+                                      className="p-2 bg-canvas border border-line/70 rounded-md flex items-start gap-2"
+                                    >
+                                      <span className="w-4 h-4 rounded-full bg-surface-raised border border-line text-[9px] font-mono font-bold text-ink-muted flex items-center justify-center shrink-0 mt-0.5">
+                                        {seat.seatNumber}
+                                      </span>
+                                      <div className="min-w-0 flex-1 space-y-0.2">
+                                        <div className="flex items-center justify-between gap-1">
+                                          <div className="text-[11px] font-semibold text-ink truncate">
+                                            {seat.name}
+                                          </div>
+                                          {seat.seniority && (
+                                            <span className="text-[8px] font-mono uppercase px-1 py-0.1 rounded bg-surface border border-line text-ink-muted shrink-0">
+                                              {seat.seniority}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <div className="text-[10px] text-ink-muted truncate">
+                                          {seat.roleTitle || 'Founder'} &bull; <strong className="text-ink">{seat.company || 'Stealth'}</strong>
+                                        </div>
+                                        {seat.sectorTags && seat.sectorTags.length > 0 && (
+                                          <div className="flex items-center gap-1 flex-wrap pt-0.5">
+                                            {seat.sectorTags.slice(0, 2).map((tag: string) => (
+                                              <span
+                                                key={tag}
+                                                className="text-[8px] font-mono px-1 py-0.1 rounded bg-surface-raised text-ink-muted border border-line/60"
+                                              >
+                                                {tag}
+                                              </span>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+
+                                {/* AI Table Conversation Card (Collapsible Accordion) */}
+                                {table.conversationCard && (
+                                  <div className="m-3 mt-0">
+                                    {isCardCollapsed ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleToggleTableBriefing(table.tableNumber)}
+                                        className="w-full px-2.5 py-1.5 bg-surface-raised border border-line rounded-md flex items-center justify-between text-[11px] hover:bg-surface-muted transition-colors"
+                                      >
+                                        <span className="flex items-center gap-1.5 text-copper font-medium truncate">
+                                          <Sparkles className="w-3 h-3 shrink-0" />
+                                          <span className="truncate">{table.conversationCard.tableTheme}</span>
+                                        </span>
+                                        <span className="text-[10px] font-mono text-ink-muted hover:text-ink shrink-0 ml-2">
+                                          Show Briefing ▾
+                                        </span>
+                                      </button>
+                                    ) : (
+                                      <div className="p-3 bg-surface-raised border border-line rounded-md space-y-1.5 text-xs">
+                                        <div className="flex items-center justify-between">
+                                          <span className="font-semibold text-ink flex items-center gap-1 text-[11px]">
+                                            <Sparkles className="w-3 h-3 text-copper" />
+                                            <span>Briefing & Icebreaker</span>
+                                          </span>
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-[9px] font-mono text-copper bg-copper/10 px-1.5 py-0.2 rounded font-medium">
+                                              {table.conversationCard.tableTheme}
+                                            </span>
+                                            {seatingCollapseAiCards && (
+                                              <button
+                                                type="button"
+                                                onClick={() => handleToggleTableBriefing(table.tableNumber)}
+                                                className="text-[10px] font-mono text-ink-muted hover:text-ink"
+                                              >
+                                                Hide ▴
+                                              </button>
+                                            )}
+                                          </div>
+                                        </div>
+
+                                        <div className="text-[11px] text-ink-muted leading-relaxed">
+                                          <strong className="text-ink font-medium">Spark:</strong> {table.conversationCard.unifyingTopic}
+                                        </div>
+
+                                        <div className="p-2 bg-surface border-l-2 border-copper rounded-r text-[11px] italic font-serif text-ink leading-relaxed">
+                                          &ldquo;{table.conversationCard.icebreakerPrompt}&rdquo;
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* 6. HubSpot-Style Table Pagination Footer Bar */}
+                      {seatingViewMode !== 'focus' && seatingTablesPerPage > 0 && seatingTotalPages > 1 && (
+                        <div className="border-t border-line bg-surface px-4 py-2.5 rounded-xl border flex flex-wrap items-center justify-between gap-3 text-xs select-none">
+                          {/* Range Summary */}
+                          <div className="text-xs font-mono text-ink-muted tabular-nums">
+                            Showing Tables <strong className="text-ink font-semibold">{(validSeatingCurrentPage - 1) * seatingTablesPerPage + 1}–{Math.min(validSeatingCurrentPage * seatingTablesPerPage, filteredSeatingTables.length)}</strong> of <strong className="text-ink font-semibold">{filteredSeatingTables.length}</strong> tables
+                          </div>
+
+                          {/* Controls (< Prev  [1, 2, 3..]  Next >) */}
+                          <div className="flex items-center gap-2 sm:gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setSeatingCurrentPage(Math.max(1, validSeatingCurrentPage - 1))}
+                              disabled={validSeatingCurrentPage <= 1}
+                              className="h-7 px-2.5 rounded border border-line bg-surface hover:bg-surface-raised disabled:opacity-40 disabled:pointer-events-none text-ink text-xs font-medium inline-flex items-center gap-1 transition-all shadow-xs"
+                            >
+                              <ChevronLeft className="w-3 h-3" />
+                              <span>Prev</span>
+                            </button>
+
+                            <div className="flex items-center gap-1">
+                              {Array.from({ length: seatingTotalPages }, (_, i) => i + 1).map(p => {
+                                const isCurrent = p === validSeatingCurrentPage;
+                                return (
+                                  <button
+                                    key={`page-${p}`}
+                                    type="button"
+                                    onClick={() => setSeatingCurrentPage(p)}
+                                    className={`min-w-[26px] h-7 px-1.5 rounded text-xs font-mono font-medium transition-all ${
+                                      isCurrent
+                                        ? 'bg-signal text-white font-bold shadow-xs'
+                                        : 'text-ink-muted hover:text-ink hover:bg-surface-raised border border-transparent hover:border-line'
+                                    }`}
+                                  >
+                                    {p}
+                                  </button>
+                                );
+                              })}
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => setSeatingCurrentPage(Math.min(seatingTotalPages, validSeatingCurrentPage + 1))}
+                              disabled={validSeatingCurrentPage >= seatingTotalPages}
+                              className="h-7 px-2.5 rounded border border-line bg-surface hover:bg-surface-raised disabled:opacity-40 disabled:pointer-events-none text-ink text-xs font-medium inline-flex items-center gap-1 transition-all shadow-xs"
+                            >
+                              <span>Next</span>
+                              <ChevronRight className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
