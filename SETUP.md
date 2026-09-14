@@ -63,7 +63,7 @@ Security rules:
 4. Keep the key on the Google AI Studio free tier. Do not enable billing or attach a paid API path for this assignment.
 5. Put the value in `.env` as `GEMINI_API_KEY`.
 
-The prototype will use the Google Gemini API from Python. It will use `gemini-2.5-flash` or `gemini-2.5-flash-lite` for generation and a supported Gemini embedding model for similarity, subject to the free-tier availability at implementation time.
+The prototype uses the Google Gemini API. It uses `gemini-3.6-flash` for high-throughput generation and a supported Gemini embedding model for similarity, subject to free-tier availability.
 
 Treat `15 requests per minute` and approximately `1,000 requests per day` as hard project limits. The pipeline must batch where possible, sleep between calls, back off on `429` responses, and report skipped or failed calls. A quota error is a reason to resume later, not a reason to enable billing.
 

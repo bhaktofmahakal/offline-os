@@ -23,7 +23,7 @@ flowchart TD
         B1 --> B2{Tier 1: Deterministic Check}
         B2 -->|Exact Email Match| B3[Flag as Duplicate\nMatch = 100%]
         B2 -->|RapidFuzz Token-Sort Ratio >= 92%| B3
-        B2 -->|Fuzzy Ratio 75% - 91%| B4[Tier 2: Gemini 2.5 Flash\nContextual Adjudication]
+        B2 -->|Fuzzy Ratio 75% - 91%| B4[Tier 2: Gemini 3.6 Flash\nContextual Adjudication]
         B4 -->|Same Person| B3
         B4 -->|Distinct Person| C1[Canonical Member Profile]
         B2 -->|< 75% Distance| C1
@@ -35,7 +35,7 @@ flowchart TD
         C1 --> D1[360° AI Enrichment Pipeline]
         D1 --> D2[Headless OSINT Scraper\nGitHub / Portfolio Extraction]
         D1 --> D3[Neural Web Search\nFunding, Exits & Press Footprint]
-        D1 --> D4[Gemini 2.5 Flash Synthesis\nTech Stack + Traction Signals]
+        D1 --> D4[Gemini 3.6 Flash Synthesis\nTech Stack + Traction Signals]
         
         C1 --> D5[Autonomous Deep Research Engine]
         D5 --> D6[Task Creator: POST /api/tavily/research\nModel: mini / pro]
@@ -102,7 +102,7 @@ flowchart TD
    * Normalizes emails (`user.name+alias@domain.com` -> `username@domain.com`).
    * Runs `RapidFuzz` token-sort string distance on name and company fields.
    * Scores $\ge 92\%$ are flagged immediately as duplicates without LLM invocation.
-2. **Tier 2 — Contextual LLM Adjudication (Gemini 2.5 Flash)**:
+2. **Tier 2 — Contextual LLM Adjudication (Gemini 3.6 Flash)**:
    * Matches in the ambiguous $75\% - 91\%$ band (e.g. founder re-applying with a new domain or abbreviated company name) are sent to Gemini.
    * Returns a structured decision (`is_duplicate: boolean`, `confidence: float`, `reasoning: string`).
    * This hybrid architecture **saves >85% of LLM token costs** while achieving near-zero false positive rates.
@@ -135,7 +135,7 @@ NetworkOS integrates an autonomous intelligence subsystem with **100% database p
 * Located in [`app/api/people/enrich/route.ts`](file:///u:/offline-os/app/api/people/enrich/route.ts).
 * **Fusion Logic**:
   * Step 1: Queries **Neural Advanced Web Search** for founder background, venture funding rounds, accelerators (Y Combinator, Techstars), and recent press coverage.
-  * Step 2: **Gemini 2.5 Flash** synthesizes raw web evidence into a high-density structured JSON 360° Founder Dossier:
+  * Step 2: **Gemini 3.6 Flash** synthesizes raw web evidence into a high-density structured JSON 360° Founder Dossier:
     * `executive_summary`: Concise 2-sentence executive summary highlighting domain depth and current company focus.
     * `traction_signals`: Specific factual traction indicators and leadership background.
     * `tech_stack`: Detected domain specializations and core technology stack.
@@ -143,7 +143,7 @@ NetworkOS integrates an autonomous intelligence subsystem with **100% database p
     * `verified_confidence`: Confidence score (80–95%).
   * Step 3: **Permanent Database Persistence**:
     * Writes the full dossier into `people.ai_classification.dossier` in Supabase PostgreSQL.
-    * Updates `people.clean_summary`, `people.ai_model = 'gemini-2.5-flash'`, and `people.ai_generated_at = now()`.
+    * Updates `people.clean_summary`, `people.ai_model = 'gemini-3.6-flash'`, and `people.ai_generated_at = now()`.
     * Automatically updates `people.community_fit_tags` with `'360_enriched'` and `#<tech>` tags.
   * Step 4: **Zero-Data-Loss Hydration**:
     * On initial page load or browser refresh, `fetchData()` hydrates `dossierCache` and `drawerResearchReport` directly from each member's `ai_classification` column, guaranteeing that generated dossiers never vanish across sessions.
@@ -157,7 +157,7 @@ NetworkOS integrates an autonomous intelligence subsystem with **100% database p
   * **Sector Alignment (25 pts)**: Core focus areas (AI, Climate, Biotech, Deeptech, Fintech) = 25 pts.
   * **Community Fit (25 pts)**: Stated willingness to mentor, host, or collaborate = 25 pts.
   * **Data Completeness (20 pts)**: Presence of Bio, LinkedIn, Website, and Role details = 20 pts.
-* **Explainability Layer**: Gemini 2.5 Flash takes the computed numeric score and candidate profile to synthesize a clear, objective 1–2 sentence explanation displayed in interactive tooltips.
+* **Explainability Layer**: Gemini 3.6 Flash takes the computed numeric score and candidate profile to synthesize a clear, objective 1–2 sentence explanation displayed in interactive tooltips.
 
 ---
 
@@ -202,7 +202,7 @@ NetworkOS integrates an autonomous intelligence subsystem with **100% database p
 | **Autonomous Intelligence** | Deep Neural Research Engine | Built specifically for agentic workflows with asynchronous deep research, recursive crawling, and clean markdown extraction. Evaluated Google Custom Search (no crawler/extract) and SerpApi (no deep research pipeline). |
 | **Airtable Integration** | Native HTTP REST (Zero-SDK) | Modern `fetch()` with scoped PAT avoids `airtable.js` legacy callback bloat and unblocks 7-day webhook lifecycle operations. |
 | **Database & Vector Search**| Supabase PostgreSQL + `pgvector` | ACIDs-compliant relational integrity for canonical/duplicate linkages combined with native 768-dim cosine similarity search. |
-| **LLM Classification** | Google Gemini 2.5 Flash | High throughput, sub-second latency, and strict schema adherence via structured JSON outputs (`response_schema`). |
+| **LLM Classification** | Google Gemini 3.6 Flash | High throughput, sub-second latency, and strict schema adherence via structured JSON outputs (`response_schema`). |
 | **Entity Deduplication** | `RapidFuzz` + Gemini Hybrid | <1ms local CPU execution catches 90%+ duplicates; LLM only invoked for the 75–91% ambiguous threshold. Saves >85% token costs. |
 | **Styling & Design Tokens** | Tailwind CSS + Lucide Icons | High-density operator UI inspired by Linear and macOS enterprise consoles; responsive across desktop and mobile. |
 
@@ -230,6 +230,9 @@ flowchart LR
         B4["4. OSINT Waterfall\n(Enrichment: Stealth/GitHub)"]
         B5["5. Slack VIP Concierge\n(Utsav: 1-Click Mobile Flow)"]
         B6["6. Two-Stage Retrieval\n(10k+ Scale: HNSW + LLM)"]
+        B7["7. LLM Telemetry\n(Langfuse: Traces & Evals)"]
+        B8["8. Multi-Agent Diligence\n(LangGraph: Adversarial Audit)"]
+        B9["9. Stealth OSINT Grid\n(Playwright Anti-Bot Bypass)"]
     end
 ```
 
@@ -279,4 +282,28 @@ flowchart LR
   * Prevents $O(N^2)$ Cartesian explosion when evaluating millions of pairwise member combinations:
     1. **Stage 1 (Coarse-Grained Spatial Filtering)**: Supabase `pgvector` HNSW index combined with SQL metadata filtering (sector, stage, geography) extracts top 20 nearest neighbors in **<15ms**.
     2. **Stage 2 (Fine-Grained Contextual Synergy)**: Gemini evaluates only the top 20 pre-filtered pairs, generating bespoke double-opt-in icebreakers with near-zero latency and minimal token consumption.
+
+### 💡 Blueprint 7: LLM Observability, Cost Telemetry & Prompt Regression (Langfuse)
+* **Stakeholder**: Systems Engineering & Financial Operations.
+* **Why Not in Core MVP**: Direct HTTP REST to Google GenAI kept cold starts <50ms without bundling heavy framework SDKs in Vercel Edge/Serverless functions.
+* **Platform Capability (Future Update)**:
+  * **OpenTelemetry Instrumentation**: Integrates `@langfuse/tracer` into `/api/people/enrich`, `/api/seating/optimize`, and dedupe adjudication.
+  * **Token & Cost Dashboard**: Granular cost-per-ingestion metrics across input tokens, output tokens, and cache hit rates.
+  * **Automated Evals & Drift Detection**: Assesses rubric explanation quality and flags prompt regressions when Google releases new model checkpoints.
+
+### 💡 Blueprint 8: Autonomous Multi-Agent Diligence Committee (LangGraph)
+* **Stakeholder**: Executive Admissions Board (Utsav Somani & Admissions Leads).
+* **Why Not in Core MVP**: Live member onboarding requires sub-second deterministic responses. Multi-turn LangGraph agent deliberation loops take 15–45 seconds, which would cause API timeouts on synchronous webhooks.
+* **Platform Capability (Future Update)**:
+  * Deployed as an **Asynchronous Background Worker** (via Inngest or n8n event queues):
+    1. **Agent Alpha (Sourcing & OSINT)**: Ingests raw founder crumbs and surfaces stealth project commits.
+    2. **Agent Beta (Adversarial Diligence Auditor)**: Red-teams the applicant by cross-checking verified MCA filings, pitch deck claims, and prior venture backers.
+    3. **Agent Gamma (Cultural Gatekeeper)**: Evaluates founder humility, reciprocity mindset, and contribution willingness vs networking extraction.
+    4. **Synthesis Node**: Compiles a 1-page "Admissions Memo" presented directly in the Operator Console with an interactive `[Vote: Approve / Request Founder Interview / Reject]` consensus state machine.
+
+### 💡 Blueprint 9: Anti-Bot Stealth Scraping Grid (Playwright Stealth + Crawl4AI)
+* **Stakeholder**: Automated Sourcing Pipeline.
+* **Platform Capability (Future Update)**:
+  * Solves Cloudflare Turnstile, DataDome, and CAPTCHA bottlenecks on protected founder portfolios and stealth startup domains.
+  * Employs a containerized headless browser grid featuring TLS fingerprint rotation, dynamic canvas spoofing, residential IP proxy pools, and headless Chrome user-behavior simulation to cleanly extract public engineering repos, substacks, and patents.
 

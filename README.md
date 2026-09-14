@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/badge/Next.js-14.2-black?style=for-the-badge&logo=next.js" alt="Next.js" />
   <img src="https://img.shields.io/badge/Airtable-Native_Web_API-red?style=for-the-badge&logo=airtable" alt="Airtable" />
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL_%2B_pgvector-emerald?style=for-the-badge&logo=supabase" alt="Supabase" />
-  <img src="https://img.shields.io/badge/Google_Gemini-2.5_Flash-orange?style=for-the-badge&logo=google" alt="Gemini" />
+  <img src="https://img.shields.io/badge/Google_Gemini-3.6_Flash-orange?style=for-the-badge&logo=google" alt="Gemini" />
   <img src="https://img.shields.io/badge/Neural_Intelligence-Deep_Research_Suite-blue?style=for-the-badge" alt="Intelligence Suite" />
   <img src="https://img.shields.io/badge/Security-Edge_HMAC_Auth-green?style=for-the-badge" alt="Security" />
   <img src="https://img.shields.io/badge/TypeScript-Strict-blue?style=for-the-badge&logo=typescript" alt="TypeScript" />
@@ -15,7 +15,7 @@
 It replaces static spreadsheets, manual candidate evaluation, and disconnected tools with an **active, autonomous operating system**:
 * **Multi-Source Ingestion**: Ingests applicants from **Airtable**, **Typeform**, **n8n**, CSV spreadsheets, and a public applicant intake portal.
 * **Executive Edge Security**: Protected by Next.js Edge Middleware and signed HMAC-SHA256 session tokens with zero public data leaks.
-* **Sub-Millisecond Entity Resolution**: Adjudicates fuzzy duplicates with local **RapidFuzz token-sort** and contextual **Gemini 2.5 Flash** resolution.
+* **Sub-Millisecond Entity Resolution**: Adjudicates fuzzy duplicates with local **RapidFuzz token-sort** and contextual **Gemini 3.6 Flash** resolution.
 * **Deep Intelligence Lab**: Conducts autonomous multi-step market research, recursive web crawling, parallel URL extraction, and neural search.
 * **Deterministic 100-Point Rubric**: Evaluates applicant fit objectively across 4 dimensions with explainable LLM reasoning.
 * **VIP Seating Optimizer**: Calculates bilateral compatibility scores and generates optimized dinner table arrangements with executive dispatch.
@@ -60,7 +60,7 @@ flowchart TD
         A5 --> B1{Deterministic Check}
         B1 -->|Normalized Email Match| B2[Flag as Duplicate]
         B1 -->|RapidFuzz Token-Sort >=92%| B2
-        B1 -->|Ambiguous 75-91%| B3[Gemini 2.5 Flash Adjudication]
+        B1 -->|Ambiguous 75-91%| B3[Gemini 3.6 Flash Adjudication]
         B3 -->|Same Individual| B2
         B3 -->|Distinct Individual| C1[Canonical Profile Entry]
         B1 -->|<75% Distance| C1
@@ -155,7 +155,7 @@ Accessible directly from the operator dashboard navigation:
 ### 5. Entity Resolution & Deduplication Queue
 * **Hybrid RapidFuzz + LLM Architecture**:
   * **Tier 1**: Deterministic email normalization and token-sort fuzzy matching calculated in <1ms locally on the CPU.
-  * **Tier 2**: Gemini 2.5 Flash contextually resolves edge cases (e.g. founder applying under personal email or updated corporate entity).
+  * **Tier 2**: Gemini 3.6 Flash contextually resolves edge cases (e.g. founder applying under personal email or updated corporate entity).
 * **Side-by-Side Diff Viewer**: Canonical record vs. duplicate candidate side-by-side comparison with match confidence scores.
 * **Non-Destructive Merge Engine**: Consolidates profile notes, maintains complete audit history in `is_duplicate_of`, and automatically excludes duplicate profiles from matchmaking pools.
 
