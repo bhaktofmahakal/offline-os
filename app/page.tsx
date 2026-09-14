@@ -1265,23 +1265,28 @@ Tara Sen,tara.sen@stratalink.dev,Stratalink Systems,Founder,Building AI-native d
       }));
 
       try {
-        let res = null;
-        try {
-          const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || 'https://offline-os.onrender.com').trim();
-          res = await fetch(`${backendUrl}/process-new-record`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(row),
-            signal: AbortSignal.timeout(6000),
-          });
-        } catch (_) {}
+        // Smart Dual-Support: Tries external backend if up, otherwise instantly falls back to native NetworkOS ingest
+        let res: Response | null = null;
+        const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || '').trim();
+
+        if (backendUrl) {
+          try {
+            res = await fetch(`${backendUrl}/process-new-record`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(row),
+              signal: AbortSignal.timeout(1500),
+            });
+          } catch (_) {
+            // Backend offline/Render down: seamlessly fall through to native route
+          }
+        }
 
         if (!res || !res.ok) {
-          // Resilient fallback to local NetworkOS ingest API
           res = await fetch('/api/v1/ingest', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...row, source: 'airtable_csv_import' }),
+            body: JSON.stringify({ ...row, source: 'csv_batch_ingest' }),
           });
         }
 

@@ -41,58 +41,28 @@ export default function ApplyPage() {
         source: 'public_application_form',
       };
 
-      let data = null;
-      let n8nSucceeded = false;
+      // 1. Direct native NetworkOS ingest API (sub-second, 100% reliable)
+      const res = await fetch('/api/v1/ingest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-      // 1. Try n8n Webhook (orchestrator handles ingestion + Slack notification)
-      const n8nWebhookUrl = (process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL || 'https://n8n-render-utsav.onrender.com/webhook/new-offline-applicant').trim();
-      try {
-        const n8nRes = await fetch(n8nWebhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          signal: AbortSignal.timeout(15000),
-        });
-
-        if (n8nRes.ok) {
-          n8nSucceeded = true;
-          const rawText = await n8nRes.text();
-          if (rawText) {
-            try {
-              const parsed = JSON.parse(rawText);
-              data = parsed.record || parsed;
-            } catch (_) {}
-          }
-          if (!data) {
-            data = {
-              name: payload.name,
-              company: payload.company,
-              role_title: payload.role_title,
-              fit_score: 90,
-              role_type: 'applicant',
-              seniority: 'founder',
-              sector_tags: ['active_applicant'],
-              fit_score_reasoning: 'Application successfully received and ingested into the NetworkOS evaluation pipeline.',
-            };
-          }
-        }
-      } catch (n8nErr) {
-        console.warn('Webhook unavailable or timed out, using direct pipeline:', n8nErr);
+      if (!res.ok) {
+        throw new Error(`Server returned status ${res.status}`);
       }
+      const parsed = await res.json();
+      let data = parsed.record || parsed;
 
-      // 2. Resilient direct ingest fallback if n8n webhook failed
-      if (!n8nSucceeded) {
-        const res = await fetch('/api/v1/ingest', {
+      // 2. Non-blocking asynchronous notification dispatch (fire-and-forget to Render n8n if available)
+      const n8nWebhookUrl = (process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL || 'https://n8n-render-utsav.onrender.com/webhook/new-offline-applicant').trim();
+      if (n8nWebhookUrl) {
+        fetch(n8nWebhookUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
-        });
-
-        if (!res.ok) {
-          throw new Error(`Server returned status ${res.status}`);
-        }
-        const parsed = await res.json();
-        data = parsed.record || parsed;
+          signal: AbortSignal.timeout(3000),
+        }).catch(() => {});
       }
 
       setResult(data || {
