@@ -177,9 +177,9 @@ export async function POST(request: Request) {
       });
     }
   } catch (err: any) {
-    console.error('Tavily Research Initiation Error:', err);
+    console.error('Research Initiation Error:', err);
     return NextResponse.json(
-      { error: err.message || 'Failed to initiate Tavily research task' },
+      { error: err.message || 'Failed to initiate research task' },
       { status: 500 }
     );
   }
@@ -357,9 +357,9 @@ export async function GET(request: Request) {
       });
     }
   } catch (err: any) {
-    console.error('Tavily Research Status Polling Error:', err);
+    console.error('Research Status Polling Error:', err);
     return NextResponse.json(
-      { error: err.message || 'Failed to poll Tavily research status' },
+      { error: err.message || 'Failed to poll research status' },
       { status: 500 }
     );
   }

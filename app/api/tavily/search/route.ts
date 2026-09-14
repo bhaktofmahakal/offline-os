@@ -77,9 +77,9 @@ export async function POST(request: Request) {
       results: formattedResults,
     });
   } catch (err: any) {
-    console.error('Tavily Search Error:', err);
+    console.error('Search Engine Error:', err);
     return NextResponse.json(
-      { error: err.message || 'Tavily search execution failed' },
+      { error: err.message || 'Search execution failed' },
       { status: 500 }
     );
   }

@@ -23,7 +23,7 @@ Incoming Webhook (Airtable / Form / Portal)
       ├── Output 0 (VIP: Fit Score >= 85)
       │       │
       │       ▼
-      │   [HTTP: Autonomous Tavily Research] ───> Background POST /api/tavily/research
+      │   [HTTP: Autonomous Deep Research] ───> Background POST /api/tavily/research
       │       │
       │       ▼
       │   [Code: VIP Slack Block-Kit Formatter]
@@ -64,7 +64,7 @@ Incoming Webhook (Airtable / Form / Portal)
 
 ### A. Real-Time Slack VIP Intake Bot (`#offline-vip-intake`)
 * **Conditional Triage**: Automatically branches applicants based on their verified 100-point rubric fit score.
-* **Autonomous Deep Intelligence Trigger**: For candidates scoring $\ge 85$, n8n triggers the **Tavily Deep Research API** (`POST /api/tavily/research`) in the background. By the time an operator reviews the Slack card, the autonomous executive dossier is already pre-compiled!
+* **Autonomous Deep Intelligence Trigger**: For candidates scoring $\ge 85$, n8n triggers the **Autonomous Deep Research API** (`POST /api/tavily/research`) in the background. By the time an operator reviews the Slack card, the autonomous executive dossier is already pre-compiled!
 * **Interactive Mobile Triage Buttons (Slack Block-Kit `actions`)**:
   * 🟢 **`[Approve & Welcome]`**: Operator can approve the candidate with 1 click (`action_id: "approve_welcome"`).
   * 🤝 **`[Suggest Intro]`**: Instant warm intro discovery (`action_id: "suggest_intro"`).
@@ -102,7 +102,7 @@ curl -X POST "https://n8n-render-utsav.onrender.com/webhook/new-offline-applican
 **Expected Result**:
 * **HTTP 200 OK**: Instant enriched candidate response.
 * **Triage Branch**: Routes to `vip` branch.
-* **Tavily Research**: Initiated in the background for Vikram Sethi.
+* **Deep Research**: Initiated in the background for Vikram Sethi.
 * **Slack Payload**: Block-Kit card with interactive `[Approve & Welcome]`, `[Suggest Intro]`, and `[Deep Research Memo]` buttons dispatched to `#offline-vip-intake`.
 
 ---

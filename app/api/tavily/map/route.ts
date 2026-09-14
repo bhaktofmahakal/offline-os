@@ -27,9 +27,9 @@ export async function POST(request: Request) {
       results: response.results || [],
     });
   } catch (err: any) {
-    console.error('Tavily Map Error:', err);
+    console.error('Website Mapping Error:', err);
     return NextResponse.json(
-      { error: err.message || 'Tavily website mapping failed' },
+      { error: err.message || 'Website mapping failed' },
       { status: 500 }
     );
   }

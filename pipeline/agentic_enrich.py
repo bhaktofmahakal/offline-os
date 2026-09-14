@@ -1,6 +1,6 @@
 """
 Agentic 360° Founder Enrichment Engine
-Powered by TinyFish CLI and Tavily AI Intelligence (Zero Generic Web Searches)
+Powered by Autonomous OSINT Scrapers and Neural Search Intelligence
 """
 import json
 import os
@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional
 import urllib.request
 
 def run_tinyfish_search(query: str) -> List[Dict[str, Any]]:
-    """Execute TinyFish CLI search command to gather raw web intelligence."""
+    """Execute autonomous search command to gather raw web intelligence."""
     try:
         cmd = ["tinyfish", "search", "query", query]
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=15, shell=True)
@@ -17,11 +17,11 @@ def run_tinyfish_search(query: str) -> List[Dict[str, Any]]:
             data = json.loads(result.stdout)
             return data.get("results", [])
     except Exception as e:
-        print(f"[TINYFISH SEARCH WARNING] Failed for query '{query}': {e}")
+        print(f"[OSINT SEARCH WARNING] Failed for query '{query}': {e}")
     return []
 
 def run_tavily_search(query: str, api_key: Optional[str] = None) -> List[Dict[str, Any]]:
-    """Query Tavily AI Search for factual corporate intelligence, funding, and tech stack."""
+    """Query Neural Search for factual corporate intelligence, funding, and tech stack."""
     key = api_key or os.getenv("TAVILY_API_KEY")
     if not key:
         return []
@@ -40,7 +40,7 @@ def run_tavily_search(query: str, api_key: Optional[str] = None) -> List[Dict[st
             res_json = json.loads(response.read().decode("utf-8"))
             return res_json.get("results", [])
     except Exception as e:
-        print(f"[TAVILY SEARCH WARNING] Failed for query '{query}': {e}")
+        print(f"[NEURAL SEARCH WARNING] Failed for query '{query}': {e}")
         return []
 
 def synthesize_360_dossier(
@@ -51,7 +51,7 @@ def synthesize_360_dossier(
     sectors: List[str]
 ) -> Dict[str, Any]:
     """
-    Synthesize an enriched 360° founder dossier using TinyFish & Tavily results.
+    Synthesize an enriched 360° founder dossier using OSINT & Neural Search results.
     """
     search_query = f"{name} {company} founder"
     tinyfish_snippets = run_tinyfish_search(search_query)
@@ -68,7 +68,7 @@ def synthesize_360_dossier(
         "traction_signals": [
             f"Active {role or 'Founder'} at {company or 'Stealth'}",
             f"Domain expertise in {', '.join(sectors) if sectors else 'Technology'}",
-            "Verified online footprint via TinyFish Intelligence",
+            "Verified online footprint via Autonomous Neural Intelligence",
         ],
         "tech_stack": [s.capitalize() for s in sectors] + ["Cloud Infrastructure", "API Systems"],
         "target_synergies": [

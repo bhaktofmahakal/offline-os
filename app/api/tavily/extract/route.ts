@@ -60,9 +60,9 @@ export async function POST(request: Request) {
       failedResults: response.failedResults || [],
     });
   } catch (err: any) {
-    console.error('Tavily Extract Error:', err);
+    console.error('Content Extraction Error:', err);
     return NextResponse.json(
-      { error: err.message || 'Tavily extraction failed' },
+      { error: err.message || 'Content extraction failed' },
       { status: 500 }
     );
   }

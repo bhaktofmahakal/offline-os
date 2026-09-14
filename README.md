@@ -5,7 +5,7 @@
   <img src="https://img.shields.io/badge/Airtable-Native_Web_API-red?style=for-the-badge&logo=airtable" alt="Airtable" />
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL_%2B_pgvector-emerald?style=for-the-badge&logo=supabase" alt="Supabase" />
   <img src="https://img.shields.io/badge/Google_Gemini-2.5_Flash-orange?style=for-the-badge&logo=google" alt="Gemini" />
-  <img src="https://img.shields.io/badge/Tavily-AI_Intelligence_Suite-blue?style=for-the-badge" alt="Tavily" />
+  <img src="https://img.shields.io/badge/Neural_Intelligence-Deep_Research_Suite-blue?style=for-the-badge" alt="Intelligence Suite" />
   <img src="https://img.shields.io/badge/Security-Edge_HMAC_Auth-green?style=for-the-badge" alt="Security" />
   <img src="https://img.shields.io/badge/TypeScript-Strict-blue?style=for-the-badge&logo=typescript" alt="TypeScript" />
 </p>
@@ -69,10 +69,10 @@ flowchart TD
 
     subgraph INTEL["3. Deep Intelligence Lab & 360° Dossiers"]
         C1 --> D1[360° AI Enrichment Dossier]
-        D1 --> D2[Tavily Neural Web Search\nFunding & Media Footprint]
-        D1 --> D3[Tavily Site Crawler\nRecursive Domain Ingestion]
-        D1 --> D4[Tavily Multi-URL Extractor\nParallel Clean Markdown]
-        D1 --> D5[Tavily Autonomous Deep Research\nMulti-Query Cited Memo]
+        D1 --> D2[Neural Web Search\nFunding & Media Footprint]
+        D1 --> D3[Site Tree Crawler\nRecursive Domain Ingestion]
+        D1 --> D4[Multi-URL Extractor\nParallel Clean Markdown]
+        D1 --> D5[Autonomous Deep Research\nMulti-Query Cited Memo]
         D5 --> D6[(Supabase: intelligence_records\nPersistent Audit Ledger)]
     end
 
@@ -217,7 +217,7 @@ offline-os/
 │   │   │   └── optimize/             # POST: Bilateral table compatibility optimizer
 │   │   ├── slack/                    # Slack Integrations
 │   │   │   └── actions/              # POST: Interactive Slack notification receiver
-│   │   ├── tavily/                   # Tavily AI Intelligence Suite
+│   │   ├── tavily/                   # Deep Intelligence & Neural Web Suite
 │   │   │   ├── crawl/                # POST: Recursive domain crawler
 │   │   │   ├── extract/              # POST: Multi-URL parallel content extractor
 │   │   │   ├── map/                  # POST: Domain URL hierarchy mapper
@@ -236,7 +236,7 @@ offline-os/
 ├── lib/                              # Shared Core Libraries
 │   ├── auth.ts                       # Web Crypto HMAC-SHA256 session management
 │   ├── supabase.ts                   # Supabase PostgreSQL & pgvector client
-│   └── tavily.ts                     # Tavily client singleton
+│   └── tavily.ts                     # Neural intelligence client singleton
 ├── middleware.ts                     # Next.js Edge Middleware for global route protection
 ├── n8n/                              # n8n Automated Workflows
 │   └── offline-crm-pipeline.json     # Importable webhook-to-Slack workflow
@@ -260,7 +260,7 @@ offline-os/
 * **npm** v9.0.0 or higher
 * **Supabase Project** (PostgreSQL with `pgvector` extension enabled)
 * **Google Gemini API Key** (`AIza...`)
-* **Tavily API Key** (`tvly-...`)
+* **Neural Intelligence API Key** (`tvly-...`)
 * **Airtable Personal Access Token** (`pat...`)
 
 ### 2. Environment Configuration
@@ -286,7 +286,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi...
 # Google Gemini (Deduplication adjudication, Fit scoring, Icebreaker drafts)
 GEMINI_API_KEY=AIzaSy...
 
-# Tavily AI (Deep research, site crawling, clean extraction, neural search)
+# Neural Intelligence Suite (Deep research, site crawling, clean extraction, neural search)
 TAVILY_API_KEY=tvly-...
 
 # ==============================================================================

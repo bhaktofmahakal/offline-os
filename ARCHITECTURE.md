@@ -33,11 +33,11 @@ flowchart TD
     %% DEEP INTELLIGENCE
     subgraph INTEL["3. DEEP INTELLIGENCE & RESEARCH SUITE"]
         C1 --> D1[360° AI Enrichment Pipeline]
-        D1 --> D2[TinyFish CLI Scraper\nGitHub / Portfolio Extraction]
-        D1 --> D3[Tavily Neural Web Search\nFunding, Exits & Press Footprint]
+        D1 --> D2[Headless OSINT Scraper\nGitHub / Portfolio Extraction]
+        D1 --> D3[Neural Web Search\nFunding, Exits & Press Footprint]
         D1 --> D4[Gemini 2.5 Flash Synthesis\nTech Stack + Traction Signals]
         
-        C1 --> D5[Tavily Deep Research Subsystem]
+        C1 --> D5[Autonomous Deep Research Engine]
         D5 --> D6[Task Creator: POST /api/tavily/research\nModel: mini / pro]
         D6 --> D7[Async Poller: GET /api/tavily/research?requestId=...\nStatus: pending -> in_progress -> completed]
         D7 --> D8[Cited Markdown Dossier + Sources List]
@@ -112,10 +112,10 @@ flowchart TD
 
 ---
 
-### Subsystem C: Deep Intelligence & Autonomous Research (`@tavily/core`)
-NetworkOS integrates the complete **Tavily AI Core Suite** as an autonomous intelligence subsystem with **100% database persistence**:
+### Subsystem C: Deep Intelligence & Autonomous Research Engine
+NetworkOS integrates an autonomous intelligence subsystem with **100% database persistence**:
 1. **Asynchronous Deep Research Task (`/api/tavily/research`)**:
-   * Dispatches long-form research tasks using `client.research(input, { model: 'mini' | 'pro' })`.
+   * Dispatches long-form research tasks using background autonomous research agents (`model: 'mini' | 'pro'`).
    * Returns an immediate `requestId`.
    * Frontend polls `GET /api/tavily/research?requestId=...` until `status === 'completed'`.
    * Automatically persists the resulting markdown intelligence report and verified primary sources to `public.intelligence_records` (and to `people.ai_classification.deep_memo` when executed from a member's profile drawer).
@@ -134,7 +134,7 @@ NetworkOS integrates the complete **Tavily AI Core Suite** as an autonomous inte
 ### Subsystem D: 360° AI Enrichment & Dossier Persistence Engine
 * Located in [`app/api/people/enrich/route.ts`](file:///u:/offline-os/app/api/people/enrich/route.ts).
 * **Fusion Logic**:
-  * Step 1: Queries **Tavily Advanced Search** for founder background, venture funding rounds, accelerators (Y Combinator, Techstars), and recent press coverage.
+  * Step 1: Queries **Neural Advanced Web Search** for founder background, venture funding rounds, accelerators (Y Combinator, Techstars), and recent press coverage.
   * Step 2: **Gemini 2.5 Flash** synthesizes raw web evidence into a high-density structured JSON 360° Founder Dossier:
     * `executive_summary`: Concise 2-sentence executive summary highlighting domain depth and current company focus.
     * `traction_signals`: Specific factual traction indicators and leadership background.
@@ -199,7 +199,7 @@ NetworkOS integrates the complete **Tavily AI Core Suite** as an autonomous inte
 | Layer | Chosen Technology | Rationale & Alternatives Evaluated |
 | :--- | :--- | :--- |
 | **Framework** | Next.js 14 App Router (TypeScript) | Full-stack unified architecture; serverless API route handlers eliminate dedicated backend microservice dependencies. |
-| **Autonomous Intelligence** | `@tavily/core` v0.7+ | Built specifically for agentic workflows with asynchronous deep research, recursive crawling, and clean markdown extraction. Evaluated Google Custom Search (no crawler/extract) and SerpApi (no deep research pipeline). |
+| **Autonomous Intelligence** | Deep Neural Research Engine | Built specifically for agentic workflows with asynchronous deep research, recursive crawling, and clean markdown extraction. Evaluated Google Custom Search (no crawler/extract) and SerpApi (no deep research pipeline). |
 | **Airtable Integration** | Native HTTP REST (Zero-SDK) | Modern `fetch()` with scoped PAT avoids `airtable.js` legacy callback bloat and unblocks 7-day webhook lifecycle operations. |
 | **Database & Vector Search**| Supabase PostgreSQL + `pgvector` | ACIDs-compliant relational integrity for canonical/duplicate linkages combined with native 768-dim cosine similarity search. |
 | **LLM Classification** | Google Gemini 2.5 Flash | High throughput, sub-second latency, and strict schema adherence via structured JSON outputs (`response_schema`). |
@@ -227,7 +227,7 @@ flowchart LR
         B1["1. Seating Optimizer\n(Aparna: 8-Person Tables)"]
         B2["2. Superpower Matrix\n(Sahil: Reciprocal Intros)"]
         B3["3. Churn Telemetry\n(Sharon: 30/60/90d Radar)"]
-        B4["4. TinyFish Waterfall\n(Enrichment: Stealth/GitHub)"]
+        B4["4. OSINT Waterfall\n(Enrichment: Stealth/GitHub)"]
         B5["5. Slack VIP Concierge\n(Utsav: 1-Click Mobile Flow)"]
         B6["6. Two-Stage Retrieval\n(10k+ Scale: HNSW + LLM)"]
     end
@@ -255,13 +255,13 @@ flowchart LR
   * **Inactivity Radar**: Tracks member interactions across pod sessions, retreat attendances, and introduction responses. Automatically flags members with 45+ days of silence: *"Sharon: Member X has not engaged in 45 days. Recommended action: Propose 2 curated intros with newly joined founders."*
   * **Automated 'Year-in-Review' Concierge**: 30 days prior to annual membership renewal (₹1.5L–₹3L/yr), compiles a bespoke executive dossier highlighting all peer connections made, mutual value exchanged, and confidential off-the-record insights unlocked through Offline.
 
-### 💡 Blueprint 4: Multi-Provider Waterfall Enrichment & TinyFish Scraper
+### 💡 Blueprint 4: Multi-Provider Waterfall Enrichment & Headless Scraper
 * **Stakeholder**: Founder's Office Ingestion Pipeline.
 * **Platform Capability**:
   * Solves the **"1-Line Stealth Bio"** bottleneck where high-profile founders submit minimalist bios (*"Founder at stealth, ex-Google"*).
   * **Tiered Waterfall Pipeline**:
-    1. **TinyFish Autonomous Scraper**: Headless, anti-fingerprinting crawler targeting the founder's personal domain, GitHub repositories, and open-source contributions.
-    2. **Tavily Neural Web Search**: Real-time cross-referencing against SEC filings, funding announcements, AngelList syndicate memos, and tech press.
+    1. **Autonomous Headless Scraper**: Anti-fingerprinting crawler targeting the founder's personal domain, GitHub repositories, and open-source contributions.
+    2. **Neural Web Search**: Real-time cross-referencing against SEC filings, funding announcements, AngelList syndicate memos, and tech press.
     3. **Gemini 3.6 Flash Synthesis**: Consolidates scraped web crumbs into a structured 360° executive profile before human review.
 
 ### 💡 Blueprint 5: Real-Time Slack VIP Intake Concierge Bot (`#offline-vip-intake`)
@@ -271,7 +271,7 @@ flowchart LR
   * Features interactive inline action buttons:
     * `[🟢 Approve & Welcome]`: Dispatches member onboarding sequence.
     * `[🤝 Suggest Intro]`: Links to candidate matchmaker.
-    * `[🔬 Deep Research Dossier]`: Opens the Tavily autonomous intelligence briefing.
+    * `[🔬 Deep Research Dossier]`: Opens the autonomous intelligence briefing.
 
 ### 💡 Blueprint 6: Two-Stage Hybrid Vector Retrieval at 10,000+ Scale
 * **Stakeholder**: Core Database & Recommendation Infrastructure.

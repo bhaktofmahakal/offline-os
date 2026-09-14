@@ -78,9 +78,9 @@ export async function POST(request: Request) {
       results: formattedResults,
     });
   } catch (err: any) {
-    console.error('Tavily Crawl Error:', err);
+    console.error('Website Crawl Error:', err);
     return NextResponse.json(
-      { error: err.message || 'Tavily website crawl failed' },
+      { error: err.message || 'Website crawl failed' },
       { status: 500 }
     );
   }
