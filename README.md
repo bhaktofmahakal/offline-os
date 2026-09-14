@@ -25,14 +25,34 @@ It replaces static spreadsheets, manual candidate evaluation, and disconnected t
 
 ---
 
-## 🌐 Live Production Deployments & Links
+## Video Walkthrough & Architecture Deep-Dive
+
+Watch the complete end-to-end live demonstration of NetworkOS running on local development and production environments:
+
+**Direct Video Link:** [https://youtu.be/sYEWTe8BaaY](https://youtu.be/sYEWTe8BaaY)
+
+### Walkthrough Chapters:
+- `0:00` - Introduction & Architecture Context
+- `0:45` - Live Batch CSV Ingestion & Streaming Console Logs
+- `1:40` - Web Scraping & 360 Degree Profile Enrichment
+- `2:45` - Low-Level DNS MX Mail Server Socket Verification (`dns.resolveMx`)
+- `4:00` - Strict Entity Disambiguation & Gemini JSON Schema
+- `5:15` - Sub-Millisecond 2-Tier Deduplication & Merging
+- `6:20` - Reciprocal Matchmaking & Algorithmic VIP Seating
+- `7:30` - Senior Engineering Critique: Production Failure Modes & Architectural Fixes
+- `8:30` - Production Queues & Summary
+
+---
+
+## Live Production Deployments & Links
 
 | Component | Platform | Status | URL | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| **Operator Console** | **Vercel** | 🟢 Live 24/7 | **[https://offline-os-gray.vercel.app](https://offline-os-gray.vercel.app)** | Executive dashboard (Members, Duplicates, Intros, Seating, Intelligence Lab) |
-| **Executive Sign In** | **Vercel** | 🟢 Live 24/7 | **[https://offline-os-gray.vercel.app/login](https://offline-os-gray.vercel.app/login)** | Protected edge-authenticated access portal |
-| **Public Applicant Portal** | **Vercel** | 🟢 Live 24/7 | **[https://offline-os-gray.vercel.app/apply](https://offline-os-gray.vercel.app/apply)** | Whitelisted public applicant intake form |
-| **GitHub Repository** | **GitHub** | 🟢 Public | **[https://github.com/bhaktofmahakal/offline-os](https://github.com/bhaktofmahakal/offline-os)** | Full source code with automated CI/CD deployment |
+| **Video Walkthrough** | **YouTube** | Live | **[https://youtu.be/sYEWTe8BaaY](https://youtu.be/sYEWTe8BaaY)** | Complete live systems run, code walkthrough & architecture deep-dive (9 mins) |
+| **Operator Console** | **Vercel** | Live 24/7 | **[https://offline-os-gray.vercel.app](https://offline-os-gray.vercel.app)** | Executive dashboard (Members, Duplicates, Intros, Seating, Intelligence Lab) |
+| **Executive Sign In** | **Vercel** | Live 24/7 | **[https://offline-os-gray.vercel.app/login](https://offline-os-gray.vercel.app/login)** | Protected edge-authenticated access portal |
+| **Public Applicant Portal** | **Vercel** | Live 24/7 | **[https://offline-os-gray.vercel.app/apply](https://offline-os-gray.vercel.app/apply)** | Whitelisted public applicant intake form |
+| **GitHub Repository** | **GitHub** | Public | **[https://github.com/bhaktofmahakal/offline-os](https://github.com/bhaktofmahakal/offline-os)** | Full source code with automated CI/CD deployment |
 
 ---
 
