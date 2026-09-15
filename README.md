@@ -25,22 +25,8 @@ It replaces static spreadsheets, manual candidate evaluation, and disconnected t
 
 ---
 
-## Video Walkthrough & Architecture Deep-Dive
+** short demo:** [https://youtu.be/sYEWTe8BaaY](https://youtu.be/sYEWTe8BaaY)
 
-Watch the complete end-to-end live demonstration of NetworkOS running on local development and production environments:
-
-**Direct Video Link:** [https://youtu.be/sYEWTe8BaaY](https://youtu.be/sYEWTe8BaaY)
-
-### Walkthrough Chapters:
-- `0:00` - Introduction & Architecture Context
-- `0:45` - Live Batch CSV Ingestion & Streaming Console Logs
-- `1:40` - Web Scraping & 360 Degree Profile Enrichment
-- `2:45` - Low-Level DNS MX Mail Server Socket Verification (`dns.resolveMx`)
-- `4:00` - Strict Entity Disambiguation & Gemini JSON Schema
-- `5:15` - Sub-Millisecond 2-Tier Deduplication & Merging
-- `6:20` - Reciprocal Matchmaking & Algorithmic VIP Seating
-- `7:30` - Senior Engineering Critique: Production Failure Modes & Architectural Fixes
-- `8:30` - Production Queues & Summary
 
 ---
 
